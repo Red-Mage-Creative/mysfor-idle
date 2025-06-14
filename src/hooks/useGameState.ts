@@ -29,6 +29,10 @@ export const useGameState = () => {
     const [buyQuantity, setBuyQuantity] = useState<BuyQuantity>(1);
     const [overclockLevel, setOverclockLevel] = useState(0);
     const [devMode, _setDevMode] = useState(() => {
+        // Dev mode is only available in development environments
+        if (!import.meta.env.DEV) {
+            return false;
+        }
         try {
             const stored = localStorage.getItem(DEV_MODE_KEY);
             return stored ? JSON.parse(stored) : false;
@@ -38,6 +42,10 @@ export const useGameState = () => {
     });
 
     const setDevMode = useCallback((value: boolean | ((prevState: boolean) => boolean)) => {
+        // Do not allow changing dev mode in production
+        if (!import.meta.env.DEV) {
+            return;
+        }
         _setDevMode(prev => {
             const newState = typeof value === 'function' ? value(prev) : value;
             localStorage.setItem(DEV_MODE_KEY, JSON.stringify(newState));

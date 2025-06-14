@@ -12,6 +12,9 @@ const Header = () => {
     const { devMode, toggleDevMode, devGrantResources } = game || {};
 
     useEffect(() => {
+        // The keyboard shortcut should only be active in development
+        if (!import.meta.env.DEV) return;
+
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
                 e.preventDefault();
@@ -37,21 +40,26 @@ const Header = () => {
           <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-clip-text text-transparent">Mystic Forge</h1>
         </Link>
         <nav className="hidden md:flex items-center gap-4">
-            <div className="flex items-center gap-2 pr-4 border-r">
-                <Switch
-                    id="dev-mode-switch"
-                    checked={devMode}
-                    onCheckedChange={toggleDevMode}
-                    disabled={!toggleDevMode}
-                />
-                <Label htmlFor="dev-mode-switch" className="text-sm font-medium whitespace-nowrap">Dev Mode</Label>
-            </div>
+            {/* Dev mode controls are only available in development */}
+            {import.meta.env.DEV && (
+              <>
+                <div className="flex items-center gap-2 pr-4 border-r">
+                    <Switch
+                        id="dev-mode-switch"
+                        checked={!!devMode}
+                        onCheckedChange={toggleDevMode}
+                        disabled={!toggleDevMode}
+                    />
+                    <Label htmlFor="dev-mode-switch" className="text-sm font-medium whitespace-nowrap">Dev Mode</Label>
+                </div>
 
-            {devMode && (
-                <Button size="sm" variant="outline" onClick={devGrantResources}>
-                    <Zap className="mr-2 h-4 w-4" />
-                    Grant Resources
-                </Button>
+                {devMode && (
+                    <Button size="sm" variant="outline" onClick={devGrantResources}>
+                        <Zap className="mr-2 h-4 w-4" />
+                        Grant Resources
+                    </Button>
+                )}
+              </>
             )}
           <NavLink to="/" className={navLinkClasses} end>
             <Gamepad2 className="h-4 w-4" />
