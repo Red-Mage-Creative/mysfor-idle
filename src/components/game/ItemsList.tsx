@@ -143,14 +143,14 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                     <div className="flex items-baseline flex-wrap gap-x-1.5">
                                                         {details && details.purchaseQuantity > 1 ? (
                                                             <>
-                                                                <span className="text-muted-foreground">Each:</span>
+                                                                <span className="text-muted-foreground">Cost (Each):</span>
                                                                 {Object.entries(item.cost).map(([curr, val], index, arr) => (
                                                                     <span key={curr} className="font-semibold text-foreground/90">
                                                                         {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
                                                                     </span>
                                                                 ))}
                                                                 <span className="text-muted-foreground mx-1">|</span>
-                                                                <span className="text-muted-foreground">Total:</span>
+                                                                <span className="text-muted-foreground">Total Cost:</span>
                                                                 {Object.entries(details.purchaseCost).map(([curr, val], index, arr) => (
                                                                     <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-muted-foreground/50")}>
                                                                         {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
