@@ -1,3 +1,4 @@
+
 import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand } from 'lucide-react';
 import { Item } from './gameTypes';
 
@@ -108,8 +109,3 @@ export const initialItems: Item[] = [
     category: 'Mystical Artifacts',
   },
 ];
-
-export const getFreshInitialItems = (): Item[] => initialItems.map(item => ({...item, cost: { ...item.cost }, baseCost: { ...item.baseCost }, generation: { ...item.generation }}));
-
-// It makes more sense to have this function here with the other one.
-export const getFreshInitialItemUpgrades = () => allItemUpgrades.map(upgrade => ({ ...upgrade }));
