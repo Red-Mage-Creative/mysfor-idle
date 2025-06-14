@@ -128,6 +128,112 @@ export const useGameLogic = () => {
     }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers]);
 
     useEffect(() => {
+        const loadGame = () => {
+            try {
+                const savedGame = localStorage.getItem(SAVE_KEY);
+
+                if (!savedGame) {
+                    return; // No save data, start fresh
+                }
+                
+                const saveData: GameSaveData = JSON.parse(savedGame);
+
+                if(saveData.version !== CURRENT_SAVE_VERSION) {
+                    console.warn(`Save file version mismatch. Expected ${CURRENT_SAVE_VERSION}, got ${saveData.version}. Starting fresh.`);
+                    localStorage.removeItem(SAVE_KEY);
+                    return;
+                }
+                
+                const timeAway = (Date.now() - saveData.lastSaveTimestamp) / 1000; // seconds
+
+                if (timeAway > 60) { // Only calculate for >1 min away
+                    // --- Re-calculate multipliers and generation based on SAVED data ---
+                    
+                    const prestigeMultipliers = { manaClick: 1, allProduction: 1, shardGain: 1 };
+                    for (const upgrade of prestigeUpgrades) {
+                        const level = saveData.prestigeUpgradeLevels[upgrade.id] || 0;
+                        if (level > 0) {
+                            switch (upgrade.effect.type) {
+                                case 'manaClickMultiplier': prestigeMultipliers.manaClick *= upgrade.effect.value(level); break;
+                                case 'allProductionMultiplier': prestigeMultipliers.allProduction *= upgrade.effect.value(level); break;
+                                case 'shardGainMultiplier': prestigeMultipliers.shardGain *= upgrade.effect.value(level); break;
+                            }
+                        }
+                    }
+
+                    const itemUpgradeMultipliers: Record<string, { generation: number; click: number }> = {};
+                    for (const item of saveData.items) {
+                        itemUpgradeMultipliers[item.id] = { generation: 1, click: 1 };
+                    }
+                    for (const upgrade of saveData.itemUpgrades) {
+                        if (upgrade.purchased) {
+                            if (upgrade.effect.type === 'generationMultiplier') {
+                                itemUpgradeMultipliers[upgrade.parentItemId].generation *= upgrade.effect.value;
+                            }
+                            if (upgrade.effect.type === 'clickMultiplier') {
+                                itemUpgradeMultipliers[upgrade.parentItemId].click *= upgrade.effect.value;
+                            }
+                        }
+                    }
+
+                    const offlineGps = saveData.items.reduce((acc, item) => {
+                        if (item.level > 0) {
+                            for (const currency in item.generation) {
+                                const key = currency as Currency;
+                                const itemMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
+                                const value = (item.generation[key] || 0) * item.level * itemMultiplier;
+                                acc[key] = (acc[key] || 0) + value;
+                            }
+                        }
+                        return acc;
+                    }, {} as Partial<Currencies>);
+
+                    for (const key in offlineGps) {
+                        const currency = key as Currency;
+                        offlineGps[currency] = (offlineGps[currency] || 0) * prestigeMultipliers.allProduction;
+                    }
+
+                    // --- Calculate and apply earnings ---
+                    const earnings: CurrencyRecord = {};
+                    Object.entries(offlineGps).forEach(([currency, rate]) => {
+                        earnings[currency as Currency] = rate * timeAway * 0.5; // 50% offline rate
+                    });
+                    
+                    let manaEarned = 0;
+                    Object.entries(earnings).forEach(([currency, amount]) => {
+                        const key = currency as Currency;
+                        saveData.currencies[key] = (saveData.currencies[key] || 0) + amount;
+                        if(key === 'mana') manaEarned = amount;
+                    });
+
+                    saveData.lifetimeMana += manaEarned;
+                    
+                    if (Object.values(earnings).some(v => v > 0)) {
+                        setOfflineEarnings({ timeAway, earnings });
+                    }
+                }
+                
+                // --- Set all state from save data ---
+                setCurrencies(saveData.currencies);
+                setItems(saveData.items);
+                setItemUpgrades(saveData.itemUpgrades);
+                setLifetimeMana(saveData.lifetimeMana);
+                setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
+                setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
+                setHasEverClicked(saveData.hasEverClicked);
+
+            } catch (error) {
+                console.error("Failed to load save data. Starting fresh.", error);
+                localStorage.removeItem(SAVE_KEY);
+            } finally {
+                setIsLoaded(true);
+            }
+        };
+
+        loadGame();
+    }, []); // Empty dependency array ensures this runs only once on mount
+
+    useEffect(() => {
         const gameLoop = setInterval(() => {
             let manaGeneratedThisTick = 0;
             setCurrencies(prev => {
