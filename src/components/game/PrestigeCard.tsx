@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -37,7 +36,7 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
 
     if (prestigeVisibility === 'teaser') {
         return (
-            <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-dashed border-amber-500/20 shadow-lg animate-pulse">
+            <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-dashed border-amber-500/20 shadow-lg">
                 <CardHeader>
                     <CardTitle className="flex items-center justify-center gap-4 text-xl text-amber-400/80">
                         <Star className="w-8 h-8 text-amber-400/50" />
@@ -56,7 +55,7 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
     return (
         <Card className="w-full bg-gradient-to-br from-amber-500/10 via-card/80 to-amber-500/10 backdrop-blur-sm border-2 border-amber-500/40 shadow-lg">
             <CardHeader>
-                <CardTitle className="flex items-center justify-center gap-4 text-2xl text-amber-400" style={{filter: `drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))`}}>
+                <CardTitle className="flex items-center justify-center gap-4 text-2xl text-amber-400">
                     <Star className="w-8 h-8 text-amber-400" />
                     <span>{formatNumber(currencies.aetherShards)} Aether Shards</span>
                 </CardTitle>

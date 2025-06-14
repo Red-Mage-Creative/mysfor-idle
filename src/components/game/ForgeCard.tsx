@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Zap, Settings, Gem, BrainCircuit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -46,7 +45,7 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
     return (
         <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg overflow-hidden">
             <CardHeader>
-                <CardTitle className="text-4xl font-bold text-primary animate-pulse">{formatNumber(currencies.mana)} Mana</CardTitle>
+                <CardTitle className="text-4xl font-bold text-primary">{formatNumber(currencies.mana)} Mana</CardTitle>
                 <CardDescription className="text-muted-foreground flex justify-center items-center gap-2">
                     <span>{formatNumber(generationPerSecond.mana || 0)}/s</span>
                     <span className="text-xs">|</span>
@@ -81,17 +80,16 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     )}
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                    <div className="absolute -inset-4 rounded-full bg-primary/10 blur-xl animate-pulse group-hover:bg-primary/20 duration-500" />
+                    <div className="absolute -inset-4 rounded-full bg-primary/10 blur-xl group-hover:bg-primary/20 duration-500" />
                     <Zap 
                         className="relative w-48 h-48 sm:w-64 sm:h-64 text-primary transition-all group-hover:scale-105" 
                         strokeWidth={1.5}
-                        style={{ filter: `drop-shadow(0 0 12px hsl(var(--primary) / 0.8))` }}
                     />
                 </button>
                 {showTutorial && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-28 sm:mt-36 pointer-events-none">
-                        <div className="animate-pulse flex flex-col items-center gap-1">
-                            <p className="text-xl font-bold text-primary drop-shadow-md">Click to Forge Mana!</p>
+                        <div className="flex flex-col items-center gap-1">
+                            <p className="text-xl font-bold text-primary">Click to Forge Mana!</p>
                         </div>
                     </div>
                 )}
@@ -99,7 +97,7 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     <div
                         key={ft.id}
                         className="absolute text-2xl font-bold text-primary pointer-events-none animate-float-up"
-                        style={{ top: ft.y, left: ft.x, filter: `drop-shadow(0 0 5px hsl(var(--primary) / 0.8))` }}
+                        style={{ top: ft.y, left: ft.x }}
                     >
                         {ft.text}
                     </div>
