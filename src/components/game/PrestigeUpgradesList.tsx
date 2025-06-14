@@ -80,10 +80,12 @@ const PrestigeUpgradeItem = ({
                             variant="secondary"
                         >
                             {isMaxLevel ? 'Maxed' : (
-                                <div className="flex items-center gap-1">
-                                    <Gem />
-                                    <span>{formatNumber(cost)}</span>
-                                </div>
+                                !canAfford ? 'Cannot Afford' : (
+                                    <div className="flex items-center gap-1">
+                                        <Gem />
+                                        <span>{formatNumber(cost)}</span>
+                                    </div>
+                                )
                             )}
                         </Button>
                     )}

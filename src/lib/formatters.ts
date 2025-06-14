@@ -24,6 +24,11 @@ export const formatNumber = (num: number): string => {
   return `${shortValue}${suffixes[suffixNum]}`;
 };
 
+export const formatMultiplier = (value: number): string => {
+    if (value <= 1) return 'No bonus';
+    return `x${formatNumber(value)}`;
+};
+
 export const currencyName = (currency: Currency): string => {
   switch (currency) {
     case 'mana': return 'Mana';

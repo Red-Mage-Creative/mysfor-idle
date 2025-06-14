@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from '@/components/ui/badge';
 import { Star, Zap, Gem, Hourglass, ChevronsUp } from 'lucide-react';
+import { formatMultiplier } from '@/lib/formatters';
 
 interface PrestigeBonusesSummaryProps {
   prestigeCount: number;
@@ -16,11 +17,6 @@ interface PrestigeBonusesSummaryProps {
     shardGain: number;
     offlineProduction: number;
   };
-}
-
-const formatMultiplier = (value: number) => {
-    if (value <= 1) return 'No bonus';
-    return `x${value.toFixed(2)}`;
 }
 
 const PrestigeBonusesSummary = ({ prestigeCount, prestigeMultipliers }: PrestigeBonusesSummaryProps) => {

@@ -2,8 +2,9 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { OfflineEarnings } from '@/lib/gameTypes';
+import { OfflineEarnings, Currency } from '@/lib/gameTypes';
 import { Clock, Sparkles } from 'lucide-react';
+import { formatNumber, currencyName } from '@/lib/formatters';
 
 interface OfflineEarningsModalProps {
     isOpen: boolean;
@@ -40,7 +41,7 @@ const OfflineEarningsModal: React.FC<OfflineEarningsModalProps> = ({ isOpen, onC
                     <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
                         {earnedCurrencies.map(([currency, value]) => (
                              <li key={currency}>
-                                <strong>{Math.floor(value).toLocaleString()}</strong> {currency.replace(/([A-Z])/g, ' $1').trim()}
+                                <strong>{formatNumber(Math.floor(value))}</strong> {currencyName(currency as Currency)}
                             </li>
                         ))}
                     </ul>
