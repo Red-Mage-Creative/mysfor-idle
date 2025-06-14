@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Zap, Settings, Gem, BrainCircuit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Currencies } from '@/lib/gameTypes';
+import { Currencies, Currency } from '@/lib/gameTypes';
 import { formatNumber } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 
@@ -14,35 +14,21 @@ interface ForgeCardProps {
     showTutorial?: boolean;
 }
 
+interface FloatingIcon {
+    id: number;
+    x: number;
+    y: number;
+    rotation: number;
+    Icon: React.ElementType;
+    color: string;
+}
+
 const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick, showTutorial = false }: ForgeCardProps) => {
     const [isClicking, setIsClicking] = useState(false);
     const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number, text: string }[]>([]);
     const [floatingZaps, setFloatingZaps] = useState<{ id: number; x: number; y: number; rotation: number }[]>([]);
-    const [shadowIntensity, setShadowIntensity] = useState(0); // 0 to 100 scale
-    const decayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const decayIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-    const startDecay = useCallback(() => {
-        if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
-        decayIntervalRef.current = setInterval(() => {
-            setShadowIntensity(prev => {
-                const newIntensity = prev - 5;
-                if (newIntensity <= 0) {
-                    if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
-                    return 0;
-                }
-                return newIntensity;
-            });
-        }, 50);
-    }, []);
-
-    useEffect(() => {
-        // Cleanup timers on component unmount
-        return () => {
-            if (decayTimeoutRef.current) clearTimeout(decayTimeoutRef.current);
-            if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
-        };
-    }, []);
+    const [floatingCurrencies, setFloatingCurrencies] = useState<FloatingIcon[]>([]);
+    const cardContentRef = useRef<HTMLDivElement>(null);
 
     const handleForgeClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -60,18 +46,6 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
             setFloatingTexts(current => current.slice(1));
         }, 500);
 
-        // Clear any existing decay timers
-        if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
-        if (decayTimeoutRef.current) clearTimeout(decayTimeoutRef.current);
-
-        // Increase shadow intensity on click, capped at 100
-        setShadowIntensity(prev => Math.min(prev + 15, 100));
-
-        // Set a timeout to start decaying the shadow effect after a period of inactivity
-        decayTimeoutRef.current = setTimeout(() => {
-            startDecay();
-        }, 200);
-
         // Add floating zap effect
         const button = e.currentTarget;
         const centerX = button.offsetLeft + button.offsetWidth / 2;
@@ -88,20 +62,68 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
             setFloatingZaps(current => current.filter(z => z.id !== newZap.id));
         }, 500);
 
-    }, [manaPerClick, onForgeClick, startDecay]);
+    }, [manaPerClick, onForgeClick]);
 
     const otherCurrencies = [
         { key: 'cogwheelGears', name: 'Gears', Icon: Settings, color: 'text-yellow-400', colorLight: 'text-yellow-400/80' },
         { key: 'essenceFlux', name: 'Essence', Icon: Gem, color: 'text-fuchsia-400', colorLight: 'text-fuchsia-400/80' },
         { key: 'researchPoints', name: 'Research', Icon: BrainCircuit, color: 'text-sky-400', colorLight: 'text-sky-400/80' },
     ] as const;
+    
+    const currencyMeta: Record<string, { Icon: React.ElementType; color: string; }> = {
+        mana: { Icon: Zap, color: 'text-primary' },
+        cogwheelGears: { Icon: Settings, color: 'text-yellow-400' },
+        essenceFlux: { Icon: Gem, color: 'text-fuchsia-400' },
+        researchPoints: { Icon: BrainCircuit, color: 'text-sky-400' },
+    };
+
+    useEffect(() => {
+        const intervals: NodeJS.Timeout[] = [];
+        const element = cardContentRef.current;
+        if (!element) return;
+
+        Object.entries(generationPerSecond).forEach(([currency, rate]) => {
+            const meta = currencyMeta[currency as Currency];
+            if (!meta || !rate || rate <= 0) return;
+
+            // Interval scales with production rate. More production = shorter interval.
+            // Capped at 50ms (20/sec) to prevent excessive effects.
+            const intervalTime = Math.max(50, 4000 / Math.pow(rate, 0.8));
+
+            const interval = setInterval(() => {
+                setFloatingCurrencies(prev => {
+                    // Limit total floating icons to avoid performance issues
+                    if (prev.length > 20) return prev;
+
+                    const rect = element.getBoundingClientRect();
+                    const x = Math.random() * rect.width;
+                    const y = Math.random() * rect.height;
+                    const rotation = Math.random() * 90 - 45;
+
+                    const newIcon: FloatingIcon = {
+                        id: Date.now() + Math.random(),
+                        x, y, rotation,
+                        Icon: meta.Icon,
+                        color: meta.color,
+                    };
+                    
+                    // Automatically remove the icon after the animation finishes
+                    setTimeout(() => {
+                        setFloatingCurrencies(current => current.filter(c => c.id !== newIcon.id));
+                    }, 500);
+
+                    return [...prev, newIcon];
+                });
+            }, intervalTime);
+            intervals.push(interval);
+        });
+
+        return () => {
+            intervals.forEach(clearInterval);
+        };
+    }, [generationPerSecond]);
 
     const visibleCurrencies = otherCurrencies.filter(c => currencies[c.key] > 0 || (generationPerSecond[c.key] || 0) > 0);
-
-    const dynamicShadowStyle = {
-        filter: `drop-shadow(0 0 ${shadowIntensity * 0.3}px hsl(240 100% 70% / ${shadowIntensity / 125}))`,
-        transform: `scale(${1 + shadowIntensity * 0.0005})`,
-    };
 
     return (
         <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg overflow-hidden">
@@ -132,7 +154,7 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     </div>
                 )}
             </CardHeader>
-            <CardContent className="relative">
+            <CardContent ref={cardContentRef} className="relative">
                 <button 
                     onClick={handleForgeClick}
                     className={cn(
@@ -144,7 +166,6 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     <Zap 
                         className="relative w-48 h-48 sm:w-64 sm:h-64 text-primary transition-all duration-100" 
                         strokeWidth={1.5}
-                        style={dynamicShadowStyle}
                     />
                 </button>
                 {showTutorial && (
@@ -176,9 +197,23 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                         }}
                     />
                 ))}
+                {floatingCurrencies.map(icon => (
+                    <icon.Icon
+                        key={icon.id}
+                        className={cn("absolute pointer-events-none animate-zap-pop", icon.color)}
+                        size={28}
+                        strokeWidth={1.5}
+                        style={{
+                            top: icon.y,
+                            left: icon.x,
+                            transform: `translate(-50%, -50%) rotate(${icon.rotation}deg)`,
+                        }}
+                    />
+                ))}
             </CardContent>
         </Card>
     );
 };
 
 export default ForgeCard;
+
