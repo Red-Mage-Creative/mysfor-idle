@@ -13,7 +13,7 @@ type UseGameActionsProps = UseGameState & {
     potentialShards: number;
     canPrestige: boolean;
     debouncedSave: () => void;
-    saveGame: (isAutoSave?: boolean) => void;
+    queueSave: () => void;
 };
 
 export const useGameActions = ({
@@ -31,7 +31,7 @@ export const useGameActions = ({
     potentialShards,
     canPrestige,
     debouncedSave,
-    saveGame,
+    queueSave,
 }: UseGameActionsProps) => {
 
     const updateBuyQuantity = useCallback((q: BuyQuantity) => {
@@ -114,8 +114,8 @@ export const useGameActions = ({
         toast.success("Item Upgraded!", {
           description: `You have purchased ${upgrade.name}.`,
         });
-        debouncedSave();
-    }, [currencies, itemUpgrades, debouncedSave]);
+        queueSave();
+    }, [currencies, itemUpgrades, queueSave, setItemUpgrades, setCurrencies]);
     
     const handleBuyWorkshopUpgrade = useCallback((upgradeId: string) => {
         const upgrade = workshopUpgrades.find(u => u.id === upgradeId);
@@ -143,8 +143,8 @@ export const useGameActions = ({
         toast.success("Workshop Upgraded!", {
           description: `You have purchased ${upgrade.name}.`,
         });
-        debouncedSave();
-    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, debouncedSave]);
+        queueSave();
+    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, queueSave]);
     
     const handlePrestige = () => {
         if (!canPrestige) return;
@@ -168,7 +168,7 @@ export const useGameActions = ({
         toast("Dimensional Shift!", {
           description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
         });
-        saveGame(); // Immediate save on prestige
+        queueSave();
     };
 
     const handleBuyPrestigeUpgrade = useCallback((upgradeId: string) => {
@@ -189,8 +189,8 @@ export const useGameActions = ({
 
         setCurrencies(prev => ({ ...prev, aetherShards: prev.aetherShards - cost }));
         setPrestigeUpgradeLevels(prev => ({ ...prev, [upgradeId]: currentLevel + 1 }));
-        debouncedSave();
-    }, [currencies.aetherShards, prestigeUpgradeLevels, debouncedSave]);
+        queueSave();
+    }, [currencies.aetherShards, prestigeUpgradeLevels, queueSave, setCurrencies, setPrestigeUpgradeLevels]);
 
     const repairGameState = useCallback(() => {
         console.log("Manual game state repair triggered.");
