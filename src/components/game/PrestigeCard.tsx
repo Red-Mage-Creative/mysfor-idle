@@ -54,9 +54,9 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
     }
 
     return (
-        <Card className="w-full bg-gradient-to-br from-amber-500/10 via-card/80 to-amber-500/10 backdrop-blur-sm border-2 border-amber-500/40 shadow-lg bg-[length:200%_auto] transition-all hover:animate-background-shine">
+        <Card className="w-full bg-gradient-to-br from-amber-500/10 via-card/80 to-amber-500/10 backdrop-blur-sm border-2 border-amber-500/40 shadow-lg">
             <CardHeader>
-                <CardTitle className="flex items-center justify-center gap-4 text-2xl text-amber-400 drop-shadow-[0_2px_8px_rgba(251,191,36,0.5)]">
+                <CardTitle className="flex items-center justify-center gap-4 text-2xl text-amber-400" style={{filter: `drop-shadow(0 0 8px rgba(251, 191, 36, 0.6))`}}>
                     <Star className="w-8 h-8 text-amber-400" />
                     <span>{formatNumber(currencies.aetherShards)} Aether Shards</span>
                 </CardTitle>

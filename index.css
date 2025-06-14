@@ -5,14 +5,14 @@
 
 @layer base {
   :root {
-    --background: 240 10% 4%; /* Near Black */
-    --foreground: 240 10% 95%; /* Bright White */
+    --background: 250 50% 5%; /* Deep Indigo */
+    --foreground: 250 20% 95%; /* Pale Lavender */
 
-    --card: 240 10% 8%;
-    --card-foreground: 240 10% 95%;
+    --card: 250 40% 8%;
+    --card-foreground: 250 20% 95%;
 
-    --popover: 240 10% 4%;
-    --popover-foreground: 240 10% 95%;
+    --popover: 250 50% 5%;
+    --popover-foreground: 250 20% 95%;
 
     --primary: 265 90% 65%; /* Electric Violet */
     --primary-foreground: 265 10% 95%;
@@ -20,41 +20,41 @@
     --secondary: 180 80% 50%; /* Vibrant Cyan */
     --secondary-foreground: 180 10% 95%;
 
-    --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 250 20% 20%;
+    --muted-foreground: 250 15% 65%;
 
-    --accent: 330 90% 60%; /* Hot Pink/Magenta */
-    --accent-foreground: 330 10% 95%;
+    --accent: 280 90% 70%; /* Mystic Purple */
+    --accent-foreground: 280 10% 95%;
 
     --destructive: 15 90% 55%; /* Fiery Orange-Red */
     --destructive-foreground: 15 10% 95%;
 
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
+    --border: 250 30% 20%;
+    --input: 250 30% 20%;
     --ring: 265 90% 70%;
 
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 240 10% 95%;
-    --card: 240 10% 8%;
-    --card-foreground: 240 10% 95%;
-    --popover: 240 10% 4%;
-    --popover-foreground: 240 10% 95%;
+    --background: 250 50% 5%;
+    --foreground: 250 20% 95%;
+    --card: 250 40% 8%;
+    --card-foreground: 250 20% 95%;
+    --popover: 250 50% 5%;
+    --popover-foreground: 250 20% 95%;
     --primary: 265 90% 65%;
     --primary-foreground: 265 10% 95%;
     --secondary: 180 80% 50%;
     --secondary-foreground: 180 10% 95%;
-    --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 330 90% 60%;
-    --accent-foreground: 330 10% 95%;
+    --muted: 250 20% 20%;
+    --muted-foreground: 250 15% 65%;
+    --accent: 280 90% 70%;
+    --accent-foreground: 280 10% 95%;
     --destructive: 15 90% 55%;
     --destructive-foreground: 15 10% 95%;
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
+    --border: 250 30% 20%;
+    --input: 250 30% 20%;
     --ring: 265 90% 70%;
   }
 }
@@ -67,4 +67,32 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Starfield Background */
+@keyframes move-twink-back {
+    from {background-position:0 0;}
+    to {background-position:-10000px 5000px;}
+}
+
+.stars, .twinkling {
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+.stars {
+  background:#000 url(https://www.script-tutorials.com/demos/360/images/stars.png) repeat top center;
+  z-index:-2;
+}
+
+.twinkling{
+  background:transparent url(https://www.script-tutorials.com/demos/360/images/twinkling.png) repeat top center;
+  z-index:-1;
+  animation:move-twink-back 200s linear infinite;
 }
