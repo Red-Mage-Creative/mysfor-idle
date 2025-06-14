@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/sonner";
 import { initialUpgrades } from '@/lib/initialUpgrades';
 import { Upgrade, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,6 @@ import { cn } from '@/lib/utils';
 const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
 
 const Index = () => {
-  const { toast } = useToast();
   const [currencies, setCurrencies] = useState<Currencies>({
     mana: 0,
     cogwheelGears: 0,
@@ -191,8 +190,7 @@ const Index = () => {
         ...prev, 
     }));
     
-    toast({
-      title: "Dimensional Shift!",
+    toast("Dimensional Shift!", {
       description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
     });
   };
