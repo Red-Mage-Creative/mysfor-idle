@@ -1,5 +1,4 @@
-
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, UseGameState } from './useGameState';
 import { GameSaveData, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
@@ -31,6 +30,7 @@ export const useGameSession = ({
 }: UseGameSessionProps) => {
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+    const [saveRequest, setSaveRequest] = useState<string | null>(null);
 
     const resetState = useCallback(() => {
         setCurrencies({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0 });
@@ -77,44 +77,56 @@ export const useGameSession = ({
         }
     }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, setLastSaveTime, setSaveStatus]);
 
-    const immediateSave = useCallback(() => {
-        if (saveStatus === 'saving') return;
-        setSaveStatus('saving');
-        try {
-            saveGame();
-            setSaveStatus('complete');
-            setTimeout(() => setSaveStatus('idle'), 1500);
-        } catch (error) {
-            console.error("Immediate save failed:", error);
-            setSaveStatus('error');
-            setTimeout(() => setSaveStatus('idle'), 1500);
-        }
-    }, [saveGame, saveStatus, setSaveStatus]);
-
-    const manualSave = useCallback(() => {
-        if (saveStatus === 'saving') return;
-        setSaveStatus('saving');
-        
-        setTimeout(() => {
+    useEffect(() => {
+        if (saveRequest) {
+            if (saveStatus !== 'saving') setSaveStatus('saving');
             try {
                 saveGame();
                 setSaveStatus('complete');
-                setTimeout(() => setSaveStatus('idle'), 2000);
-            } catch (e) {
+                setTimeout(() => setSaveStatus('idle'), 1500);
+            } catch (error) {
+                console.error(`Save request failed for reason: ${saveRequest}.`, error);
                 setSaveStatus('error');
-                setTimeout(() => setSaveStatus('idle'), 2000);
+                setTimeout(() => setSaveStatus('idle'), 1500);
+            } finally {
+                setSaveRequest(null);
             }
-        }, 100);
-    }, [saveGame, saveStatus, setSaveStatus]);
+        }
+    }, [saveRequest, saveGame, saveStatus, setSaveStatus]);
+
+    const immediateSave = useCallback((reason: string = 'immediate') => {
+        setSaveRequest(reason);
+    }, []);
+
+    const manualSave = useCallback(() => {
+        if (saveStatus === 'saving') return;
+        setSaveRequest('manual-save');
+    }, [saveStatus]);
     
     const debouncedSave = useCallback(() => {
         if (debounceSaveTimeout.current) {
             clearTimeout(debounceSaveTimeout.current);
         }
         debounceSaveTimeout.current = setTimeout(() => {
-            manualSave();
+            setSaveRequest('debounced-save');
         }, C.DEBOUNCE_SAVE_DELAY);
-    }, [manualSave]);
+    }, []);
+
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            if (debounceSaveTimeout.current) {
+                clearTimeout(debounceSaveTimeout.current);
+            }
+            console.log("Saving progress on page unload...");
+            saveGame();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [saveGame]);
 
     useEffect(() => {
         try {
@@ -315,11 +327,11 @@ export const useGameSession = ({
         if (!isLoaded) return;
 
         const autoSaveInterval = setInterval(() => {
-            manualSave();
+            setSaveRequest('auto-save');
         }, C.AUTOSAVE_INTERVAL);
 
         return () => clearInterval(autoSaveInterval);
-    }, [isLoaded, manualSave]);
+    }, [isLoaded]);
 
     const resetGame = useCallback(() => {
         if(window.confirm("Are you sure you want to reset all progress? This cannot be undone.")){

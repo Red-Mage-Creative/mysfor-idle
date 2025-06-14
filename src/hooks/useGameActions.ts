@@ -14,7 +14,7 @@ type UseGameActionsProps = UseGameState & {
     potentialShards: number;
     canPrestige: boolean;
     debouncedSave: () => void;
-    immediateSave: () => void;
+    immediateSave: (reason?: string) => void;
 };
 
 export const useGameActions = ({
@@ -115,7 +115,7 @@ export const useGameActions = ({
         toast.success("Item Upgraded!", {
           description: `You have purchased ${upgrade.name}.`,
         });
-        immediateSave();
+        immediateSave('buy-item-upgrade');
     }, [currencies, itemUpgrades, immediateSave, setItemUpgrades, setCurrencies]);
     
     const handleBuyWorkshopUpgrade = useCallback((upgradeId: string) => {
@@ -144,7 +144,7 @@ export const useGameActions = ({
         toast.success("Workshop Upgraded!", {
           description: `You have purchased ${upgrade.name}.`,
         });
-        immediateSave();
+        immediateSave('buy-workshop-upgrade');
     }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, immediateSave]);
     
     const handlePrestige = useCallback(() => {
@@ -169,7 +169,7 @@ export const useGameActions = ({
         toast("Dimensional Shift!", {
           description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
         });
-        immediateSave();
+        immediateSave('prestige');
     }, [
         canPrestige, potentialShards, currencies.aetherShards, 
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, 
@@ -194,7 +194,7 @@ export const useGameActions = ({
 
         setCurrencies(prev => ({ ...prev, aetherShards: prev.aetherShards - cost }));
         setPrestigeUpgradeLevels(prev => ({ ...prev, [upgradeId]: currentLevel + 1 }));
-        immediateSave();
+        immediateSave('buy-prestige-upgrade');
     }, [currencies.aetherShards, prestigeUpgradeLevels, immediateSave, setCurrencies, setPrestigeUpgradeLevels]);
 
     const repairGameState = useCallback(() => {
