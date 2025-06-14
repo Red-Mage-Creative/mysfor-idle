@@ -110,7 +110,6 @@ const PrestigeUpgradesList = ({
     onToggleAutoBuy,
     prestigeMultipliers,
 }: PrestigeUpgradesListProps) => {
-  const { prestigeUpgrades, prestigeUpgradeLevels, currencies, onBuyPrestigeUpgrade, autoBuySettings, onToggleAutoBuy, prestigeMultipliers } = props;
   return (
     <Card className="w-full bg-transparent border-none shadow-none">
       <CardHeader className="p-2">

@@ -1,4 +1,3 @@
-
 import { LucideIcon } from "lucide-react";
 
 export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints' | 'aetherShards';
@@ -97,7 +96,7 @@ export interface GameSaveData {
     workshopUpgrades: Array<Pick<WorkshopUpgrade, 'id' | 'purchased'>>;
     lifetimeMana: number;
     prestigeUpgradeLevels: Record<string, number>;
-    autoBuySettings: {
+    autoBuySettings?: {
         items: boolean;
         upgrades: boolean;
     };

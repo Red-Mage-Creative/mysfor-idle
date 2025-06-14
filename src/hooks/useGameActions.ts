@@ -1,11 +1,12 @@
+
 import { useCallback } from 'react';
-import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity, UseGameState } from './useGameState';
-import { toast } from "@/components/ui/sonner";
-import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
-import { PurchaseDetails, WorkshopUpgrade } from '@/lib/gameTypes';
-import { Currency } from '@/lib/gameTypes';
-import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
-import { UseGameCalculations } from '@/hooks/useGameCalculations';
+import { UseGameState } from './useGameState';
+import { BuyQuantity } from './useGameState';
+import { Currency, Item, ItemUpgrade, WorkshopUpgrade, PurchaseDetails, CurrencyRecord } from '@/lib/gameTypes';
+import { toast } from '@/components/ui/sonner';
+import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/hooks/useGameState';
+import * as C from '@/constants/gameConstants';
+import { useGameCalculations } from '@/hooks/useGameCalculations';
 
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 
@@ -15,7 +16,7 @@ type UseGameActionsProps = UseGameState & {
     canPrestige: boolean;
     debouncedSave: () => void;
     immediateSave: (reason?: string) => void;
-    overclockInfo: ReturnType<typeof import('./useGameCalculations')['useGameCalculations']>['overclockInfo'];
+    overclockInfo: ReturnType<typeof useGameCalculations>['overclockInfo'];
     prestigeMultipliers: ReturnType<typeof useGameCalculations>['prestigeMultipliers'];
 };
 

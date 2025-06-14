@@ -1,17 +1,17 @@
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Currencies, ItemUpgrade } from '@/lib/gameTypes';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ItemUpgrade, Currencies, Currency } from '@/lib/gameTypes';
-import { formatNumber, currencyName } from '@/lib/formatters';
-import { ArrowUp } from 'lucide-react';
+import { currencyName, formatNumber } from '@/lib/formatters';
 import { initialItems } from '@/lib/initialItems';
-import { UseGameCalculations } from '@/hooks/useGameCalculations';
+import { useGameCalculations } from '@/hooks/useGameCalculations';
 
 interface ItemUpgradesListProps {
     currencies: Currencies;
     onBuyItemUpgrade: (upgradeId: string) => void;
     availableItemUpgrades: ItemUpgrade[];
-    prestigeMultipliers: ReturnType<typeof UseGameCalculations>['prestigeMultipliers'];
+    prestigeMultipliers: ReturnType<typeof useGameCalculations>['prestigeMultipliers'];
 }
 
 const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));

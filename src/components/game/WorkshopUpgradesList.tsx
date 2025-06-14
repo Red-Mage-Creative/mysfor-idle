@@ -1,17 +1,17 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Currencies, WorkshopUpgrade } from '@/lib/gameTypes';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { WorkshopUpgrade, Currencies, Currency } from '@/lib/gameTypes';
-import { formatNumber, currencyName } from '@/lib/formatters';
+import { currencyName, formatNumber } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-import { UseGameCalculations } from '@/hooks/useGameCalculations';
+import { useGameCalculations } from '@/hooks/useGameCalculations';
 
 interface WorkshopUpgradesListProps {
     currencies: Currencies;
     onBuyWorkshopUpgrade: (upgradeId: string) => void;
     availableWorkshopUpgrades: WorkshopUpgrade[];
-    prestigeMultipliers: ReturnType<typeof UseGameCalculations>['prestigeMultipliers'];
+    prestigeMultipliers: ReturnType<typeof useGameCalculations>['prestigeMultipliers'];
 }
 
 const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, availableWorkshopUpgrades, prestigeMultipliers }: WorkshopUpgradesListProps) => {
