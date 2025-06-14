@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,9 +74,10 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="text-right ml-2 flex-shrink-0 min-w-[60px]">
-                                                        <p className="font-semibold text-xl">{item.level}</p>
-                                                        <p className="text-sm text-muted-foreground">Level</p>
+                                                    <div className="text-right ml-2 flex-shrink-0">
+                                                        <p className="font-semibold text-lg text-muted-foreground">
+                                                            Level <span className="text-xl text-foreground font-bold">{item.level}</span>
+                                                        </p>
                                                     </div>
                                                 </div>
                                                 

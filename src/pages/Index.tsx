@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -59,14 +58,16 @@ const Index = () => {
 
         <div className="lg:col-span-2 flex flex-col items-center justify-start">
           <Tabs defaultValue="items" className="w-full">
-            <TabsList className={cn(
-              "grid w-full",
-              { "grid-cols-1": tabCount === 1, "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, }
-            )}>
-              <TabsTrigger value="items">Items</TabsTrigger>
-              {showUpgradesTab && <TabsTrigger value="upgrades">Upgrades</TabsTrigger>}
-              {showPrestigeTab && <TabsTrigger value="prestige">Prestige</TabsTrigger>}
-            </TabsList>
+            {tabCount > 1 && (
+              <TabsList className={cn(
+                "grid w-full",
+                { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, }
+              )}>
+                <TabsTrigger value="items">Items</TabsTrigger>
+                {showUpgradesTab && <TabsTrigger value="upgrades">Upgrades</TabsTrigger>}
+                {showPrestigeTab && <TabsTrigger value="prestige">Prestige</TabsTrigger>}
+              </TabsList>
+            )}
             <TabsContent value="items">
               <ItemsList
                 currencies={currencies}

@@ -278,6 +278,7 @@ export const useGameLogic = () => {
         setItems(getFreshInitialItems());
         setItemUpgrades(getFreshInitialItemUpgrades());
         setLifetimeMana(0);
+        setNotifiedUpgrades(new Set()); // Reset notifications on prestige
         
         toast("Dimensional Shift!", {
           description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
