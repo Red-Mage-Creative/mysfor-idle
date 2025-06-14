@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -87,7 +88,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                                                 : "text-yellow-400 fill-yellow-400"
                                                                         )}
                                                                         strokeWidth={1.5}
-                                                                    />}
+                                                                    />
                                                                 ))}
                                                                 {isComplete && (
                                                                     <span className="text-xs font-bold text-green-400 ml-1">COMPLETE</span>
