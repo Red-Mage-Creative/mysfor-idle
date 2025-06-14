@@ -220,6 +220,14 @@ export const useGameSession = ({
                     
                     if (Object.values(earnings).some(v => v > 0)) {
                         setOfflineEarnings({ timeAway, earnings });
+                        // --- Immediately save the updated progress to prevent gaming the system ---
+                        try {
+                            saveData.lastSaveTimestamp = Date.now(); // Update timestamp to now to prevent exploit
+                            localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
+                        } catch (error) {
+                            console.error("Failed to immediately save offline progress:", error);
+                            toast.error("Could not save offline progress. Please save manually.");
+                        }
                     }
                 }
                 
