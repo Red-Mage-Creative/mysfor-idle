@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { initialItems } from '@/lib/initialItems';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
@@ -272,6 +273,17 @@ export const useGameLogic = () => {
         }, 100);
         return () => clearInterval(gameLoop);
     }, [generationPerSecond, isLoaded]); // Depends on isLoaded now
+
+    // Periodic Autosave
+    useEffect(() => {
+        if (!isLoaded) return;
+
+        const autoSaveInterval = setInterval(() => {
+            manualSave();
+        }, 5 * 60 * 1000); // 5 minutes
+
+        return () => clearInterval(autoSaveInterval);
+    }, [isLoaded, manualSave]);
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
