@@ -106,6 +106,11 @@ export default {
             from: { backgroundPosition: '0% 0%' },
             to: { backgroundPosition: '100% 100%' },
         },
+        'zap-pop': {
+          '0%': { opacity: '0', transform: 'scale(0.5)' },
+          '50%': { opacity: '1', transform: 'scale(1.1)' },
+          '100%': { opacity: '0', transform: 'scale(1.5)' },
+        },
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -114,6 +119,7 @@ export default {
         'float-up': 'float-up 0.5s ease-out forwards',
         'background-shine': 'background-shine 2s linear infinite',
         'aurora': 'aurora 25s ease-in-out infinite alternate',
+        'zap-pop': 'zap-pop 0.5s ease-in-out forwards',
 			}
 		}
 	},

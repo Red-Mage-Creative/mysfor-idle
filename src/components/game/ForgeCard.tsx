@@ -17,6 +17,7 @@ interface ForgeCardProps {
 const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick, showTutorial = false }: ForgeCardProps) => {
     const [isClicking, setIsClicking] = useState(false);
     const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number, text: string }[]>([]);
+    const [floatingZaps, setFloatingZaps] = useState<{ id: number; x: number; y: number; rotation: number }[]>([]);
     const [shadowIntensity, setShadowIntensity] = useState(0); // 0 to 100 scale
     const decayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const decayIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -70,6 +71,23 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
         decayTimeoutRef.current = setTimeout(() => {
             startDecay();
         }, 200);
+
+        // Add floating zap effect
+        const button = e.currentTarget;
+        const centerX = button.offsetLeft + button.offsetWidth / 2;
+        const centerY = button.offsetTop + button.offsetHeight / 2;
+        const radius = (button.offsetWidth / 2) * (0.6 + Math.random() * 0.6); // 60% to 120% of radius from center
+        const angle = Math.random() * Math.PI * 2;
+        const zapX = centerX + radius * Math.cos(angle);
+        const zapY = centerY + radius * Math.sin(angle);
+        const rotation = Math.random() * 90 - 45;
+        const newZap = { id: Date.now() + Math.random(), x: zapX, y: zapY, rotation };
+
+        setFloatingZaps(prev => [...prev, newZap]);
+        setTimeout(() => {
+            setFloatingZaps(current => current.filter(z => z.id !== newZap.id));
+        }, 500);
+
     }, [manaPerClick, onForgeClick, startDecay]);
 
     const otherCurrencies = [
@@ -144,6 +162,19 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     >
                         {ft.text}
                     </div>
+                ))}
+                {floatingZaps.map(zap => (
+                    <Zap
+                        key={zap.id}
+                        className="absolute text-sky-400 pointer-events-none animate-zap-pop"
+                        size={32}
+                        strokeWidth={1.5}
+                        style={{
+                            top: zap.y,
+                            left: zap.x,
+                            transform: `translate(-50%, -50%) rotate(${zap.rotation}deg)`,
+                        }}
+                    />
                 ))}
             </CardContent>
         </Card>
