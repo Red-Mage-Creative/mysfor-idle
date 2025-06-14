@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Zap, Settings, Gem, BrainCircuit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Currencies } from '@/lib/gameTypes';
@@ -16,6 +17,31 @@ interface ForgeCardProps {
 const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick, showTutorial = false }: ForgeCardProps) => {
     const [isClicking, setIsClicking] = useState(false);
     const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number, text: string }[]>([]);
+    const [shadowIntensity, setShadowIntensity] = useState(0); // 0 to 100 scale
+    const decayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const decayIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const startDecay = useCallback(() => {
+        if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
+        decayIntervalRef.current = setInterval(() => {
+            setShadowIntensity(prev => {
+                const newIntensity = prev - 5;
+                if (newIntensity <= 0) {
+                    if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
+                    return 0;
+                }
+                return newIntensity;
+            });
+        }, 50);
+    }, []);
+
+    useEffect(() => {
+        // Cleanup timers on component unmount
+        return () => {
+            if (decayTimeoutRef.current) clearTimeout(decayTimeoutRef.current);
+            if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
+        };
+    }, []);
 
     const handleForgeClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -32,7 +58,19 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
         setTimeout(() => {
             setFloatingTexts(current => current.slice(1));
         }, 500);
-    }, [manaPerClick, onForgeClick]);
+
+        // Clear any existing decay timers
+        if (decayIntervalRef.current) clearInterval(decayIntervalRef.current);
+        if (decayTimeoutRef.current) clearTimeout(decayTimeoutRef.current);
+
+        // Increase shadow intensity on click, capped at 100
+        setShadowIntensity(prev => Math.min(prev + 15, 100));
+
+        // Set a timeout to start decaying the shadow effect after a period of inactivity
+        decayTimeoutRef.current = setTimeout(() => {
+            startDecay();
+        }, 200);
+    }, [manaPerClick, onForgeClick, startDecay]);
 
     const otherCurrencies = [
         { key: 'cogwheelGears', name: 'Gears', Icon: Settings, color: 'text-yellow-400', colorLight: 'text-yellow-400/80' },
@@ -41,6 +79,11 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
     ] as const;
 
     const visibleCurrencies = otherCurrencies.filter(c => currencies[c.key] > 0 || (generationPerSecond[c.key] || 0) > 0);
+
+    const dynamicShadowStyle = {
+        filter: `drop-shadow(0 0 ${shadowIntensity * 0.3}px hsl(240 100% 70% / ${shadowIntensity / 125}))`,
+        transform: `scale(${1 + shadowIntensity * 0.0005})`,
+    };
 
     return (
         <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg overflow-hidden">
@@ -81,8 +124,9 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                     <Zap 
-                        className="relative w-48 h-48 sm:w-64 sm:h-64 text-primary transition-all group-hover:scale-105" 
+                        className="relative w-48 h-48 sm:w-64 sm:h-64 text-primary transition-all duration-100" 
                         strokeWidth={1.5}
+                        style={dynamicShadowStyle}
                     />
                 </button>
                 {showTutorial && (
