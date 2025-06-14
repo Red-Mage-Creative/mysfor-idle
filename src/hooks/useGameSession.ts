@@ -39,7 +39,7 @@ export const useGameSession = ({
                 currencies,
                 items,
                 itemUpgrades,
-                workshopUpgrades,
+                workshopUpgrades: workshopUpgrades.map(({ id, purchased }) => ({ id, purchased })),
                 lifetimeMana,
                 prestigeUpgradeLevels,
                 notifiedUpgrades: Array.from(notifiedUpgrades),
@@ -102,23 +102,19 @@ export const useGameSession = ({
                     return; // No save data, start fresh
                 }
                 
-                const saveData: GameSaveData = JSON.parse(savedGame);
+                const saveData = JSON.parse(savedGame) as GameSaveData;
 
-                // Restore workshop upgrade icons which don't serialize properly
+                // This logic correctly handles both old (corrupted) and new (clean) save formats
+                // by rebuilding the full upgrade object from the master list.
+                let restoredWorkshopUpgrades = getFreshInitialWorkshopUpgrades();
                 if (saveData.workshopUpgrades && saveData.workshopUpgrades.length > 0) {
-                    const originalUpgradesMap = new Map(allWorkshopUpgrades.map(u => [u.id, u]));
-                    saveData.workshopUpgrades = saveData.workshopUpgrades.map(savedUpgrade => {
-                        const original = originalUpgradesMap.get(savedUpgrade.id);
-                        if (original) {
-                            // Combine static data from original defs with dynamic saved data
-                            return { ...original, purchased: savedUpgrade.purchased };
-                        }
-                        // This case should ideally not happen.
-                        console.warn(`Could not find original workshop upgrade for id: ${savedUpgrade.id}`);
-                        return savedUpgrade; 
-                    });
+                     const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.purchased]));
+                     restoredWorkshopUpgrades = restoredWorkshopUpgrades.map(upgrade => ({
+                        ...upgrade,
+                        purchased: savedUpgradesMap.get(upgrade.id) || false
+                    }));
                 }
-
+                
                 if(saveData.version !== C.CURRENT_SAVE_VERSION) {
                     console.warn(`Save file version mismatch. Expected ${C.CURRENT_SAVE_VERSION}, got ${saveData.version}. Starting fresh.`);
                     localStorage.removeItem(C.SAVE_KEY);
@@ -166,7 +162,7 @@ export const useGameSession = ({
                         clickEffectiveness: 1,
                         manaFromMachinery: 1,
                     };
-                    for (const upgrade of saveData.workshopUpgrades || getFreshInitialWorkshopUpgrades()) {
+                    for (const upgrade of restoredWorkshopUpgrades) { // Use restored upgrades for calculation
                         if (upgrade.purchased) {
                             switch (upgrade.effect.type) {
                                 case 'gearProductionMultiplier':
@@ -231,7 +227,7 @@ export const useGameSession = ({
                 setCurrencies(saveData.currencies);
                 setItems(saveData.items);
                 setItemUpgrades(saveData.itemUpgrades);
-                setWorkshopUpgrades(saveData.workshopUpgrades || getFreshInitialWorkshopUpgrades());
+                setWorkshopUpgrades(restoredWorkshopUpgrades);
                 setLifetimeMana(saveData.lifetimeMana);
                 setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
