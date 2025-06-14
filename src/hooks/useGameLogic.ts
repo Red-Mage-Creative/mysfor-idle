@@ -1,10 +1,19 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { initialUpgrades } from '@/lib/initialUpgrades';
 import { Upgrade, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
 
 const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
+
+const getFreshInitialUpgrades = (): Upgrade[] => {
+    // This creates a fresh copy of the upgrades, preserving the icon components.
+    return initialUpgrades.map(upgrade => ({
+        ...upgrade,
+        cost: { ...upgrade.cost },
+        baseCost: { ...upgrade.baseCost },
+        generation: { ...upgrade.generation },
+    }));
+};
 
 export const useGameLogic = () => {
     const [currencies, setCurrencies] = useState<Currencies>({
@@ -14,7 +23,7 @@ export const useGameLogic = () => {
         researchPoints: 0,
         aetherShards: 0,
     });
-    const [upgrades, setUpgrades] = useState<Upgrade[]>(JSON.parse(JSON.stringify(initialUpgrades)));
+    const [upgrades, setUpgrades] = useState<Upgrade[]>(getFreshInitialUpgrades());
     const [lifetimeMana, setLifetimeMana] = useState(0);
     const [prestige, setPrestige] = useState({
         manaClickMultiplier: 1,
@@ -119,7 +128,7 @@ export const useGameLogic = () => {
             aetherShards: currencies.aetherShards + shardsGained,
         });
         
-        setUpgrades(JSON.parse(JSON.stringify(initialUpgrades)));
+        setUpgrades(getFreshInitialUpgrades());
 
         setPrestige(prev => ({ ...prev }));
         
