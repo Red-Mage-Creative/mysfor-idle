@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Upload, Download, Trash2, ShieldAlert } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
+import SaveStatusDisplay from '@/components/layout/SaveStatus';
 
 const SettingsPage = () => {
-    const { exportSave, importSave, resetGame } = useGame();
+    const { exportSave, importSave, resetGame, manualSave, saveStatus, lastSaveTime } = useGame();
     const importInputRef = useRef<HTMLInputElement>(null);
 
     const handleImportClick = () => {
@@ -32,24 +33,31 @@ const SettingsPage = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>Data Management</CardTitle>
-                    <CardDescription>Export your progress or import a save file.</CardDescription>
+                    <CardDescription>Manually save, export your progress, or import a save file. Your progress is also auto-saved.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Button onClick={exportSave} variant="secondary">
-                        <Download className="mr-2 h-4 w-4" />
-                        Export Save
-                    </Button>
-                    <Button onClick={handleImportClick} variant="secondary">
-                        <Upload className="mr-2 h-4 w-4" />
-                        Import Save
-                    </Button>
-                    <input
-                        type="file"
-                        ref={importInputRef}
-                        onChange={handleFileImport}
-                        className="hidden"
-                        accept=".txt,application/json"
+                <CardContent className="space-y-4">
+                    <SaveStatusDisplay
+                        status={saveStatus}
+                        onSave={manualSave}
+                        lastSaveTime={lastSaveTime}
                     />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
+                        <Button onClick={exportSave} variant="secondary">
+                            <Download className="mr-2 h-4 w-4" />
+                            Export Save
+                        </Button>
+                        <Button onClick={handleImportClick} variant="secondary">
+                            <Upload className="mr-2 h-4 w-4" />
+                            Import Save
+                        </Button>
+                        <input
+                            type="file"
+                            ref={importInputRef}
+                            onChange={handleFileImport}
+                            className="hidden"
+                            accept=".txt,application/json"
+                        />
+                    </div>
                 </CardContent>
             </Card>
 

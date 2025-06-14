@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -10,6 +11,7 @@ import { PrestigeVisibility } from '@/components/game/PrestigeCard';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import OfflineEarningsModal from '@/components/game/OfflineEarningsModal';
+import SaveStatusDisplay from '@/components/layout/SaveStatus';
 
 const Index = () => {
   const {
@@ -35,6 +37,9 @@ const Index = () => {
     showTutorial,
     offlineEarnings,
     clearOfflineEarnings,
+    manualSave,
+    saveStatus,
+    lastSaveTime,
   } = useGame();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
@@ -82,6 +87,13 @@ const Index = () => {
           </div>
 
           <div className="lg:col-span-2 flex flex-col items-center justify-start">
+            <div className="w-full flex justify-end mb-4">
+              <SaveStatusDisplay
+                status={saveStatus}
+                onSave={manualSave}
+                lastSaveTime={lastSaveTime}
+              />
+            </div>
             <Tabs defaultValue="items" className="w-full">
               {tabCount > 1 && (
                 <TabsList className={cn(

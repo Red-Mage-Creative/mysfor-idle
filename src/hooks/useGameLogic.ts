@@ -26,6 +26,8 @@ export const useGameLogic = () => {
     const [prestigeUpgradeLevels, setPrestigeUpgradeLevels] = useState<Record<string, number>>({});
     const [notifiedUpgrades, setNotifiedUpgrades] = useState<Set<string>>(new Set());
     const [hasEverClicked, setHasEverClicked] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'complete' | 'error'>('idle');
+    const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -43,24 +45,38 @@ export const useGameLogic = () => {
                 hasEverClicked,
             };
             localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-            if (isAutoSave) {
-                 toast.success("Game auto-saved!");
-            }
+            setLastSaveTime(new Date(saveData.lastSaveTimestamp));
         } catch (error) {
             console.error("Failed to save game:", error);
+            setSaveStatus('error');
             toast.error("Could not save game progress.");
+            throw error;
         }
     }, [currencies, items, itemUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked]);
+
+    const manualSave = useCallback(() => {
+        if (saveStatus === 'saving') return;
+        setSaveStatus('saving');
+        
+        setTimeout(() => {
+            try {
+                saveGame();
+                setSaveStatus('complete');
+                setTimeout(() => setSaveStatus('idle'), 2000);
+            } catch (e) {
+                setTimeout(() => setSaveStatus('idle'), 2000);
+            }
+        }, 100);
+    }, [saveGame, saveStatus]);
 
     const debouncedSave = useCallback(() => {
         if (debounceSaveTimeout.current) {
             clearTimeout(debounceSaveTimeout.current);
         }
         debounceSaveTimeout.current = setTimeout(() => {
-            saveGame();
-            toast.success("Progress saved!");
+            manualSave();
         }, 3000);
-    }, [saveGame]);
+    }, [manualSave]);
     
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
@@ -144,6 +160,10 @@ export const useGameLogic = () => {
                     return;
                 }
                 
+                if (saveData.lastSaveTimestamp) {
+                    setLastSaveTime(new Date(saveData.lastSaveTimestamp));
+                }
+
                 const timeAway = (Date.now() - saveData.lastSaveTimestamp) / 1000; // seconds
 
                 if (timeAway > 60) { // Only calculate for >1 min away
@@ -601,5 +621,8 @@ export const useGameLogic = () => {
         resetGame,
         exportSave,
         importSave,
+        manualSave,
+        saveStatus,
+        lastSaveTime,
     };
 };
