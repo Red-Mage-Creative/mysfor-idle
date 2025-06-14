@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Zap, Settings, Gem, BrainCircuit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -136,10 +135,8 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                 <CardTitle className="text-4xl font-bold text-primary">{formatNumber(currencies.mana)} Mana</CardTitle>
                 <CardDescription className="text-muted-foreground flex justify-center items-center gap-2 flex-wrap">
                     <span>{formatNumber(generationPerSecond.mana || 0)}/s</span>
-                    {prestigeMultipliers.allProduction > 1 && <Badge variant="outline" className="text-xs text-amber-400 border-amber-400/50">x{prestigeMultipliers.allProduction.toFixed(2)}</Badge>}
                     <span className="text-xs">|</span>
                     <span>{formatNumber(manaPerClick)}/click</span>
-                    {prestigeMultipliers.manaClick > 1 && <Badge variant="outline" className="text-xs text-amber-400 border-amber-400/50">x{prestigeMultipliers.manaClick.toFixed(2)}</Badge>}
                 </CardDescription>
 
                 {visibleCurrencies.length > 0 && (

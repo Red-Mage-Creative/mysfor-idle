@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PrestigeUpgrade as PrestigeUpgradeType, Currencies } from '@/lib/gameTypes';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatNumber } from '@/lib/formatters';
 import { Gem } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PrestigeUpgradesListProps {
   prestigeUpgrades: PrestigeUpgradeType[];
@@ -20,11 +20,15 @@ const PrestigeUpgradeItem = ({ upgrade, level, currencies, onBuyPrestigeUpgrade 
     const isMaxLevel = level >= upgrade.maxLevel;
     const Icon = upgrade.icon;
     const currentEffect = level > 0 ? upgrade.description(level) : 'No bonus yet.';
+    const isGameChanger = ['dimensional_mastery', 'mana_singularity', 'reality_forge'].includes(upgrade.id);
 
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50 gap-4">
+                <div className={cn(
+                    "flex items-center justify-between p-3 rounded-lg border bg-card/50 gap-4 transition-all",
+                    isGameChanger && "border-amber-400/50 shadow-md shadow-amber-500/10"
+                )}>
                     <div className="flex items-center gap-3 flex-grow min-w-0">
                         <Icon className="w-8 h-8 text-amber-400 flex-shrink-0" />
                         <div className="flex-grow">
