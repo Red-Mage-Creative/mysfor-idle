@@ -26,17 +26,9 @@ const Index = () => {
   } = useGameLogic();
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans p-4 sm:p-8">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
-        <div className="lg:col-span-1 flex flex-col items-center justify-center space-y-6 order-2 lg:order-1">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold tracking-tight">Mystic Forge</h1>
-            <p className="text-muted-foreground mt-2">Harness the arcane and technological.</p>
-          </div>
-        </div>
-
-        <div className="lg:col-span-1 flex flex-col items-center justify-center space-y-6 order-1 lg:order-2">
+        <div className="lg:col-span-1 flex flex-col items-stretch space-y-6 lg:sticky lg:top-24">
           <ForgeCard 
             currencies={currencies}
             generationPerSecond={generationPerSecond}
@@ -52,8 +44,8 @@ const Index = () => {
           />
         </div>
 
-        <div className="lg:col-span-1 flex flex-col items-center justify-start order-3">
-          <Tabs defaultValue="standard" className="w-full max-w-md">
+        <div className="lg:col-span-2 flex flex-col items-center justify-start">
+          <Tabs defaultValue="standard" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="standard">Upgrades</TabsTrigger>
               <TabsTrigger value="prestige">Prestige</TabsTrigger>
@@ -77,7 +69,6 @@ const Index = () => {
           </Tabs>
         </div>
 
-      </div>
     </div>
   );
 };
