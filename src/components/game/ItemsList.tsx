@@ -116,7 +116,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                             {item.level > 0 && (
                                                                 <>
                                                                     <span className="text-muted-foreground mx-2">|</span>
-                                                                    <span className="text-muted-foreground">Total: </span>
+                                                                    <span className="text-muted-foreground">Generating: </span>
                                                                     {Object.entries(item.totalProduction).map(([curr, val], idx) => (
                                                                         <span key={curr} className="font-semibold text-foreground/90">
                                                                             {formatNumber(val || 0)} {currencyName(curr as Currency)}/s
@@ -130,12 +130,12 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                     {item.clickBonus ? (
                                                         <div>
                                                             <span className="text-muted-foreground">Per Lvl: </span>
-                                                            <span className="font-semibold text-foreground/90">+{formatNumber(item.clickBonusPerLevel)} Mana</span>
+                                                            <span className="font-semibold text-foreground/90">+{formatNumber(item.clickBonusPerLevel)} Mana / click</span>
                                                             {item.level > 0 && (
                                                                 <>
                                                                     <span className="text-muted-foreground mx-2">|</span>
-                                                                    <span className="text-muted-foreground">Total: </span>
-                                                                    <span className="font-semibold text-foreground/90">+{formatNumber(item.totalClickBonus)} Mana</span>
+                                                                    <span className="text-muted-foreground">Total Bonus: </span>
+                                                                    <span className="font-semibold text-foreground/90">+{formatNumber(item.totalClickBonus)} Mana / click</span>
                                                                 </>
                                                             )}
                                                         </div>
