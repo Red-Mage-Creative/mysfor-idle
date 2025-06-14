@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, UseGameState } from './useGameState';
-import { GameSaveData, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
-import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
+import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade } from '@/lib/gameTypes';
+import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { toast } from "@/components/ui/sonner";
 import * as C from '@/constants/gameConstants';
@@ -111,7 +111,7 @@ export const useGameSession = ({
                 currencies,
                 items,
                 itemUpgrades,
-                workshopUpgrades: workshopUpgrades.map(({ id, purchased }) => ({ id, purchased })),
+                workshopUpgrades: workshopUpgrades.map(({ id, level }) => ({ id, level })),
                 lifetimeMana,
                 prestigeUpgradeLevels,
                 notifiedUpgrades: Array.from(notifiedUpgrades),
@@ -214,18 +214,19 @@ export const useGameSession = ({
                     return;
                 }
                 
-                const saveData = migrateSaveData(saveDataAsAny);
+                const saveData = migrateSaveData(saveDataAsAny) as GameSaveData;
                 if(saveData.version !== saveDataAsAny.version) {
                     toast.info("Game Save Updated", { description: `Your save data has been migrated to v${saveData.version}.`});
                 }
                 
                 let restoredWorkshopUpgrades = getFreshInitialWorkshopUpgrades();
                 if (saveData.workshopUpgrades && saveData.workshopUpgrades.length > 0) {
-                     const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.purchased]));
-                     restoredWorkshopUpgrades = restoredWorkshopUpgrades.map(upgrade => ({
-                        ...upgrade,
-                        purchased: savedUpgradesMap.get(upgrade.id) || false
-                    }));
+                     const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.level]));
+                     restoredWorkshopUpgrades = restoredWorkshopUpgrades.map(upgrade => {
+                        const level = savedUpgradesMap.get(upgrade.id) || 0;
+                        const cost = { cogwheelGears: Math.ceil((upgrade.baseCost.cogwheelGears || 0) * Math.pow(1.25, level)) };
+                        return { ...upgrade, level, cost };
+                    });
                 }
                 
                 if (saveData.lastSaveTimestamp) {
@@ -237,14 +238,13 @@ export const useGameSession = ({
                 if (timeAway > 60) { // Only calculate for >1 min away
                     // --- Re-calculate multipliers and generation based on SAVED data ---
                     
-                    const prestigeMultipliers = { manaClick: 1, allProduction: 1, shardGain: 1 };
+                    const prestigeMultipliers = { allProduction: 1, offlineProduction: 1 };
                     for (const upgrade of prestigeUpgrades) {
                         const level = saveData.prestigeUpgradeLevels[upgrade.id] || 0;
                         if (level > 0) {
                             switch (upgrade.effect.type) {
-                                case 'manaClickMultiplier': prestigeMultipliers.manaClick *= upgrade.effect.value(level); break;
                                 case 'allProductionMultiplier': prestigeMultipliers.allProduction *= upgrade.effect.value(level); break;
-                                case 'shardGainMultiplier': prestigeMultipliers.shardGain *= upgrade.effect.value(level); break;
+                                case 'offlineProductionMultiplier': prestigeMultipliers.offlineProduction *= upgrade.effect.value(level); break;
                             }
                         }
                     }
@@ -258,29 +258,17 @@ export const useGameSession = ({
                             if (upgrade.effect.type === 'generationMultiplier') {
                                 itemUpgradeMultipliers[upgrade.parentItemId].generation *= upgrade.effect.value;
                             }
-                            if (upgrade.effect.type === 'clickMultiplier') {
-                                itemUpgradeMultipliers[upgrade.parentItemId].click *= upgrade.effect.value;
-                            }
                         }
                     }
 
-                    const workshopUpgradeMultipliers = {
-                        gearProduction: 1,
-                        clickEffectiveness: 1,
-                        manaFromMachinery: 1,
-                    };
-                    for (const upgrade of restoredWorkshopUpgrades) { // Use restored upgrades for calculation
-                        if (upgrade.purchased) {
+                    const workshopUpgradeMultipliers = { mana: 1, essenceFlux: 1, researchPoints: 1 };
+                    for (const upgrade of restoredWorkshopUpgrades) {
+                        if (upgrade.level > 0) {
+                            const bonus = upgrade.effect.value * upgrade.level;
                             switch (upgrade.effect.type) {
-                                case 'gearProductionMultiplier':
-                                    workshopUpgradeMultipliers.gearProduction *= upgrade.effect.value;
-                                    break;
-                                case 'clickEffectivenessMultiplier':
-                                    workshopUpgradeMultipliers.clickEffectiveness *= upgrade.effect.value;
-                                    break;
-                                case 'manaFromMachineryMultiplier':
-                                    workshopUpgradeMultipliers.manaFromMachinery *= upgrade.effect.value;
-                                    break;
+                                case 'manaMultiplier': workshopUpgradeMultipliers.mana += bonus; break;
+                                case 'essenceFluxMultiplier': workshopUpgradeMultipliers.essenceFlux += bonus; break;
+                                case 'researchPointsMultiplier': workshopUpgradeMultipliers.researchPoints += bonus; break;
                             }
                         }
                     }
@@ -291,14 +279,6 @@ export const useGameSession = ({
                                 const key = currency as Currency;
                                 const itemMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
                                 let value = (item.generation[key] || 0) * item.level * itemMultiplier;
-
-                                if (key === 'mana' && item.category === 'Advanced Machinery') {
-                                    value *= workshopUpgradeMultipliers.manaFromMachinery;
-                                }
-                                if (key === 'cogwheelGears') {
-                                    value *= workshopUpgradeMultipliers.gearProduction;
-                                }
-                                
                                 acc[key] = (acc[key] || 0) + value;
                             }
                         }
@@ -310,10 +290,15 @@ export const useGameSession = ({
                         offlineGps[currency] = (offlineGps[currency] || 0) * prestigeMultipliers.allProduction;
                     }
 
+                    if (offlineGps.mana) offlineGps.mana *= workshopUpgradeMultipliers.mana;
+                    if (offlineGps.essenceFlux) offlineGps.essenceFlux *= workshopUpgradeMultipliers.essenceFlux;
+                    if (offlineGps.researchPoints) offlineGps.researchPoints *= workshopUpgradeMultipliers.researchPoints;
+
+
                     // --- Calculate and apply earnings ---
                     const earnings: CurrencyRecord = {};
                     Object.entries(offlineGps).forEach(([currency, rate]) => {
-                        earnings[currency as Currency] = rate * timeAway * C.OFFLINE_EARNING_RATE;
+                        earnings[currency as Currency] = rate * timeAway * C.OFFLINE_EARNING_RATE * prestigeMultipliers.offlineProduction;
                     });
                     
                     let manaEarned = 0;
@@ -437,7 +422,7 @@ export const useGameSession = ({
                     throw new Error("This save file is from a newer version of the game.");
                 }
 
-                const saveData = migrateSaveData(rawData);
+                const saveData = migrateSaveData(rawData) as GameSaveData;
 
                 // Restore state
                 setCurrencies(saveData.currencies);
@@ -446,11 +431,12 @@ export const useGameSession = ({
                 
                 let restoredWorkshopUpgrades = getFreshInitialWorkshopUpgrades();
                 if (saveData.workshopUpgrades && saveData.workshopUpgrades.length > 0) {
-                     const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.purchased]));
-                     restoredWorkshopUpgrades = restoredWorkshopUpgrades.map(upgrade => ({
-                        ...upgrade,
-                        purchased: savedUpgradesMap.get(upgrade.id) || false
-                    }));
+                     const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.level]));
+                     restoredWorkshopUpgrades = restoredWorkshopUpgrades.map(upgrade => {
+                        const level = savedUpgradesMap.get(upgrade.id) || 0;
+                        const cost = { cogwheelGears: Math.ceil((upgrade.baseCost.cogwheelGears || 0) * Math.pow(1.25, level)) };
+                        return { ...upgrade, level, cost };
+                    });
                 }
                 setWorkshopUpgrades(restoredWorkshopUpgrades);
 

@@ -1,11 +1,11 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, PurchaseDetails } from '@/lib/gameTypes';
+import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats } from '@/lib/gameTypes';
 import * as C from '@/constants/gameConstants';
-import { UseGameState } from './useGameState';
+import { useGameState } from './useGameState';
 
-type UseGameCalculationsProps = Pick<UseGameState,
+type UseGameCalculationsProps = Pick<ReturnType<typeof useGameState>,
     'currencies' |
     'items' |
     'itemUpgrades' |
@@ -86,9 +86,9 @@ export const useGameCalculations = ({
     prestigeCount,
     buyQuantity,
     hasEverClicked,
+    hasEverPrestiged,
     overclockLevel,
     devMode,
-    hasEverPrestiged,
 }: UseGameCalculationsProps) => {
 
     const prestigeMultipliers = useMemo(() => {

@@ -17,7 +17,7 @@ export const useGameLogic = () => {
     
     const { manualSave, debouncedSave, immediateSave, resetGame, exportSave, importSave } = useGameSession({
         ...gameState,
-        generationPerSecond: calculations.generationPersecond,
+        generationPerSecond: calculations.generationPerSecond,
     });
 
     const actions = useGameActions({
