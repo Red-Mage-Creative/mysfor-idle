@@ -140,22 +140,40 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                             )}
                                                         </div>
                                                     ) : null}
-                                                    <div>
-                                                        <span className="text-muted-foreground">Cost: </span>
-                                                        {details && details.canAffordPurchase && Object.keys(details.purchaseCost).length > 0 ? (
-                                                            Object.entries(details.purchaseCost).map(([curr, val], index) => (
-                                                                <span key={curr} className="font-semibold text-foreground/90">
-                                                                    {formatNumber(val || 0)} {currencyName(curr as Currency)}
-                                                                    {index < Object.keys(details.purchaseCost).length - 1 ? ', ' : ''}
-                                                                </span>
-                                                            ))
+                                                    <div className="flex items-baseline flex-wrap gap-x-1.5">
+                                                        {details && details.purchaseQuantity > 1 ? (
+                                                            <>
+                                                                <span className="text-muted-foreground">Each:</span>
+                                                                {Object.entries(item.cost).map(([curr, val], index, arr) => (
+                                                                    <span key={curr} className="font-semibold text-foreground/90">
+                                                                        {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
+                                                                    </span>
+                                                                ))}
+                                                                <span className="text-muted-foreground mx-1">|</span>
+                                                                <span className="text-muted-foreground">Total:</span>
+                                                                {Object.entries(details.purchaseCost).map(([curr, val], index, arr) => (
+                                                                    <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-muted-foreground/50")}>
+                                                                        {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
+                                                                    </span>
+                                                                ))}
+                                                            </>
                                                         ) : (
-                                                            Object.entries(item.cost).map(([curr, val], index) => (
-                                                                <span key={curr} className="font-semibold text-muted-foreground/50">
-                                                                    {formatNumber(val || 0)} {currencyName(curr as Currency)}
-                                                                    {index < Object.keys(item.cost).length - 1 ? ', ' : ''}
-                                                                </span>
-                                                            ))
+                                                            <>
+                                                                <span className="text-muted-foreground">Cost:</span>
+                                                                {details && Object.entries(details.purchaseCost).length > 0 ? (
+                                                                    Object.entries(details.purchaseCost).map(([curr, val], index, arr) => (
+                                                                        <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-muted-foreground/50")}>
+                                                                            {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
+                                                                        </span>
+                                                                    ))
+                                                                ) : (
+                                                                     Object.entries(item.cost).map(([curr, val], index, arr) => (
+                                                                        <span key={curr} className="font-semibold text-muted-foreground/50">
+                                                                            {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
+                                                                        </span>
+                                                                    ))
+                                                                )}
+                                                            </>
                                                         )}
                                                     </div>
                                                 </div>
