@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
@@ -6,15 +5,6 @@ import { useGameSession } from './useGameSession';
 import { useGameActions } from './useGameActions';
 import { toast } from "@/components/ui/sonner";
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
-
-export type { PurchaseDetails } from '@/hooks/useGameLogic';
-export type PurchaseDetails = {
-    purchaseQuantity: number;
-    purchaseCost: import('@/lib/gameTypes').CurrencyRecord;
-    canAffordPurchase: boolean;
-    nextLevelTarget: number | null;
-    displayQuantity: string;
-};
 
 export const useGameLogic = () => {
     const gameState = useGameState();

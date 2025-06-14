@@ -43,3 +43,5 @@ export const useGameState = () => {
         buyQuantity, setBuyQuantity,
     };
 };
+
+export type UseGameState = ReturnType<typeof useGameState>;

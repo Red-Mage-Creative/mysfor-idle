@@ -6,6 +6,14 @@ export type Currencies = Record<Currency, number>;
 
 export type CurrencyRecord = Partial<Currencies>;
 
+export type PurchaseDetails = {
+    purchaseQuantity: number;
+    purchaseCost: CurrencyRecord;
+    canAffordPurchase: boolean;
+    nextLevelTarget: number | null;
+    displayQuantity: string;
+};
+
 // Renamed from Upgrade
 export interface Item {
   id: string;

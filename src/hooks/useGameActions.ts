@@ -1,8 +1,9 @@
+
 import { useCallback } from 'react';
-import { useGameState, getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity } from './useGameState';
+import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity, UseGameState } from './useGameState';
 import { toast } from "@/components/ui/sonner";
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
-import { PurchaseDetails } from './useGameLogic';
+import { PurchaseDetails } from '@/lib/gameTypes';
 import { Currency } from '@/lib/gameTypes';
 
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';

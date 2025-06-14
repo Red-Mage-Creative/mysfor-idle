@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { useGameState, getFreshInitialWorkshopUpgrades } from './useGameState';
+import { getFreshInitialWorkshopUpgrades, UseGameState } from './useGameState';
 import { GameSaveData, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
