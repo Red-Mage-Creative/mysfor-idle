@@ -1,22 +1,42 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Zap, Settings, Gem, BrainCircuit } from 'lucide-react';
+import { Zap, Settings, Gem, BrainCircuit, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 import { initialUpgrades } from '@/lib/initialUpgrades';
 import { Upgrade, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { cn } from '@/lib/utils';
 
+const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
+
 const Index = () => {
+  const { toast } = useToast();
   const [currencies, setCurrencies] = useState<Currencies>({
     mana: 0,
     cogwheelGears: 0,
     essenceFlux: 0,
     researchPoints: 0,
+    aetherShards: 0,
   });
-  const [upgrades, setUpgrades] = useState<Upgrade[]>(initialUpgrades);
+  const [upgrades, setUpgrades] = useState<Upgrade[]>(JSON.parse(JSON.stringify(initialUpgrades)));
   const [isClicking, setIsClicking] = useState(false);
-  const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number, text: string }[]>([]);
+
+  const [lifetimeMana, setLifetimeMana] = useState(0);
+  const [prestige, setPrestige] = useState({
+    manaClickMultiplier: 1,
+  });
 
   const generationPerSecond = useMemo(() => {
     return upgrades.reduce((acc, upgrade) => {
@@ -32,32 +52,42 @@ const Index = () => {
   
   useEffect(() => {
     const gameLoop = setInterval(() => {
+      let manaGeneratedThisTick = 0;
       setCurrencies(prev => {
         const newCurrencies = { ...prev };
         for (const key in generationPerSecond) {
           const currency = key as Currency;
-          newCurrencies[currency] += (generationPerSecond[currency] || 0) / 10;
+          const amountGenerated = (generationPerSecond[currency] || 0) / 10;
+          newCurrencies[currency] += amountGenerated;
+          if (currency === 'mana') {
+            manaGeneratedThisTick = amountGenerated;
+          }
         }
         return newCurrencies;
       });
+      setLifetimeMana(prev => prev + manaGeneratedThisTick);
     }, 100);
     return () => clearInterval(gameLoop);
   }, [generationPerSecond]);
   
+  const manaPerClick = useMemo(() => 1 * prestige.manaClickMultiplier, [prestige.manaClickMultiplier]);
+
   const handleForgeClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    setCurrencies(prev => ({ ...prev, mana: prev.mana + 1 }));
+    const clickValue = manaPerClick;
+    setCurrencies(prev => ({ ...prev, mana: prev.mana + clickValue }));
+    setLifetimeMana(prev => prev + clickValue);
     setIsClicking(true);
     setTimeout(() => setIsClicking(false), 200);
 
-    setFloatingTexts(prev => [...prev, { id: Date.now(), x, y }]);
+    setFloatingTexts(prev => [...prev, { id: Date.now(), x, y, text: `+${formatNumber(clickValue)}` }]);
     setTimeout(() => {
         setFloatingTexts(current => current.slice(1));
     }, 500);
-  }, []);
+  }, [manaPerClick]);
 
   const handleBuyUpgrade = useCallback((upgradeId: string) => {
     const upgrade = upgrades.find(u => u.id === upgradeId);
@@ -113,6 +143,7 @@ const Index = () => {
       case 'cogwheelGears': return 'Cogwheel Gears';
       case 'essenceFlux': return 'Essence Flux';
       case 'researchPoints': return 'Research Points';
+      case 'aetherShards': return 'Aether Shards';
       default: return '';
     }
   };
@@ -132,6 +163,39 @@ const Index = () => {
       'Mystical Artifacts': (upgrades.find(u => u.id === 'clockwork_automaton')?.level || 0) > 0 || currencies.cogwheelGears > 500,
     }
   }, [upgradeCategories, currencies.mana, currencies.cogwheelGears, upgrades]);
+
+  const canPrestige = useMemo(() => lifetimeMana >= PRESTIGE_REQUIREMENT, [lifetimeMana]);
+  
+  const potentialShards = useMemo(() => {
+    if (lifetimeMana < PRESTIGE_REQUIREMENT) return 0;
+    return Math.floor(Math.pow(lifetimeMana / 1e9, 0.5) * 5);
+  }, [lifetimeMana]);
+
+  const handlePrestige = () => {
+    if (!canPrestige) return;
+
+    const shardsGained = potentialShards;
+    
+    setCurrencies({
+      mana: 0,
+      cogwheelGears: 0,
+      essenceFlux: 0,
+      researchPoints: 0,
+      aetherShards: currencies.aetherShards + shardsGained,
+    });
+    
+    setUpgrades(JSON.parse(JSON.stringify(initialUpgrades)));
+
+    // This is where prestige upgrades will be bought with shards to update permanent bonuses.
+    setPrestige(prev => ({
+        ...prev, 
+    }));
+    
+    toast({
+      title: "Dimensional Shift!",
+      description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
+    });
+  };
 
   const categoryTierStyles = {
     'Basic Magitech': 'border-primary/20',
@@ -200,9 +264,46 @@ const Index = () => {
                         className="absolute text-2xl font-bold text-primary pointer-events-none animate-float-up"
                         style={{ top: ft.y, left: ft.x }}
                     >
-                        +1
+                        {ft.text}
                     </div>
                 ))}
+            </CardContent>
+          </Card>
+          <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-amber-500/40 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-center gap-4 text-2xl">
+                <Star className="w-8 h-8 text-amber-400" />
+                <span>{formatNumber(currencies.aetherShards)} Aether Shards</span>
+              </CardTitle>
+              <CardDescription>Lifetime Mana: {formatNumber(lifetimeMana)}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="w-full" disabled={!canPrestige} variant="destructive">
+                    Dimensional Shift
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Initiate Dimensional Shift?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will reset your current progress (mana, gears, flux, research, and their upgrades) in exchange for prestige currency.
+                      <br /><br />
+                      You will gain <strong className="text-amber-400">{potentialShards} Aether Shards</strong>.
+                      <br /><br />
+                      Aether Shards are used to purchase powerful permanent upgrades that persist through all future resets. Are you sure you want to proceed?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handlePrestige}>Shift Dimensions</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Requires {formatNumber(PRESTIGE_REQUIREMENT)} lifetime mana to shift.
+              </p>
             </CardContent>
           </Card>
         </div>

@@ -1,7 +1,7 @@
 
 import { LucideIcon } from "lucide-react";
 
-export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints';
+export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints' | 'aetherShards';
 
 export type Currencies = Record<Currency, number>;
 
