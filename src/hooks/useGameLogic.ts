@@ -1,59 +1,67 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { initialItems } from '@/lib/initialItems';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats } from '@/lib/gameTypes';
+import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, GameSaveData, OfflineEarnings } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
+
+const SAVE_KEY = 'magitech_idle_save_v1';
+const CURRENT_SAVE_VERSION = '1.0.0';
 
 const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
 const PRESTIGE_TEASER_THRESHOLD = PRESTIGE_REQUIREMENT * 0.25; // 250M
 const PRESTIGE_VISIBLE_THRESHOLD = PRESTIGE_REQUIREMENT * 0.50; // 500M
 
-const getFreshInitialItems = (): Item[] => {
-    return initialItems.map(item => ({
-        ...item,
-        cost: { ...item.cost },
-        baseCost: { ...item.baseCost },
-        generation: { ...item.generation },
-    }));
-};
-
-const getFreshInitialItemUpgrades = (): ItemUpgrade[] => {
-    return allItemUpgrades.map(upgrade => ({ ...upgrade }));
-};
-
+const getFreshInitialItems = (): Item[] => initialItems.map(item => ({...item, cost: { ...item.cost }, baseCost: { ...item.baseCost }, generation: { ...item.generation }}));
+const getFreshInitialItemUpgrades = (): ItemUpgrade[] => allItemUpgrades.map(upgrade => ({ ...upgrade }));
 
 export const useGameLogic = () => {
-    const [currencies, setCurrencies] = useState<Currencies>({
-        mana: 0,
-        cogwheelGears: 0,
-        essenceFlux: 0,
-        researchPoints: 0,
-        aetherShards: 0,
-    });
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [offlineEarnings, setOfflineEarnings] = useState<OfflineEarnings | null>(null);
+
+    const [currencies, setCurrencies] = useState<Currencies>({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0 });
     const [items, setItems] = useState<Item[]>(getFreshInitialItems());
     const [itemUpgrades, setItemUpgrades] = useState<ItemUpgrade[]>(getFreshInitialItemUpgrades());
     const [lifetimeMana, setLifetimeMana] = useState(0);
     const [prestigeUpgradeLevels, setPrestigeUpgradeLevels] = useState<Record<string, number>>({});
     const [notifiedUpgrades, setNotifiedUpgrades] = useState<Set<string>>(new Set());
+    const [hasEverClicked, setHasEverClicked] = useState(false);
 
-    const [hasEverClicked, setHasEverClicked] = useState(() => {
+    const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    const saveGame = useCallback((isAutoSave = false) => {
         try {
-            return localStorage.getItem('hasEverClicked') === 'true';
-        } catch (e) {
-            console.error("Failed to access localStorage", e);
-            return false;
+            const saveData: GameSaveData = {
+                version: CURRENT_SAVE_VERSION,
+                lastSaveTimestamp: Date.now(),
+                currencies,
+                items,
+                itemUpgrades,
+                lifetimeMana,
+                prestigeUpgradeLevels,
+                notifiedUpgrades: Array.from(notifiedUpgrades),
+                hasEverClicked,
+            };
+            localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+            if (isAutoSave) {
+                 toast.success("Game auto-saved!");
+            }
+        } catch (error) {
+            console.error("Failed to save game:", error);
+            toast.error("Could not save game progress.");
         }
-    });
+    }, [currencies, items, itemUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked]);
 
-    useEffect(() => {
-        try {
-            localStorage.setItem('hasEverClicked', String(hasEverClicked));
-        } catch (e) {
-            console.error("Failed to access localStorage", e);
+    const debouncedSave = useCallback(() => {
+        if (debounceSaveTimeout.current) {
+            clearTimeout(debounceSaveTimeout.current);
         }
-    }, [hasEverClicked]);
-
+        debounceSaveTimeout.current = setTimeout(() => {
+            saveGame();
+            toast.success("Progress saved!");
+        }, 3000);
+    }, [saveGame]);
+    
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
             manaClick: 1,
@@ -137,7 +145,7 @@ export const useGameLogic = () => {
             setLifetimeMana(prev => prev + manaGeneratedThisTick);
         }, 100);
         return () => clearInterval(gameLoop);
-    }, [generationPerSecond]);
+    }, [generationPerSecond, isLoaded]); // Depends on isLoaded now
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
@@ -198,7 +206,8 @@ export const useGameLogic = () => {
             };
           })
         );
-    }, [currencies, items]);
+        debouncedSave();
+    }, [currencies, items, debouncedSave]);
     
     const handleBuyItemUpgrade = useCallback((upgradeId: string) => {
         const upgrade = itemUpgrades.find(u => u.id === upgradeId);
@@ -226,8 +235,8 @@ export const useGameLogic = () => {
         toast.success("Item Upgraded!", {
           description: `You have purchased ${upgrade.name}.`,
         });
-
-    }, [currencies, itemUpgrades]);
+        debouncedSave();
+    }, [currencies, itemUpgrades, debouncedSave]);
 
     const canPrestige = useMemo(() => lifetimeMana >= PRESTIGE_REQUIREMENT, [lifetimeMana]);
     
@@ -264,6 +273,7 @@ export const useGameLogic = () => {
         toast("Dimensional Shift!", {
           description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
         });
+        saveGame(); // Immediate save on prestige
     };
 
     const handleBuyPrestigeUpgrade = useCallback((upgradeId: string) => {
@@ -284,8 +294,8 @@ export const useGameLogic = () => {
 
         setCurrencies(prev => ({ ...prev, aetherShards: prev.aetherShards - cost }));
         setPrestigeUpgradeLevels(prev => ({ ...prev, [upgradeId]: currentLevel + 1 }));
-    }, [currencies.aetherShards, prestigeUpgradeLevels]);
-
+        debouncedSave();
+    }, [currencies.aetherShards, prestigeUpgradeLevels, debouncedSave]);
 
     const unlockedCurrencies = useMemo(() => {
         const unlocked = new Set<Currency>(['mana']);
@@ -407,8 +417,60 @@ export const useGameLogic = () => {
         return !hasEverClicked && currencies.mana === 0 && (generationPerSecond.mana || 0) === 0;
     }, [hasEverClicked, currencies.mana, generationPerSecond]);
 
+    const clearOfflineEarnings = useCallback(() => setOfflineEarnings(null), []);
+
+    const resetGame = useCallback(() => {
+        if(window.confirm("Are you sure you want to reset all progress? This cannot be undone.")){
+            localStorage.removeItem(SAVE_KEY);
+            window.location.reload();
+        }
+    }, []);
+
+    const exportSave = useCallback(() => {
+        try {
+            const dataStr = localStorage.getItem(SAVE_KEY);
+            if (!dataStr) {
+                toast.error("No save data to export.");
+                return;
+            }
+            const data = new Blob([dataStr], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(data);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `magitech-idle-save-${Date.now()}.txt`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            toast.success("Save data exported!");
+        } catch (error) {
+            console.error("Export failed", error);
+            toast.error("Failed to export save data.");
+        }
+    }, []);
+
+    const importSave = useCallback((file: File) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importedString = event.target?.result as string;
+                // Basic validation before reloading
+                const data = JSON.parse(importedString);
+                if (data.version && data.currencies) {
+                    localStorage.setItem(SAVE_KEY, importedString);
+                    toast.success("Save data imported successfully! Reloading game...");
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    throw new Error("Invalid save file format.");
+                }
+            } catch (error) {
+                console.error("Import failed", error);
+                toast.error("Failed to import save data. File may be corrupt or invalid.");
+            }
+        };
+        reader.readAsText(file);
+    }, []);
 
     return {
+        isLoaded,
         currencies,
         lifetimeMana,
         generationPerSecond,
@@ -428,5 +490,10 @@ export const useGameLogic = () => {
         availableItemUpgrades,
         handleBuyItemUpgrade,
         showTutorial,
+        offlineEarnings,
+        clearOfflineEarnings,
+        resetGame,
+        exportSave,
+        importSave,
     };
 };

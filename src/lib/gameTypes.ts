@@ -61,3 +61,21 @@ export interface PrestigeUpgrade {
   };
   icon: LucideIcon;
 }
+
+// New types for save data and offline progress
+export interface GameSaveData {
+    version: string;
+    lastSaveTimestamp: number;
+    currencies: Currencies;
+    items: Item[];
+    itemUpgrades: ItemUpgrade[];
+    lifetimeMana: number;
+    prestigeUpgradeLevels: Record<string, number>;
+    notifiedUpgrades: string[];
+    hasEverClicked: boolean;
+}
+
+export interface OfflineEarnings {
+    timeAway: number; // in seconds
+    earnings: CurrencyRecord;
+}

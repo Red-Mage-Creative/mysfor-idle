@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import Layout from "./components/layout/Layout";
 import AboutPage from "./pages/About";
 import SettingsPage from "./pages/Settings";
+import { GameProvider } from "./context/GameContext";
 
 const queryClient = new QueryClient();
 
@@ -16,14 +17,16 @@ const App = () => (
     <TooltipProvider>
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Index />} />
-            <Route path="about" element={<AboutPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+        <GameProvider>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Index />} />
+              <Route path="about" element={<AboutPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </GameProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

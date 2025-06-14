@@ -1,18 +1,25 @@
-import React from 'react';
+
+import React, { useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Upload, Download, Trash2, ShieldAlert } from 'lucide-react';
+import { useGame } from '@/context/GameContext';
 
 const SettingsPage = () => {
-    // These functions would be connected to useGameLogic in a real implementation
-    const handleExport = () => alert('Exporting save data... (Feature coming soon!)');
-    const handleImport = () => alert('Importing save data... (Feature coming soon!)');
-    const handleReset = () => {
-        if (confirm('Are you sure you want to reset your game? This action is irreversible.')) {
-            alert('Game reset requested. (Feature coming soon!)');
-        }
+    const { exportSave, importSave, resetGame } = useGame();
+    const importInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImportClick = () => {
+        importInputRef.current?.click();
     };
 
+    const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            importSave(file);
+        }
+    };
+    
     return (
         <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
             <div className="text-center">
@@ -28,14 +35,21 @@ const SettingsPage = () => {
                     <CardDescription>Export your progress or import a save file.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Button onClick={handleExport} variant="secondary">
+                    <Button onClick={exportSave} variant="secondary">
                         <Download className="mr-2 h-4 w-4" />
                         Export Save
                     </Button>
-                    <Button onClick={handleImport} variant="secondary">
+                    <Button onClick={handleImportClick} variant="secondary">
                         <Upload className="mr-2 h-4 w-4" />
                         Import Save
                     </Button>
+                    <input
+                        type="file"
+                        ref={importInputRef}
+                        onChange={handleFileImport}
+                        className="hidden"
+                        accept=".txt,application/json"
+                    />
                 </CardContent>
             </Card>
 
@@ -48,7 +62,7 @@ const SettingsPage = () => {
                     <CardDescription>These actions are irreversible. Please be certain.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     <Button onClick={handleReset} variant="destructive" className="w-full">
+                     <Button onClick={resetGame} variant="destructive" className="w-full">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Reset Game Progress
                     </Button>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGameLogic } from '@/hooks/useGameLogic';
+import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
 import PrestigeCard from '@/components/game/PrestigeCard';
 import ItemsList from '@/components/game/ItemsList';
@@ -8,9 +8,12 @@ import PrestigeUpgradesList from '@/components/game/PrestigeUpgradesList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PrestigeVisibility } from '@/components/game/PrestigeCard';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import OfflineEarningsModal from '@/components/game/OfflineEarningsModal';
 
 const Index = () => {
   const {
+    isLoaded,
     currencies,
     lifetimeMana,
     generationPerSecond,
@@ -30,75 +33,98 @@ const Index = () => {
     availableItemUpgrades,
     handleBuyItemUpgrade,
     showTutorial,
-  } = useGameLogic();
+    offlineEarnings,
+    clearOfflineEarnings,
+  } = useGame();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
   const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showPrestigeTab ? 1 : 0);
 
+  if (!isLoaded) {
+    return (
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-1 flex flex-col items-stretch space-y-6">
+                <Skeleton className="h-[300px] w-full" />
+                <Skeleton className="h-[200px] w-full" />
+            </div>
+            <div className="lg:col-span-2">
+                <Skeleton className="h-[600px] w-full" />
+            </div>
+        </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        
-        <div className="lg:col-span-1 flex flex-col items-stretch space-y-6 lg:sticky lg:top-24">
-          <ForgeCard 
-            currencies={currencies}
-            generationPerSecond={generationPerSecond}
-            manaPerClick={manaPerClick}
-            onForgeClick={addMana}
-            showTutorial={showTutorial}
-          />
-          <PrestigeCard 
-            currencies={currencies}
-            lifetimeMana={lifetimeMana}
-            canPrestige={canPrestige}
-            potentialShards={potentialShards}
-            onPrestige={handlePrestige}
-            prestigeVisibility={prestigeVisibility as PrestigeVisibility}
-          />
-        </div>
+    <>
+      <OfflineEarningsModal 
+        isOpen={!!offlineEarnings}
+        onClose={clearOfflineEarnings}
+        data={offlineEarnings}
+      />
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fade-in">
+          
+          <div className="lg:col-span-1 flex flex-col items-stretch space-y-6 lg:sticky lg:top-24">
+            <ForgeCard 
+              currencies={currencies}
+              generationPerSecond={generationPerSecond}
+              manaPerClick={manaPerClick}
+              onForgeClick={addMana}
+              showTutorial={showTutorial}
+            />
+            <PrestigeCard 
+              currencies={currencies}
+              lifetimeMana={lifetimeMana}
+              canPrestige={canPrestige}
+              potentialShards={potentialShards}
+              onPrestige={handlePrestige}
+              prestigeVisibility={prestigeVisibility as PrestigeVisibility}
+            />
+          </div>
 
-        <div className="lg:col-span-2 flex flex-col items-center justify-start">
-          <Tabs defaultValue="items" className="w-full">
-            {tabCount > 1 && (
-              <TabsList className={cn(
-                "grid w-full",
-                { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, }
-              )}>
-                <TabsTrigger value="items">Items</TabsTrigger>
-                {showUpgradesTab && <TabsTrigger value="upgrades">Upgrades</TabsTrigger>}
-                {showPrestigeTab && <TabsTrigger value="prestige">Prestige</TabsTrigger>}
-              </TabsList>
-            )}
-            <TabsContent value="items">
-              <ItemsList
-                currencies={currencies}
-                onBuyItem={handleBuyItem}
-                itemCategories={itemCategories}
-                categoryUnlockStatus={categoryUnlockStatus}
-              />
-            </TabsContent>
-            {showUpgradesTab && (
-              <TabsContent value="upgrades">
-                <ItemUpgradesList
+          <div className="lg:col-span-2 flex flex-col items-center justify-start">
+            <Tabs defaultValue="items" className="w-full">
+              {tabCount > 1 && (
+                <TabsList className={cn(
+                  "grid w-full",
+                  { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, }
+                )}>
+                  <TabsTrigger value="items">Items</TabsTrigger>
+                  {showUpgradesTab && <TabsTrigger value="upgrades">Upgrades</TabsTrigger>}
+                  {showPrestigeTab && <TabsTrigger value="prestige">Prestige</TabsTrigger>}
+                </TabsList>
+              )}
+              <TabsContent value="items">
+                <ItemsList
                   currencies={currencies}
-                  onBuyItemUpgrade={handleBuyItemUpgrade}
-                  availableItemUpgrades={availableItemUpgrades}
+                  onBuyItem={handleBuyItem}
+                  itemCategories={itemCategories}
+                  categoryUnlockStatus={categoryUnlockStatus}
                 />
               </TabsContent>
-            )}
-            {showPrestigeTab && (
-              <TabsContent value="prestige">
-                <PrestigeUpgradesList
-                    prestigeUpgrades={prestigeUpgrades}
-                    prestigeUpgradeLevels={prestigeUpgradeLevels}
+              {showUpgradesTab && (
+                <TabsContent value="upgrades">
+                  <ItemUpgradesList
                     currencies={currencies}
-                    onBuyPrestigeUpgrade={handleBuyPrestigeUpgrade}
-                />
-              </TabsContent>
-            )}
-          </Tabs>
-        </div>
+                    onBuyItemUpgrade={handleBuyItemUpgrade}
+                    availableItemUpgrades={availableItemUpgrades}
+                  />
+                </TabsContent>
+              )}
+              {showPrestigeTab && (
+                <TabsContent value="prestige">
+                  <PrestigeUpgradesList
+                      prestigeUpgrades={prestigeUpgrades}
+                      prestigeUpgradeLevels={prestigeUpgradeLevels}
+                      currencies={currencies}
+                      onBuyPrestigeUpgrade={handleBuyPrestigeUpgrade}
+                  />
+                </TabsContent>
+              )}
+            </Tabs>
+          </div>
 
-    </div>
+      </div>
+    </>
   );
 };
 
