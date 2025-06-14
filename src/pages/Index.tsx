@@ -4,6 +4,8 @@ import { useGameLogic } from '@/hooks/useGameLogic';
 import ForgeCard from '@/components/game/ForgeCard';
 import PrestigeCard from '@/components/game/PrestigeCard';
 import UpgradesList from '@/components/game/UpgradesList';
+import PrestigeUpgradesList from '@/components/game/PrestigeUpgradesList';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const {
@@ -18,6 +20,9 @@ const Index = () => {
     handlePrestige,
     upgradeCategories,
     categoryUnlockStatus,
+    prestigeUpgrades,
+    prestigeUpgradeLevels,
+    handleBuyPrestigeUpgrade,
   } = useGameLogic();
 
   return (
@@ -48,12 +53,28 @@ const Index = () => {
         </div>
 
         <div className="lg:col-span-1 flex flex-col items-center justify-start order-3">
-          <UpgradesList
-            currencies={currencies}
-            onBuyUpgrade={handleBuyUpgrade}
-            upgradeCategories={upgradeCategories}
-            categoryUnlockStatus={categoryUnlockStatus}
-          />
+          <Tabs defaultValue="standard" className="w-full max-w-md">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="standard">Upgrades</TabsTrigger>
+              <TabsTrigger value="prestige">Prestige</TabsTrigger>
+            </TabsList>
+            <TabsContent value="standard">
+              <UpgradesList
+                currencies={currencies}
+                onBuyUpgrade={handleBuyUpgrade}
+                upgradeCategories={upgradeCategories}
+                categoryUnlockStatus={categoryUnlockStatus}
+              />
+            </TabsContent>
+            <TabsContent value="prestige">
+              <PrestigeUpgradesList
+                prestigeUpgrades={prestigeUpgrades}
+                prestigeUpgradeLevels={prestigeUpgradeLevels}
+                currencies={currencies}
+                onBuyPrestigeUpgrade={handleBuyPrestigeUpgrade}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
       </div>

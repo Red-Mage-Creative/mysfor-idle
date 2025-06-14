@@ -18,3 +18,16 @@ export interface Upgrade {
   icon: LucideIcon;
   category: 'Basic Magitech' | 'Advanced Machinery' | 'Mystical Artifacts';
 }
+
+export interface PrestigeUpgrade {
+  id: string;
+  name: string;
+  description: (level: number) => string;
+  cost: (level: number) => number;
+  maxLevel: number;
+  effect: {
+    type: 'manaClickMultiplier' | 'allProductionMultiplier' | 'shardGainMultiplier';
+    value: (level: number) => number;
+  };
+  icon: LucideIcon;
+}

@@ -1,5 +1,7 @@
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { initialUpgrades } from '@/lib/initialUpgrades';
+import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { Upgrade, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
 
@@ -25,12 +27,36 @@ export const useGameLogic = () => {
     });
     const [upgrades, setUpgrades] = useState<Upgrade[]>(getFreshInitialUpgrades());
     const [lifetimeMana, setLifetimeMana] = useState(0);
-    const [prestige, setPrestige] = useState({
-        manaClickMultiplier: 1,
-    });
+    const [prestigeUpgradeLevels, setPrestigeUpgradeLevels] = useState<Record<string, number>>({});
+
+    const prestigeMultipliers = useMemo(() => {
+        const multipliers = {
+            manaClick: 1,
+            allProduction: 1,
+            shardGain: 1,
+        };
+
+        for (const upgrade of prestigeUpgrades) {
+            const level = prestigeUpgradeLevels[upgrade.id] || 0;
+            if (level > 0) {
+                switch (upgrade.effect.type) {
+                    case 'manaClickMultiplier':
+                        multipliers.manaClick *= upgrade.effect.value(level);
+                        break;
+                    case 'allProductionMultiplier':
+                        multipliers.allProduction *= upgrade.effect.value(level);
+                        break;
+                    case 'shardGainMultiplier':
+                        multipliers.shardGain *= upgrade.effect.value(level);
+                        break;
+                }
+            }
+        }
+        return multipliers;
+    }, [prestigeUpgradeLevels]);
 
     const generationPerSecond = useMemo(() => {
-        return upgrades.reduce((acc, upgrade) => {
+        const baseGeneration = upgrades.reduce((acc, upgrade) => {
             if (upgrade.level > 0) {
                 for (const currency in upgrade.generation) {
                     const key = currency as Currency;
@@ -39,7 +65,13 @@ export const useGameLogic = () => {
             }
             return acc;
         }, {} as Partial<Currencies>);
-    }, [upgrades]);
+
+        for (const key in baseGeneration) {
+            const currency = key as Currency;
+            baseGeneration[currency] = (baseGeneration[currency] || 0) * prestigeMultipliers.allProduction;
+        }
+        return baseGeneration;
+    }, [upgrades, prestigeMultipliers.allProduction]);
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
@@ -61,7 +93,7 @@ export const useGameLogic = () => {
         return () => clearInterval(gameLoop);
     }, [generationPerSecond]);
 
-    const manaPerClick = useMemo(() => 1 * prestige.manaClickMultiplier, [prestige.manaClickMultiplier]);
+    const manaPerClick = useMemo(() => 1 * prestigeMultipliers.manaClick, [prestigeMultipliers.manaClick]);
 
     const addMana = useCallback((amount: number) => {
         setCurrencies(prev => ({ ...prev, mana: prev.mana + amount }));
@@ -112,8 +144,9 @@ export const useGameLogic = () => {
     
     const potentialShards = useMemo(() => {
         if (lifetimeMana < PRESTIGE_REQUIREMENT) return 0;
-        return Math.floor(Math.pow(lifetimeMana / 1e9, 0.5) * 5);
-    }, [lifetimeMana]);
+        const baseShards = Math.floor(Math.pow(lifetimeMana / 1e9, 0.5) * 5);
+        return Math.floor(baseShards * prestigeMultipliers.shardGain);
+    }, [lifetimeMana, prestigeMultipliers.shardGain]);
 
     const handlePrestige = () => {
         if (!canPrestige) return;
@@ -129,13 +162,33 @@ export const useGameLogic = () => {
         });
         
         setUpgrades(getFreshInitialUpgrades());
-
-        setPrestige(prev => ({ ...prev }));
+        setLifetimeMana(0);
         
         toast("Dimensional Shift!", {
           description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
         });
     };
+
+    const handleBuyPrestigeUpgrade = useCallback((upgradeId: string) => {
+        const upgrade = prestigeUpgrades.find(u => u.id === upgradeId);
+        if (!upgrade) return;
+
+        const currentLevel = prestigeUpgradeLevels[upgrade.id] || 0;
+        if (currentLevel >= upgrade.maxLevel) {
+            toast.error("Max level reached for this upgrade.");
+            return;
+        };
+
+        const cost = upgrade.cost(currentLevel);
+        if (currencies.aetherShards < cost) {
+            toast.error("Not enough Aether Shards.");
+            return;
+        }
+
+        setCurrencies(prev => ({ ...prev, aetherShards: prev.aetherShards - cost }));
+        setPrestigeUpgradeLevels(prev => ({ ...prev, [upgradeId]: currentLevel + 1 }));
+    }, [currencies.aetherShards, prestigeUpgradeLevels]);
+
 
     const upgradeCategories = useMemo(() => ({
         'Basic Magitech': upgrades.filter(u => u.category === 'Basic Magitech'),
@@ -165,5 +218,8 @@ export const useGameLogic = () => {
         handlePrestige,
         upgradeCategories,
         categoryUnlockStatus,
+        prestigeUpgrades,
+        prestigeUpgradeLevels,
+        handleBuyPrestigeUpgrade,
     };
 };
