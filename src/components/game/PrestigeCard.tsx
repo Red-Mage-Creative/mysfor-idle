@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -28,9 +29,10 @@ interface PrestigeCardProps {
     onPrestige: () => void;
     prestigeVisibility: PrestigeVisibility;
     prestigeRequirement: number;
+    prestigeCount: number;
 }
 
-const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, onPrestige, prestigeVisibility, prestigeRequirement }: PrestigeCardProps) => {
+const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, onPrestige, prestigeVisibility, prestigeRequirement, prestigeCount }: PrestigeCardProps) => {
     if (prestigeVisibility === 'hidden') {
         return null;
     }
@@ -60,6 +62,7 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
                     <Star className="w-8 h-8 text-amber-400" />
                     <span>{formatNumber(currencies.aetherShards)} Aether Shards</span>
                 </CardTitle>
+                {prestigeCount > 0 && <CardDescription>Prestige Level: {prestigeCount}</CardDescription>}
                 <CardDescription>Lifetime Mana: {formatNumber(lifetimeMana)}</CardDescription>
             </CardHeader>
             <CardContent>
@@ -87,7 +90,7 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
                     </AlertDialogContent>
                 </AlertDialog>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Requires {formatNumber(prestigeRequirement)} lifetime mana to shift.
+                    Shift for Prestige #{prestigeCount + 1}. Requires {formatNumber(prestigeRequirement)} lifetime mana.
                 </p>
             </CardContent>
         </Card>

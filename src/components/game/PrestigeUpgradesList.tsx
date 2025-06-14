@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { PrestigeUpgrade as PrestigeUpgradeType, Currencies } from '@/lib/gameTypes';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatNumber } from '@/lib/formatters';
 import { Gem } from 'lucide-react';
 
@@ -18,22 +19,24 @@ const PrestigeUpgradeItem = ({ upgrade, level, currencies, onBuyPrestigeUpgrade 
     const canAfford = currencies.aetherShards >= cost;
     const isMaxLevel = level >= upgrade.maxLevel;
     const Icon = upgrade.icon;
+    const currentEffect = level > 0 ? upgrade.description(level) : 'No bonus yet.';
 
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <div className="flex items-center justify-between p-2 rounded-lg border bg-card/50">
-                    <div className="flex items-center gap-3">
-                        <Icon className="w-8 h-8 text-amber-400" />
-                        <div>
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-card/50 gap-4">
+                    <div className="flex items-center gap-3 flex-grow min-w-0">
+                        <Icon className="w-8 h-8 text-amber-400 flex-shrink-0" />
+                        <div className="flex-grow">
                             <p className="font-semibold">{upgrade.name}</p>
                             <p className="text-sm text-muted-foreground">Level {level} / {upgrade.maxLevel}</p>
+                            <p className="text-sm font-medium text-primary mt-1">{currentEffect}</p>
                         </div>
                     </div>
                     <Button
                         onClick={() => onBuyPrestigeUpgrade(upgrade.id)}
                         disabled={!canAfford || isMaxLevel}
-                        className="w-28"
+                        className="w-28 flex-shrink-0"
                         variant="secondary"
                     >
                         {isMaxLevel ? 'Maxed' : (
@@ -46,8 +49,11 @@ const PrestigeUpgradeItem = ({ upgrade, level, currencies, onBuyPrestigeUpgrade 
                 </div>
             </TooltipTrigger>
             <TooltipContent>
-                <p>{level > 0 ? `Current: ${upgrade.description(level)}` : 'No bonus yet.'}</p>
-                {!isMaxLevel && <p>Next Level: {upgrade.description(level + 1)}</p>}
+                {!isMaxLevel ? (
+                    <p>Next Level: {upgrade.description(level + 1)}</p>
+                ) : (
+                    <p>This upgrade is at its maximum level.</p>
+                )}
             </TooltipContent>
         </Tooltip>
     );

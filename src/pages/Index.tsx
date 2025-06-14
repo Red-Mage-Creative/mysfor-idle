@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import OfflineEarningsModal from '@/components/game/OfflineEarningsModal';
 import SaveStatusDisplay from '@/components/layout/SaveStatus';
+import PrestigeBonusesSummary from '@/components/game/PrestigeBonusesSummary';
 
 const Index = () => {
   const {
@@ -48,6 +49,8 @@ const Index = () => {
     lastSaveTime,
     overclockInfo,
     handleSetOverclockLevel,
+    prestigeCount,
+    prestigeMultipliers,
   } = useGame();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
@@ -83,7 +86,9 @@ const Index = () => {
               manaPerClick={manaPerClick}
               onForgeClick={addMana}
               showTutorial={showTutorial}
+              prestigeMultipliers={prestigeMultipliers}
             />
+            {prestigeCount > 0 && <PrestigeBonusesSummary prestigeCount={prestigeCount} prestigeMultipliers={prestigeMultipliers} />}
             <PrestigeCard 
               currencies={currencies}
               lifetimeMana={lifetimeMana}
@@ -92,6 +97,7 @@ const Index = () => {
               onPrestige={handlePrestige}
               prestigeVisibility={prestigeVisibility as PrestigeVisibility}
               prestigeRequirement={prestigeRequirement}
+              prestigeCount={prestigeCount}
             />
           </div>
 

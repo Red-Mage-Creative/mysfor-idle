@@ -1,7 +1,7 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Zap, Settings, Gem, BrainCircuit } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Currencies, Currency } from '@/lib/gameTypes';
 import { formatNumber } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,10 @@ interface ForgeCardProps {
     generationPerSecond: Partial<Currencies>;
     manaPerClick: number;
     onForgeClick: (clickValue: number) => void;
+    prestigeMultipliers: {
+        allProduction: number;
+        manaClick: number;
+    };
     showTutorial?: boolean;
 }
 
@@ -23,7 +27,7 @@ interface FloatingIcon {
     color: string;
 }
 
-const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick, showTutorial = false }: ForgeCardProps) => {
+const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick, prestigeMultipliers, showTutorial = false }: ForgeCardProps) => {
     const [isClicking, setIsClicking] = useState(false);
     const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number, text: string }[]>([]);
     const [floatingZaps, setFloatingZaps] = useState<{ id: number; x: number; y: number; rotation: number }[]>([]);
@@ -129,10 +133,12 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
         <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg overflow-hidden">
             <CardHeader>
                 <CardTitle className="text-4xl font-bold text-primary">{formatNumber(currencies.mana)} Mana</CardTitle>
-                <CardDescription className="text-muted-foreground flex justify-center items-center gap-2">
+                <CardDescription className="text-muted-foreground flex justify-center items-center gap-2 flex-wrap">
                     <span>{formatNumber(generationPerSecond.mana || 0)}/s</span>
+                    {prestigeMultipliers.allProduction > 1 && <Badge variant="outline" className="text-xs text-amber-400 border-amber-400/50">x{formatNumber(prestigeMultipliers.allProduction, 2)}</Badge>}
                     <span className="text-xs">|</span>
                     <span>{formatNumber(manaPerClick)}/click</span>
+                    {prestigeMultipliers.manaClick > 1 && <Badge variant="outline" className="text-xs text-amber-400 border-amber-400/50">x{formatNumber(prestigeMultipliers.manaClick, 2)}</Badge>}
                 </CardDescription>
 
                 {visibleCurrencies.length > 0 && (
@@ -216,4 +222,3 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
 };
 
 export default ForgeCard;
-
