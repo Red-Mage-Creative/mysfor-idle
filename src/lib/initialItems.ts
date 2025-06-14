@@ -1,5 +1,4 @@
-
-import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand } from 'lucide-react';
+import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand, Recycle, Waves } from 'lucide-react';
 import { Item } from './gameTypes';
 
 export const initialItems: Item[] = [
@@ -82,6 +81,28 @@ export const initialItems: Item[] = [
     generation: { researchPoints: 1 },
     level: 0,
     icon: BrainCircuit,
+    category: 'Advanced Machinery',
+  },
+  {
+    id: 'gear_recycler',
+    name: 'Gear Recycler',
+    description: 'A complex machine that converts spare gears into a steady stream of mana.',
+    baseCost: { mana: 1e5, cogwheelGears: 250 },
+    cost: { mana: 1e5, cogwheelGears: 250 },
+    generation: { mana: 500 },
+    level: 0,
+    icon: Recycle,
+    category: 'Advanced Machinery',
+  },
+  {
+    id: 'mechanical_amplifier',
+    name: 'Mechanical Amplifier',
+    description: 'Channels kinetic energy to amplify mana generation and produce more research.',
+    baseCost: { mana: 1e6, cogwheelGears: 1000 },
+    cost: { mana: 1e6, cogwheelGears: 1000 },
+    generation: { mana: 2500, researchPoints: 2 },
+    level: 0,
+    icon: Waves,
     category: 'Advanced Machinery',
   },
   

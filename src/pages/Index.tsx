@@ -4,6 +4,7 @@ import ForgeCard from '@/components/game/ForgeCard';
 import PrestigeCard from '@/components/game/PrestigeCard';
 import ItemsList from '@/components/game/ItemsList';
 import ItemUpgradesList from '@/components/game/ItemUpgradesList';
+import WorkshopUpgradesList from '@/components/game/WorkshopUpgradesList';
 import PrestigeUpgradesList from '@/components/game/PrestigeUpgradesList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PrestigeVisibility } from '@/components/game/PrestigeCard';
@@ -34,6 +35,9 @@ const Index = () => {
     showUpgradesTab,
     availableItemUpgrades,
     handleBuyItemUpgrade,
+    showWorkshopTab,
+    availableWorkshopUpgrades,
+    handleBuyWorkshopUpgrade,
     showTutorial,
     offlineEarnings,
     clearOfflineEarnings,
@@ -43,7 +47,7 @@ const Index = () => {
   } = useGame();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
-  const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showPrestigeTab ? 1 : 0);
+  const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showWorkshopTab ? 1 : 0) + (showPrestigeTab ? 1 : 0);
 
   if (!isLoaded) {
     return (
@@ -98,10 +102,11 @@ const Index = () => {
               {tabCount > 1 && (
                 <TabsList className={cn(
                   "grid w-full",
-                  { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, }
+                  { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, "grid-cols-4": tabCount === 4 }
                 )}>
                   <TabsTrigger value="items">Items</TabsTrigger>
                   {showUpgradesTab && <TabsTrigger value="upgrades">Upgrades</TabsTrigger>}
+                  {showWorkshopTab && <TabsTrigger value="workshop">Workshop</TabsTrigger>}
                   {showPrestigeTab && <TabsTrigger value="prestige">Prestige</TabsTrigger>}
                 </TabsList>
               )}
@@ -120,6 +125,15 @@ const Index = () => {
                     currencies={currencies}
                     onBuyItemUpgrade={handleBuyItemUpgrade}
                     availableItemUpgrades={availableItemUpgrades}
+                  />
+                </TabsContent>
+              )}
+              {showWorkshopTab && (
+                <TabsContent value="workshop">
+                  <WorkshopUpgradesList
+                    currencies={currencies}
+                    onBuyWorkshopUpgrade={handleBuyWorkshopUpgrade}
+                    availableWorkshopUpgrades={availableWorkshopUpgrades}
                   />
                 </TabsContent>
               )}

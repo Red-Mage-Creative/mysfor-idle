@@ -49,6 +49,20 @@ export interface ItemUpgrade {
   icon: LucideIcon;
 }
 
+// New type for workshop upgrades
+export interface WorkshopUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  cost: CurrencyRecord;
+  effect: {
+    type: 'gearProductionMultiplier' | 'clickEffectivenessMultiplier' | 'manaFromMachineryMultiplier';
+    value: number;
+  };
+  purchased: boolean;
+  icon: LucideIcon;
+}
+
 export interface PrestigeUpgrade {
   id: string;
   name: string;
@@ -69,6 +83,7 @@ export interface GameSaveData {
     currencies: Currencies;
     items: Item[];
     itemUpgrades: ItemUpgrade[];
+    workshopUpgrades: WorkshopUpgrade[];
     lifetimeMana: number;
     prestigeUpgradeLevels: Record<string, number>;
     notifiedUpgrades: string[];

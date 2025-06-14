@@ -1,10 +1,10 @@
-
 import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, GameSaveData, ItemWithStats } from '@/lib/gameTypes';
+import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
+import { Item, ItemUpgrade, WorkshopUpgrade, Currencies, Currency, CurrencyRecord, GameSaveData, ItemWithStats } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
-import { useGameState, getFreshInitialItems, getFreshInitialItemUpgrades, BuyQuantity } from './useGameState';
+import { useGameState, getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity } from './useGameState';
 import * as C from '@/constants/gameConstants';
 
 export type PurchaseDetails = {
@@ -25,6 +25,7 @@ export const useGameLogic = () => {
         currencies, setCurrencies,
         items, setItems,
         itemUpgrades, setItemUpgrades,
+        workshopUpgrades, setWorkshopUpgrades,
         lifetimeMana, setLifetimeMana,
         prestigeUpgradeLevels, setPrestigeUpgradeLevels,
         notifiedUpgrades, setNotifiedUpgrades,
@@ -63,6 +64,7 @@ export const useGameLogic = () => {
                 currencies,
                 items,
                 itemUpgrades,
+                workshopUpgrades,
                 lifetimeMana,
                 prestigeUpgradeLevels,
                 notifiedUpgrades: Array.from(notifiedUpgrades),
@@ -76,7 +78,7 @@ export const useGameLogic = () => {
             toast.error("Could not save game progress.");
             throw error;
         }
-    }, [currencies, items, itemUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, setLastSaveTime, setSaveStatus]);
+    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, setLastSaveTime, setSaveStatus]);
 
     const manualSave = useCallback(() => {
         if (saveStatus === 'saving') return;
@@ -128,6 +130,31 @@ export const useGameLogic = () => {
         return multipliers;
     }, [prestigeUpgradeLevels]);
 
+    const workshopUpgradeMultipliers = useMemo(() => {
+        const multipliers = {
+            gearProduction: 1,
+            clickEffectiveness: 1,
+            manaFromMachinery: 1,
+        };
+
+        for (const upgrade of workshopUpgrades) {
+            if (upgrade.purchased) {
+                switch (upgrade.effect.type) {
+                    case 'gearProductionMultiplier':
+                        multipliers.gearProduction *= upgrade.effect.value;
+                        break;
+                    case 'clickEffectivenessMultiplier':
+                        multipliers.clickEffectiveness *= upgrade.effect.value;
+                        break;
+                    case 'manaFromMachineryMultiplier':
+                        multipliers.manaFromMachinery *= upgrade.effect.value;
+                        break;
+                }
+            }
+        }
+        return multipliers;
+    }, [workshopUpgrades]);
+
     const itemUpgradeMultipliers = useMemo(() => {
         const multipliers: Record<string, { generation: number; click: number }> = {};
         for (const item of items) {
@@ -153,7 +180,15 @@ export const useGameLogic = () => {
                 for (const currency in item.generation) {
                     const key = currency as Currency;
                     const itemMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
-                    const value = (item.generation[key] || 0) * item.level * itemMultiplier;
+                    let value = (item.generation[key] || 0) * item.level * itemMultiplier;
+                    
+                    if (key === 'mana' && item.category === 'Advanced Machinery') {
+                        value *= workshopUpgradeMultipliers.manaFromMachinery;
+                    }
+                    if (key === 'cogwheelGears') {
+                        value *= workshopUpgradeMultipliers.gearProduction;
+                    }
+                    
                     acc[key] = (acc[key] || 0) + value;
                 }
             }
@@ -165,7 +200,7 @@ export const useGameLogic = () => {
             baseGeneration[currency] = (baseGeneration[currency] || 0) * prestigeMultipliers.allProduction;
         }
         return baseGeneration;
-    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers]);
 
     useEffect(() => {
         const loadGame = () => {
@@ -220,6 +255,23 @@ export const useGameLogic = () => {
                         }
                     }
 
+                    const workshopUpgradeMultipliers: Record<string, { gearProduction: number; clickEffectiveness: number; manaFromMachinery: number }> = {};
+                    for (const upgrade of saveData.workshopUpgrades || getFreshInitialWorkshopUpgrades()) {
+                        if (upgrade.purchased) {
+                            switch (upgrade.effect.type) {
+                                case 'gearProductionMultiplier':
+                                    workshopUpgradeMultipliers.gearProduction *= upgrade.effect.value;
+                                    break;
+                                case 'clickEffectivenessMultiplier':
+                                    workshopUpgradeMultipliers.clickEffectiveness *= upgrade.effect.value;
+                                    break;
+                                case 'manaFromMachineryMultiplier':
+                                    workshopUpgradeMultipliers.manaFromMachinery *= upgrade.effect.value;
+                                    break;
+                            }
+                        }
+                    }
+
                     const offlineGps = saveData.items.reduce((acc, item) => {
                         if (item.level > 0) {
                             for (const currency in item.generation) {
@@ -261,6 +313,7 @@ export const useGameLogic = () => {
                 setCurrencies(saveData.currencies);
                 setItems(saveData.items);
                 setItemUpgrades(saveData.itemUpgrades);
+                setWorkshopUpgrades(saveData.workshopUpgrades || getFreshInitialWorkshopUpgrades());
                 setLifetimeMana(saveData.lifetimeMana);
                 setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
@@ -275,10 +328,9 @@ export const useGameLogic = () => {
         };
 
         loadGame();
-    }, [setCurrencies, setItems, setItemUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setIsLoaded, setOfflineEarnings, setLastSaveTime]); // Dependencies are now just setters
+    }, [setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setIsLoaded, setOfflineEarnings, setLastSaveTime]); // Dependencies are now just setters
 
     useEffect(() => {
-        if(!isLoaded) return;
         const gameLoop = setInterval(() => {
             let manaGeneratedThisTick = 0;
             setCurrencies(prev => {
@@ -318,8 +370,10 @@ export const useGameLogic = () => {
                 return sum + (i.clickBonus || 0) * i.level * itemMultiplier;
             }, 0);
         
-        return (baseClick + clickItemBonus) * prestigeMultipliers.manaClick;
-    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers]);
+        const effectiveClickBonus = clickItemBonus * workshopUpgradeMultipliers.clickEffectiveness;
+        
+        return (baseClick + effectiveClickBonus) * prestigeMultipliers.manaClick;
+    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers]);
 
     const addMana = useCallback((amount: number) => {
         setCurrencies(prev => ({ ...prev, mana: prev.mana + amount }));
@@ -505,6 +559,35 @@ export const useGameLogic = () => {
         debouncedSave();
     }, [currencies, itemUpgrades, debouncedSave]);
 
+    const handleBuyWorkshopUpgrade = useCallback((upgradeId: string) => {
+        const upgrade = workshopUpgrades.find(u => u.id === upgradeId);
+        if (!upgrade || upgrade.purchased) return;
+        
+        const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
+            return currencies[currency as Currency] >= cost;
+        });
+
+        if (!canAfford) {
+            toast.error("Not enough resources.");
+            return;
+        }
+
+        setCurrencies(prev => {
+            const newCurrencies = { ...prev };
+            for (const currency in upgrade.cost) {
+                newCurrencies[currency as Currency] -= upgrade.cost[currency as Currency] || 0;
+            }
+            return newCurrencies;
+        });
+
+        setWorkshopUpgrades(prev => prev.map(u => u.id === upgradeId ? {...u, purchased: true} : u));
+        
+        toast.success("Workshop Upgraded!", {
+          description: `You have purchased ${upgrade.name}.`,
+        });
+        debouncedSave();
+    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, debouncedSave]);
+
     const canPrestige = useMemo(() => lifetimeMana >= C.PRESTIGE_REQUIREMENT, [lifetimeMana]);
     
     const prestigeVisibility = useMemo(() => {
@@ -534,6 +617,7 @@ export const useGameLogic = () => {
         
         setItems(getFreshInitialItems());
         setItemUpgrades(getFreshInitialItemUpgrades());
+        setWorkshopUpgrades(getFreshInitialWorkshopUpgrades());
         setLifetimeMana(0);
         setNotifiedUpgrades(new Set()); // Reset notifications on prestige
         
@@ -650,6 +734,14 @@ export const useGameLogic = () => {
         return items.some(i => i.level >= 10);
     }, [items]);
 
+    const showWorkshopTab = useMemo(() => {
+        const hasGears = currencies.cogwheelGears > 0;
+        const hasPurchasedWorkshopUpgrade = workshopUpgrades.some(u => u.purchased);
+        const hasUnlockedAutomaton = (items.find(i => i.id === 'clockwork_automaton')?.level || 0) > 0;
+        
+        return hasGears || hasPurchasedWorkshopUpgrade || hasUnlockedAutomaton;
+    }, [currencies.cogwheelGears, workshopUpgrades, items]);
+
     const availableItemUpgrades = useMemo(() => {
         return itemUpgrades.filter(upgrade => {
             if (upgrade.purchased) return false;
@@ -657,6 +749,10 @@ export const useGameLogic = () => {
             return parentItem && parentItem.level >= upgrade.unlocksAtLevel;
         });
     }, [itemUpgrades, items]);
+
+    const availableWorkshopUpgrades = useMemo(() => {
+        return workshopUpgrades.filter(upgrade => !upgrade.purchased);
+    }, [workshopUpgrades]);
 
     useEffect(() => {
         const newlyAvailable = availableItemUpgrades.filter(upgrade => !notifiedUpgrades.has(upgrade.id));
@@ -757,6 +853,9 @@ export const useGameLogic = () => {
         showUpgradesTab,
         availableItemUpgrades,
         handleBuyItemUpgrade,
+        showWorkshopTab,
+        availableWorkshopUpgrades,
+        handleBuyWorkshopUpgrade,
         showTutorial,
         offlineEarnings,
         clearOfflineEarnings,
