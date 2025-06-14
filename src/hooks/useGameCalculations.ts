@@ -12,6 +12,7 @@ type UseGameCalculationsProps = Pick<UseGameState,
     'workshopUpgrades' |
     'lifetimeMana' |
     'prestigeUpgradeLevels' |
+    'prestigeCount' |
     'buyQuantity' |
     'hasEverClicked' |
     'hasEverPrestiged' |
@@ -82,6 +83,7 @@ export const useGameCalculations = ({
     workshopUpgrades,
     lifetimeMana,
     prestigeUpgradeLevels,
+    prestigeCount,
     buyQuantity,
     hasEverClicked,
     overclockLevel,
@@ -94,6 +96,7 @@ export const useGameCalculations = ({
             manaClick: 1,
             allProduction: 1,
             shardGain: 1,
+            offlineProduction: 1,
         };
 
         for (const upgrade of prestigeUpgrades) {
@@ -108,6 +111,9 @@ export const useGameCalculations = ({
                         break;
                     case 'shardGainMultiplier':
                         multipliers.shardGain *= upgrade.effect.value(level);
+                        break;
+                    case 'offlineProductionMultiplier':
+                        multipliers.offlineProduction *= upgrade.effect.value(level);
                         break;
                 }
             }
@@ -300,19 +306,32 @@ export const useGameCalculations = ({
         return detailsMap;
     }, [items, currencies, buyQuantity]);
 
-    const canPrestige = useMemo(() => lifetimeMana >= C.PRESTIGE_REQUIREMENT, [lifetimeMana]);
+    const prestigeRequirement = useMemo(() => {
+        return 1e9 * Math.pow(10, prestigeCount);
+    }, [prestigeCount]);
+
+    const canPrestige = useMemo(() => lifetimeMana >= prestigeRequirement, [lifetimeMana, prestigeRequirement]);
     
     const prestigeVisibility = useMemo(() => {
-        if (currencies.aetherShards > 0 || lifetimeMana >= C.PRESTIGE_VISIBLE_THRESHOLD) return 'visible';
-        if (lifetimeMana >= C.PRESTIGE_TEASER_THRESHOLD) return 'teaser';
+        if (currencies.aetherShards > 0 || hasEverPrestiged) return 'visible';
+        
+        const teaserThreshold = prestigeRequirement * 0.25;
+        const visibleThreshold = prestigeRequirement * 0.50;
+
+        if (lifetimeMana >= visibleThreshold) return 'visible';
+        if (lifetimeMana >= teaserThreshold) return 'teaser';
         return 'hidden';
-    }, [lifetimeMana, currencies.aetherShards]);
+    }, [lifetimeMana, currencies.aetherShards, prestigeRequirement, hasEverPrestiged]);
 
     const potentialShards = useMemo(() => {
-        if (lifetimeMana < C.PRESTIGE_REQUIREMENT) return 0;
-        const baseShards = Math.floor(Math.pow(lifetimeMana / 1e9, 0.5) * 5);
-        return Math.floor(baseShards * prestigeMultipliers.shardGain);
-    }, [lifetimeMana, prestigeMultipliers.shardGain]);
+        if (lifetimeMana < prestigeRequirement) return 0;
+        
+        const manaRatio = lifetimeMana / prestigeRequirement;
+        const baseShards = Math.floor(Math.pow(manaRatio, 0.75) * 10 * (prestigeCount + 1));
+        const prestigeCountBonus = 1 + prestigeCount * 0.2;
+        
+        return Math.floor(baseShards * prestigeCountBonus * prestigeMultipliers.shardGain);
+    }, [lifetimeMana, prestigeRequirement, prestigeCount, prestigeMultipliers.shardGain]);
     
     const unlockedCurrencies = useMemo(() => {
         const unlocked = new Set<Currency>(['mana']);
@@ -465,6 +484,7 @@ export const useGameCalculations = ({
         canPrestige,
         prestigeVisibility,
         potentialShards,
+        prestigeRequirement,
         unlockedCurrencies,
         itemCategories,
         categoryUnlockStatus,

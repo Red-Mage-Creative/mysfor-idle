@@ -16,7 +16,7 @@ import {
 import { formatNumber } from '@/lib/formatters';
 import { Currencies } from '@/lib/gameTypes';
 
-const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
+const PRESTIGE_REQUIREMENT_DEPRECATED = 1e9; // This is no longer the source of truth
 
 export type PrestigeVisibility = 'hidden' | 'teaser' | 'visible';
 
@@ -27,9 +27,10 @@ interface PrestigeCardProps {
     potentialShards: number;
     onPrestige: () => void;
     prestigeVisibility: PrestigeVisibility;
+    prestigeRequirement: number;
 }
 
-const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, onPrestige, prestigeVisibility }: PrestigeCardProps) => {
+const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, onPrestige, prestigeVisibility, prestigeRequirement }: PrestigeCardProps) => {
     if (prestigeVisibility === 'hidden') {
         return null;
     }
@@ -86,7 +87,7 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
                     </AlertDialogContent>
                 </AlertDialog>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Requires {formatNumber(PRESTIGE_REQUIREMENT)} lifetime mana to shift.
+                    Requires {formatNumber(prestigeRequirement)} lifetime mana to shift.
                 </p>
             </CardContent>
         </Card>

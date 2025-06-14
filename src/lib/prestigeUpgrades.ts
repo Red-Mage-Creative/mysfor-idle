@@ -1,6 +1,6 @@
 
 import { PrestigeUpgrade } from './gameTypes';
-import { Book, Gem, Star } from 'lucide-react';
+import { Book, Gem, Star, Zap, Hourglass } from 'lucide-react';
 
 export const prestigeUpgrades: PrestigeUpgrade[] = [
   {
@@ -38,5 +38,29 @@ export const prestigeUpgrades: PrestigeUpgrade[] = [
       value: level => 1 + level * 0.05,
     },
     icon: Gem,
+  },
+  {
+    id: 'dimensional_mastery',
+    name: 'Dimensional Mastery',
+    description: level => `All resource generation is permanently multiplied by ${Math.pow(2, level).toLocaleString()}x.`,
+    cost: level => Math.floor(10 * Math.pow(3, level)),
+    maxLevel: 25,
+    effect: {
+      type: 'allProductionMultiplier',
+      value: level => Math.pow(2, level),
+    },
+    icon: Zap,
+  },
+  {
+    id: 'temporal_flux',
+    name: 'Temporal Flux',
+    description: level => `+${level * 10}% offline earnings.`,
+    cost: level => Math.floor(15 * Math.pow(2.8, level)),
+    maxLevel: 10,
+    effect: {
+      type: 'offlineProductionMultiplier',
+      value: level => 1 + level * 0.1,
+    },
+    icon: Hourglass,
   }
 ];

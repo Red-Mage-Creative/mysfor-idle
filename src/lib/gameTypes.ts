@@ -1,3 +1,4 @@
+
 import { LucideIcon } from "lucide-react";
 
 export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints' | 'aetherShards';
@@ -80,7 +81,7 @@ export interface PrestigeUpgrade {
   cost: (level: number) => number;
   maxLevel: number;
   effect: {
-    type: 'manaClickMultiplier' | 'allProductionMultiplier' | 'shardGainMultiplier';
+    type: 'manaClickMultiplier' | 'allProductionMultiplier' | 'shardGainMultiplier' | 'offlineProductionMultiplier';
     value: (level: number) => number;
   };
   icon: LucideIcon;
@@ -100,6 +101,7 @@ export interface GameSaveData {
     hasEverClicked: boolean;
     hasEverPrestiged: boolean;
     overclockLevel: number;
+    prestigeCount: number;
 }
 
 export interface OfflineEarnings {
