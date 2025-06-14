@@ -201,48 +201,56 @@ export const useGameCalculations = ({
         
         for (const item of items) {
             const maxAffordable = calculateMaxAffordable(item, currencies);
+            
+            let intendedPurchaseQuantity = 0;
             let purchaseQuantity = 0;
             let displayQuantity = '';
             let nextLevelTarget: number | null = null;
             
-            if (buyQuantity === 1) {
-                purchaseQuantity = maxAffordable >= 1 ? 1 : 0;
-            } else if (buyQuantity === 'max') {
-                purchaseQuantity = maxAffordable;
+            if (buyQuantity === 'max') {
+                intendedPurchaseQuantity = maxAffordable;
             } else if (buyQuantity === 'next') {
                 const nextThreshold = UPGRADE_THRESHOLDS.find(t => t > item.level);
                 if (nextThreshold) {
                     const quantityToNext = nextThreshold - item.level;
-                    if(maxAffordable >= quantityToNext) {
-                        purchaseQuantity = quantityToNext;
-                        nextLevelTarget = nextThreshold;
-                    }
+                    intendedPurchaseQuantity = quantityToNext > 0 ? quantityToNext : 1;
+                    nextLevelTarget = nextThreshold;
+                } else {
+                    intendedPurchaseQuantity = 1;
                 }
-            } else { // 5, 10
-                if (maxAffordable >= buyQuantity) {
-                     purchaseQuantity = maxAffordable - (maxAffordable % buyQuantity);
-                }
-            }
-    
-            // Set display quantity based on the result
-            if (nextLevelTarget) {
-                displayQuantity = `to Lvl ${nextLevelTarget}`;
-            } else if (purchaseQuantity > 0) {
-                displayQuantity = `${purchaseQuantity} Lvl${purchaseQuantity > 1 ? '(s)' : ''}`;
-            } else {
-                // Fallback for button text when disabled
-                displayQuantity = `1 Lvl`;
+            } else { // 1, 5, 10
+                intendedPurchaseQuantity = buyQuantity;
             }
 
+            const canAffordIntended = maxAffordable >= intendedPurchaseQuantity;
+            
+            if (buyQuantity === 'max') {
+                purchaseQuantity = maxAffordable; // For 'max', you always buy what you can afford.
+            } else if (canAffordIntended) {
+                purchaseQuantity = intendedPurchaseQuantity;
+            }
+            // else, purchaseQuantity remains 0 for bulk buys you can't afford.
+            
+            const intendedPurchaseCost = calculateBulkCost(item, intendedPurchaseQuantity);
             const purchaseCost = calculateBulkCost(item, purchaseQuantity);
-            const canAffordPurchase = purchaseQuantity > 0;
+
+            // Determine display string for the button
+            if (nextLevelTarget) {
+                displayQuantity = `to Lvl ${nextLevelTarget}`;
+            } else if (buyQuantity === 'max') {
+                displayQuantity = `${purchaseQuantity} Lvl${purchaseQuantity !== 1 ? 's' : ''}`;
+            } else { // 1, 5, 10, 'next' without a valid target
+                displayQuantity = `${intendedPurchaseQuantity} Lvl${intendedPurchaseQuantity !== 1 ? 's' : ''}`;
+            }
 
             detailsMap.set(item.id, {
                 purchaseQuantity,
                 purchaseCost,
-                canAffordPurchase,
+                canAffordPurchase: canAffordIntended,
                 nextLevelTarget,
                 displayQuantity,
+                intendedPurchaseQuantity,
+                intendedPurchaseCost,
             });
         }
         return detailsMap;

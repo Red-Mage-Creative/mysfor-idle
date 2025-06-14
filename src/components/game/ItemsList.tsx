@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,11 +9,13 @@ import { initialItems } from '@/lib/initialItems';
 import { BulkQuantitySelector } from '@/components/game/BulkQuantitySelector';
 
 export interface PurchaseDetails {
-    purchaseQuantity: number;
-    purchaseCost: CurrencyRecord;
-    canAffordPurchase: boolean;
+    purchaseQuantity: number; // The quantity that will actually be purchased on click
+    purchaseCost: CurrencyRecord; // The cost for the actual purchase
+    canAffordPurchase: boolean; // If the intended quantity can be afforded
     nextLevelTarget: number | null;
     displayQuantity: string;
+    intendedPurchaseQuantity: number; // The quantity the user wants to buy (from buy selector)
+    intendedPurchaseCost: CurrencyRecord; // The cost for the intended quantity
 }
 
 interface ItemsListProps {
@@ -60,6 +61,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                 {categoryItems.map(item => {
                                     const details = itemPurchaseDetails.get(item.id);
                                     const canAfford = details?.canAffordPurchase ?? false;
+                                    const isBulkPurchase = details && details.intendedPurchaseQuantity > 1;
 
                                     const isComplete = item.upgradeStats.total > 0 && item.upgradeStats.purchased === item.upgradeStats.total;
                                     const Icon = iconMap.get(item.id);
@@ -141,7 +143,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                         </div>
                                                     ) : null}
                                                     <div className="flex items-baseline flex-wrap gap-x-1.5">
-                                                        {details && details.purchaseQuantity > 1 ? (
+                                                        {isBulkPurchase && details ? (
                                                             <>
                                                                 <span className="text-muted-foreground">Cost (Each):</span>
                                                                 {Object.entries(item.cost).map(([curr, val], index, arr) => (
@@ -151,8 +153,8 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                                 ))}
                                                                 <span className="text-muted-foreground mx-1">|</span>
                                                                 <span className="text-muted-foreground">Total Cost:</span>
-                                                                {Object.entries(details.purchaseCost).map(([curr, val], index, arr) => (
-                                                                    <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-muted-foreground/50")}>
+                                                                {Object.entries(details.intendedPurchaseCost).map(([curr, val], index, arr) => (
+                                                                    <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-red-400/80")}>
                                                                         {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
                                                                     </span>
                                                                 ))}
@@ -160,8 +162,8 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                         ) : (
                                                             <>
                                                                 <span className="text-muted-foreground">Cost:</span>
-                                                                {details && Object.entries(details.purchaseCost).length > 0 ? (
-                                                                    Object.entries(details.purchaseCost).map(([curr, val], index, arr) => (
+                                                                {details && Object.entries(details.intendedPurchaseCost).length > 0 ? (
+                                                                    Object.entries(details.intendedPurchaseCost).map(([curr, val], index, arr) => (
                                                                         <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-muted-foreground/50")}>
                                                                             {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
                                                                         </span>
