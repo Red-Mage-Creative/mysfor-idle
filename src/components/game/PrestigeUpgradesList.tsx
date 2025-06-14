@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PrestigeUpgrade as PrestigeUpgradeType, Currencies } from '@/lib/gameTypes';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -21,38 +20,36 @@ const PrestigeUpgradeItem = ({ upgrade, level, currencies, onBuyPrestigeUpgrade 
     const Icon = upgrade.icon;
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div className="flex items-center justify-between p-2 rounded-lg border bg-card/50">
-                        <div className="flex items-center gap-3">
-                            <Icon className="w-8 h-8 text-amber-400" />
-                            <div>
-                                <p className="font-semibold">{upgrade.name}</p>
-                                <p className="text-sm text-muted-foreground">Level {level} / {upgrade.maxLevel}</p>
-                            </div>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <div className="flex items-center justify-between p-2 rounded-lg border bg-card/50">
+                    <div className="flex items-center gap-3">
+                        <Icon className="w-8 h-8 text-amber-400" />
+                        <div>
+                            <p className="font-semibold">{upgrade.name}</p>
+                            <p className="text-sm text-muted-foreground">Level {level} / {upgrade.maxLevel}</p>
                         </div>
-                        <Button
-                            onClick={() => onBuyPrestigeUpgrade(upgrade.id)}
-                            disabled={!canAfford || isMaxLevel}
-                            className="w-28"
-                            variant="secondary"
-                        >
-                            {isMaxLevel ? 'Maxed' : (
-                                <div className="flex items-center gap-1">
-                                    <Gem />
-                                    <span>{formatNumber(cost)}</span>
-                                </div>
-                            )}
-                        </Button>
                     </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p>{level > 0 ? `Current: ${upgrade.description(level)}` : 'No bonus yet.'}</p>
-                    {!isMaxLevel && <p>Next Level: {upgrade.description(level + 1)}</p>}
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                    <Button
+                        onClick={() => onBuyPrestigeUpgrade(upgrade.id)}
+                        disabled={!canAfford || isMaxLevel}
+                        className="w-28"
+                        variant="secondary"
+                    >
+                        {isMaxLevel ? 'Maxed' : (
+                            <div className="flex items-center gap-1">
+                                <Gem />
+                                <span>{formatNumber(cost)}</span>
+                            </div>
+                        )}
+                    </Button>
+                </div>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>{level > 0 ? `Current: ${upgrade.description(level)}` : 'No bonus yet.'}</p>
+                {!isMaxLevel && <p>Next Level: {upgrade.description(level + 1)}</p>}
+            </TooltipContent>
+        </Tooltip>
     );
 }
 
