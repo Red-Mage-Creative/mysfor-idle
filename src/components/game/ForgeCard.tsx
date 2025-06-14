@@ -11,9 +11,10 @@ interface ForgeCardProps {
     generationPerSecond: Partial<Currencies>;
     manaPerClick: number;
     onForgeClick: (clickValue: number) => void;
+    showTutorial?: boolean;
 }
 
-const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick }: ForgeCardProps) => {
+const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick, showTutorial = false }: ForgeCardProps) => {
     const [isClicking, setIsClicking] = useState(false);
     const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number, text: string }[]>([]);
 
@@ -82,6 +83,13 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                 >
                     <Zap className="w-48 h-48 sm:w-64 sm:h-64 text-primary drop-shadow-lg" strokeWidth={1.5} />
                 </button>
+                {showTutorial && (
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-20 sm:mt-28 pointer-events-none">
+                        <div className="animate-pulse flex flex-col items-center gap-1">
+                            <p className="text-xl font-bold text-primary drop-shadow-md">Click to Forge Mana!</p>
+                        </div>
+                    </div>
+                )}
                 {floatingTexts.map(ft => (
                     <div
                         key={ft.id}

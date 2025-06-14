@@ -1,4 +1,3 @@
-
 import { LucideIcon } from "lucide-react";
 
 export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints' | 'aetherShards';
@@ -23,7 +22,9 @@ export interface Item {
 
 export interface ItemWithStats extends Item {
     totalProduction: CurrencyRecord;
+    productionPerLevel: CurrencyRecord;
     totalClickBonus: number;
+    clickBonusPerLevel: number;
     upgradeStats: {
         purchased: number;
         total: number;

@@ -37,6 +37,23 @@ export const useGameLogic = () => {
     const [prestigeUpgradeLevels, setPrestigeUpgradeLevels] = useState<Record<string, number>>({});
     const [notifiedUpgrades, setNotifiedUpgrades] = useState<Set<string>>(new Set());
 
+    const [hasEverClicked, setHasEverClicked] = useState(() => {
+        try {
+            return localStorage.getItem('hasEverClicked') === 'true';
+        } catch (e) {
+            console.error("Failed to access localStorage", e);
+            return false;
+        }
+    });
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('hasEverClicked', String(hasEverClicked));
+        } catch (e) {
+            console.error("Failed to access localStorage", e);
+        }
+    }, [hasEverClicked]);
+
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
             manaClick: 1,
@@ -137,7 +154,10 @@ export const useGameLogic = () => {
     const addMana = useCallback((amount: number) => {
         setCurrencies(prev => ({ ...prev, mana: prev.mana + amount }));
         setLifetimeMana(prev => prev + amount);
-    }, []);
+        if (!hasEverClicked) {
+            setHasEverClicked(true);
+        }
+    }, [hasEverClicked]);
 
     const handleBuyItem = useCallback((itemId: string) => {
         const item = items.find(i => i.id === itemId);
@@ -181,7 +201,7 @@ export const useGameLogic = () => {
 
         const newlyAvailableUpgrades = allItemUpgrades.filter(upgrade =>
             upgrade.parentItemId === itemId &&
-            newLevel >= upgrade.unlocksAtLevel &&
+            newLevel === upgrade.unlocksAtLevel &&
             !itemUpgrades.find(u => u.id === upgrade.id)?.purchased &&
             !notifiedUpgrades.has(upgrade.id)
         );
@@ -328,12 +348,16 @@ export const useGameLogic = () => {
             const itemClickMultiplier = itemUpgradeMultipliers[item.id]?.click || 1;
             
             const totalProduction: CurrencyRecord = {};
+            const productionPerLevel: CurrencyRecord = {};
             for (const currency in item.generation) {
                 const key = currency as Currency;
-                totalProduction[key] = (item.generation[key] || 0) * item.level * itemGenMultiplier;
+                const baseGen = (item.generation[key] || 0) * itemGenMultiplier;
+                productionPerLevel[key] = baseGen;
+                totalProduction[key] = baseGen * item.level;
             }
             
-            const totalClickBonus = (item.clickBonus || 0) * item.level * itemClickMultiplier;
+            const clickBonusPerLevel = (item.clickBonus || 0) * itemClickMultiplier;
+            const totalClickBonus = clickBonusPerLevel * item.level;
             
             const purchasedUpgradesCount = itemUpgrades.filter(u => u.parentItemId === item.id && u.purchased).length;
             const totalUpgradesCount = (allUpgradesByItem[item.id] || []).length;
@@ -341,7 +365,9 @@ export const useGameLogic = () => {
             categories[item.category].push({
                 ...item,
                 totalProduction,
+                productionPerLevel,
                 totalClickBonus,
+                clickBonusPerLevel,
                 upgradeStats: {
                     purchased: purchasedUpgradesCount,
                     total: totalUpgradesCount
@@ -373,6 +399,11 @@ export const useGameLogic = () => {
         });
     }, [itemUpgrades, items]);
 
+    const showTutorial = useMemo(() => {
+        return !hasEverClicked && currencies.mana === 0 && (generationPerSecond.mana || 0) === 0;
+    }, [hasEverClicked, currencies.mana, generationPerSecond]);
+
+
     return {
         currencies,
         lifetimeMana,
@@ -392,5 +423,6 @@ export const useGameLogic = () => {
         showUpgradesTab,
         availableItemUpgrades,
         handleBuyItemUpgrade,
+        showTutorial,
     };
 };

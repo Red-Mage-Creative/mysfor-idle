@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,30 +56,52 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                     <div className="text-right ml-2 flex-shrink-0 min-w-[60px]">
                                                         <p className="font-semibold text-xl">{item.level}</p>
                                                         <p className="text-sm text-muted-foreground">Level</p>
-                                                         <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-1" title={`Upgrades: ${item.upgradeStats.purchased} / ${item.upgradeStats.total}`}>
-                                                            <Star className="w-3 h-3 text-yellow-400" />
-                                                            <span>{item.upgradeStats.purchased}/{item.upgradeStats.total}</span>
-                                                        </div>
+                                                         {item.level > 0 && item.upgradeStats.total > 0 && (
+                                                            <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-1" title={`Upgrades: ${item.upgradeStats.purchased} / ${item.upgradeStats.total}`}>
+                                                                <Star className="w-3 h-3 text-yellow-400" />
+                                                                <span>{item.upgradeStats.purchased}/{item.upgradeStats.total}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 
                                                 <div className="mt-2 space-y-1 text-sm">
-                                                    {Object.keys(item.totalProduction).length > 0 &&
+                                                    {Object.keys(item.productionPerLevel).length > 0 && (
                                                         <div>
-                                                            <span className="text-muted-foreground">Total Gen: </span>
-                                                            {Object.entries(item.totalProduction).map(([curr, val]) => (
+                                                            <span className="text-muted-foreground">Per Lvl: </span>
+                                                            {Object.entries(item.productionPerLevel).map(([curr, val], idx) => (
                                                                 <span key={curr} className="font-semibold text-foreground/90">
                                                                     {formatNumber(val || 0)} {currencyName(curr as Currency)}/s
+                                                                    {idx < Object.keys(item.productionPerLevel).length - 1 ? ', ' : ''}
                                                                 </span>
                                                             ))}
+                                                            {item.level > 0 && (
+                                                                <>
+                                                                    <span className="text-muted-foreground mx-2">|</span>
+                                                                    <span className="text-muted-foreground">Total: </span>
+                                                                    {Object.entries(item.totalProduction).map(([curr, val], idx) => (
+                                                                        <span key={curr} className="font-semibold text-foreground/90">
+                                                                            {formatNumber(val || 0)} {currencyName(curr as Currency)}/s
+                                                                            {idx < Object.keys(item.totalProduction).length - 1 ? ', ' : ''}
+                                                                        </span>
+                                                                    ))}
+                                                                </>
+                                                            )}
                                                         </div>
-                                                    }
-                                                    {item.clickBonus && item.level > 0 ?
+                                                    )}
+                                                    {item.clickBonus ? (
                                                         <div>
-                                                            <span className="text-muted-foreground">Total Click: </span>
-                                                            <span className="font-semibold text-foreground/90">+{formatNumber(item.totalClickBonus)} Mana</span>
-                                                        </div> : null
-                                                    }
+                                                            <span className="text-muted-foreground">Per Lvl: </span>
+                                                            <span className="font-semibold text-foreground/90">+{formatNumber(item.clickBonusPerLevel)} Mana</span>
+                                                            {item.level > 0 && (
+                                                                <>
+                                                                    <span className="text-muted-foreground mx-2">|</span>
+                                                                    <span className="text-muted-foreground">Total: </span>
+                                                                    <span className="font-semibold text-foreground/90">+{formatNumber(item.totalClickBonus)} Mana</span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    ) : null}
                                                     <div>
                                                         <span className="text-muted-foreground">Cost: </span>
                                                         {Object.entries(item.cost).map(([curr, val], index) => (

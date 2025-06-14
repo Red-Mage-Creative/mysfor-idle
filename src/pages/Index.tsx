@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -29,6 +30,7 @@ const Index = () => {
     showUpgradesTab,
     availableItemUpgrades,
     handleBuyItemUpgrade,
+    showTutorial,
   } = useGameLogic();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
@@ -43,6 +45,7 @@ const Index = () => {
             generationPerSecond={generationPerSecond}
             manaPerClick={manaPerClick}
             onForgeClick={addMana}
+            showTutorial={showTutorial}
           />
           <PrestigeCard 
             currencies={currencies}
