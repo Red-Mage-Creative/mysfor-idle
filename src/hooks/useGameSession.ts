@@ -1,12 +1,12 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, UseGameState } from './useGameState';
+import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, useGameState } from './useGameState';
 import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade } from '@/lib/gameTypes';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { toast } from "@/components/ui/sonner";
 import * as C from '@/constants/gameConstants';
 
-type UseGameSessionProps = UseGameState & {
+type UseGameSessionProps = ReturnType<typeof useGameState> & {
     generationPerSecond: Partial<Currencies>;
 };
 
