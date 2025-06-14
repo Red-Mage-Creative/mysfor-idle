@@ -5,6 +5,7 @@ import { ItemWithStats, Currencies, Currency } from '@/lib/gameTypes';
 import { formatNumber, currencyName } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
+import { initialItems } from '@/lib/initialItems';
 
 interface ItemsListProps {
     currencies: Currencies;
@@ -18,6 +19,8 @@ const categoryTierStyles = {
     'Advanced Machinery': 'border-yellow-500/30',
     'Mystical Artifacts': 'border-purple-500/40',
 };
+
+const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));
 
 const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus }: ItemsListProps) => {
     const hasAnyVisibleItems = Object.values(itemCategories).some(items => items.length > 0);
@@ -45,11 +48,14 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                         return currencies[currency as Currency] >= cost;
                                     });
                                     const isComplete = item.upgradeStats.total > 0 && item.upgradeStats.purchased === item.upgradeStats.total;
-                                    const Icon = item.icon; // Fix: Assign icon to a capitalized variable
+                                    const Icon = iconMap.get(item.id);
 
+                                    if (!Icon) {
+                                      return null; // Don't render if icon is not found
+                                    }
+                                    
                                     return (
                                         <Card key={item.id} className={cn("flex items-center p-3 transition-colors hover:bg-secondary/50 border-2", categoryTierStyles[category as keyof typeof categoryTierStyles])}>
-                                            {/* Fix: Render the icon component correctly */}
                                             <Icon className="w-10 h-10 text-primary/80 mr-4 flex-shrink-0" />
                                             <div className="flex-grow">
                                                 <div className="flex justify-between items-start">
