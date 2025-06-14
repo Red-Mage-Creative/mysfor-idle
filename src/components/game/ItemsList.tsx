@@ -1,22 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ItemWithStats, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
+import { ItemWithStats, Currencies, Currency, CurrencyRecord, PurchaseDetails } from '@/lib/gameTypes';
 import { formatNumber, currencyName } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
 import { initialItems } from '@/lib/initialItems';
 import { BulkQuantitySelector } from '@/components/game/BulkQuantitySelector';
-
-export interface PurchaseDetails {
-    purchaseQuantity: number; // The quantity that will actually be purchased on click
-    purchaseCost: CurrencyRecord; // The cost for the actual purchase
-    canAffordPurchase: boolean; // If the intended quantity can be afforded
-    nextLevelTarget: number | null;
-    displayQuantity: string;
-    intendedPurchaseQuantity: number; // The quantity the user wants to buy (from buy selector)
-    intendedPurchaseCost: CurrencyRecord; // The cost for the intended quantity
-}
 
 interface ItemsListProps {
     currencies: Currencies;
