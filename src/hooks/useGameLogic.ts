@@ -213,6 +213,21 @@ export const useGameLogic = () => {
                 
                 const saveData: GameSaveData = JSON.parse(savedGame);
 
+                // Restore workshop upgrade icons which don't serialize properly
+                if (saveData.workshopUpgrades && saveData.workshopUpgrades.length > 0) {
+                    const originalUpgradesMap = new Map(allWorkshopUpgrades.map(u => [u.id, u]));
+                    saveData.workshopUpgrades = saveData.workshopUpgrades.map(savedUpgrade => {
+                        const original = originalUpgradesMap.get(savedUpgrade.id);
+                        if (original) {
+                            // Combine static data from original defs with dynamic saved data
+                            return { ...original, purchased: savedUpgrade.purchased };
+                        }
+                        // This case should ideally not happen.
+                        console.warn(`Could not find original workshop upgrade for id: ${savedUpgrade.id}`);
+                        return savedUpgrade; 
+                    });
+                }
+
                 if(saveData.version !== C.CURRENT_SAVE_VERSION) {
                     console.warn(`Save file version mismatch. Expected ${C.CURRENT_SAVE_VERSION}, got ${saveData.version}. Starting fresh.`);
                     localStorage.removeItem(C.SAVE_KEY);

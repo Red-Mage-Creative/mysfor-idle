@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,20 @@ const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, availableWorks
                         return currencies[currency as Currency] >= cost;
                     });
                     const Icon = upgrade.icon;
+                    
+                    if (typeof Icon !== 'function') {
+                        console.error("Workshop Upgrade has an invalid icon component:", upgrade);
+                        return (
+                             <Card key={upgrade.id} className="flex items-center p-3 transition-colors duration-300 border-2 border-red-500/50 bg-red-500/10">
+                                <div className="flex-grow">
+                                    <p className="font-bold text-lg text-red-400">Error: Corrupted Upgrade</p>
+                                    <p className="text-xs text-muted-foreground/80 italic">{upgrade.id || 'Unknown ID'}</p>
+                                    <p className="text-sm text-red-300/80 mt-2">This upgrade data seems to be corrupted. This may resolve on a page refresh.</p>
+                                </div>
+                            </Card>
+                        )
+                    }
+
                     return (
                         <Card key={upgrade.id} className="flex items-center p-3 transition-colors duration-300 hover:bg-secondary/80 border-2 border-yellow-400/30 bg-yellow-400/10">
                             <Icon className="w-10 h-10 text-yellow-400/80 mr-4 flex-shrink-0" />
