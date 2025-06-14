@@ -16,14 +16,14 @@ export const BulkQuantitySelector = () => {
     const { buyQuantity, setBuyQuantity } = useGame();
 
     return (
-        <div className="flex w-full items-center gap-1 rounded-lg bg-background p-1 border">
+        <div className="flex items-center gap-1 rounded-lg bg-background p-0.5 border">
             {options.map(option => (
                 <Button
                     key={option.value}
                     variant={buyQuantity === option.value ? 'secondary' : 'ghost'}
                     size="sm"
                     onClick={() => setBuyQuantity(option.value)}
-                    className="flex-1 transition-all"
+                    className="transition-all"
                 >
                     {option.label}
                 </Button>
