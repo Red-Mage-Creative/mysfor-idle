@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
@@ -16,9 +17,16 @@ export const useGameLogic = () => {
 
     useEffect(() => {
         if (isLoaded && !repairAttempted.current) {
-            const needsRepair = workshopUpgrades.some(u => typeof u.icon !== 'function' || !u.description);
+            // A more robust check for incomplete upgrade data. Freshly initialized or
+            // correctly loaded upgrades from a save should have all their properties.
+            const needsRepair = workshopUpgrades.some(u => !u.name || !u.description || typeof u.icon !== 'function');
+
             if (needsRepair) {
-                console.log("Corrupted workshop upgrades detected in state, repairing...");
+                console.log("Incomplete workshop upgrade data detected in state, attempting repair...");
+                // For debugging, log the state of the problematic data.
+                console.log('Problematic workshopUpgrades:', workshopUpgrades.map(
+                    u => ({ id: u.id, purchased: u.purchased, hasName: !!u.name, hasDescription: !!u.description, iconType: typeof u.icon })
+                ));
                 
                 const originalUpgradesMap = new Map(allWorkshopUpgrades.map(u => [u.id, u]));
                 
@@ -26,7 +34,8 @@ export const useGameLogic = () => {
                     .map(savedUpgrade => {
                         const original = originalUpgradesMap.get(savedUpgrade.id);
                         if (original) {
-                            return { ...original, purchased: savedUpgrade.purchased };
+                            // Reconstitute the upgrade object from the original template, preserving its purchased status.
+                            return { ...original, purchased: savedUpgrade.purchased || false };
                         }
                         console.warn(`Could not find original workshop upgrade for id during auto-repair: ${savedUpgrade.id}`);
                         return null; 
