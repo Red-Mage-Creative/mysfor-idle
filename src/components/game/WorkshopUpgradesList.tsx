@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Currencies, WorkshopUpgrade } from '@/lib/gameTypes';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Currencies, WorkshopUpgrade, Currency } from '@/lib/gameTypes';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { currencyName, formatNumber } from '@/lib/formatters';
 import { cn } from '@/lib/utils';

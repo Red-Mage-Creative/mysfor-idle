@@ -7,6 +7,8 @@ import { toast } from '@/components/ui/sonner';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/hooks/useGameState';
 import * as C from '@/constants/gameConstants';
 import { useGameCalculations } from '@/hooks/useGameCalculations';
+import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
+import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
 
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 

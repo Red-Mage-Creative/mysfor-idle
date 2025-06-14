@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { Currencies, ItemUpgrade } from '@/lib/gameTypes';
+import { Currencies, ItemUpgrade, Currency } from '@/lib/gameTypes';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { currencyName, formatNumber } from '@/lib/formatters';
 import { initialItems } from '@/lib/initialItems';
 import { useGameCalculations } from '@/hooks/useGameCalculations';
+import { ArrowUp } from 'lucide-react';
 
 interface ItemUpgradesListProps {
     currencies: Currencies;
