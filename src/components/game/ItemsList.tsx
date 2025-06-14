@@ -45,10 +45,12 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                         return currencies[currency as Currency] >= cost;
                                     });
                                     const isComplete = item.upgradeStats.total > 0 && item.upgradeStats.purchased === item.upgradeStats.total;
+                                    const Icon = item.icon; // Fix: Assign icon to a capitalized variable
 
                                     return (
                                         <Card key={item.id} className={cn("flex items-center p-3 transition-colors hover:bg-secondary/50 border-2", categoryTierStyles[category as keyof typeof categoryTierStyles])}>
-                                            <item.icon className="w-10 h-10 text-primary/80 mr-4 flex-shrink-0" />
+                                            {/* Fix: Render the icon component correctly */}
+                                            <Icon className="w-10 h-10 text-primary/80 mr-4 flex-shrink-0" />
                                             <div className="flex-grow">
                                                 <div className="flex justify-between items-start">
                                                     <div>
