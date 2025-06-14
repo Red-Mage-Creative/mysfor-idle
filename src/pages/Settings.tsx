@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,7 +46,7 @@ const SettingsPage = () => {
                         Danger Zone
                     </CardTitle>
                     <CardDescription>These actions are irreversible. Please be certain.</CardDescription>
-                </Header>
+                </CardHeader>
                 <CardContent>
                      <Button onClick={handleReset} variant="destructive" className="w-full">
                         <Trash2 className="mr-2 h-4 w-4" />
