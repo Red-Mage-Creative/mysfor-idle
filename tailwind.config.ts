@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -95,13 +96,18 @@ export default {
         'float-up': {
             '0%': { transform: 'translateY(0) scale(1)', opacity: '1' },
             '100%': { transform: 'translateY(-50px) scale(1.5)', opacity: '0' },
-        }
+        },
+        'background-shine': {
+          from: { backgroundPosition: '0 0' },
+          to: { backgroundPosition: '-200% 0' },
+        },
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
         'click-bounce': 'click-bounce 0.2s ease-in-out',
         'float-up': 'float-up 0.5s ease-out forwards',
+        'background-shine': 'background-shine 2s linear infinite',
 			}
 		}
 	},

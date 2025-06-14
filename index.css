@@ -5,58 +5,57 @@
 
 @layer base {
   :root {
-    --background: 240 10% 4%; /* Dark Blue-Black */
-    --foreground: 240 5% 95%; /* Very Light Gray */
+    --background: 263 39% 7%; /* Deep Space Blue */
+    --foreground: 240 13% 94%; /* Nebula White */
 
-    --card: 240 10% 9%; /* Slightly Lighter Dark Blue */
-    --card-foreground: 240 5% 95%;
+    --card: 263 39% 10%; /* Slightly lighter Deep Space Blue */
+    --card-foreground: 240 13% 94%;
 
-    --popover: 240 10% 4%;
-    --popover-foreground: 240 5% 95%;
+    --popover: 263 39% 7%;
+    --popover-foreground: 240 13% 94%;
 
-    --primary: 260 90% 65%; /* Vibrant Purple */
-    --primary-foreground: 260 10% 10%;
+    --primary: 279 81% 60%; /* Cosmic Purple */
+    --primary-foreground: 240 13% 94%;
 
-    --secondary: 240 10% 15%; /* Darker Gray-Blue */
-    --secondary-foreground: 260 90% 65%;
+    --secondary: 263 39% 18%; /* Stardust Blue */
+    --secondary-foreground: 279 81% 60%;
 
-    --muted: 240 10% 15%;
+    --muted: 263 39% 18%;
     --muted-foreground: 240 5% 65%; /* Muted Gray */
 
-    --accent: 240 10% 15%;
-    --accent-foreground: 260 90% 65%;
+    --accent: 263 39% 18%;
+    --accent-foreground: 279 81% 60%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 40 50% 98%;
 
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 260 90% 65%;
+    --border: 263 39% 22%;
+    --input: 263 39% 18%;
+    --ring: 279 81% 70%; /* Brighter Cosmic Purple for rings */
 
     --radius: 0.75rem;
   }
 
   .dark {
-    /* For now, dark theme will be same as root */
-    --background: 240 10% 4%;
-    --foreground: 240 5% 95%;
-    --card: 240 10% 9%;
-    --card-foreground: 240 5% 95%;
-    --popover: 240 10% 4%;
-    --popover-foreground: 240 5% 95%;
-    --primary: 260 90% 65%;
-    --primary-foreground: 260 10% 10%;
-    --secondary: 240 10% 15%;
-    --secondary-foreground: 260 90% 65%;
-    --muted: 240 10% 15%;
+    --background: 263 39% 7%;
+    --foreground: 240 13% 94%;
+    --card: 263 39% 10%;
+    --card-foreground: 240 13% 94%;
+    --popover: 263 39% 7%;
+    --popover-foreground: 240 13% 94%;
+    --primary: 279 81% 60%;
+    --primary-foreground: 240 13% 94%;
+    --secondary: 263 39% 18%;
+    --secondary-foreground: 279 81% 60%;
+    --muted: 263 39% 18%;
     --muted-foreground: 240 5% 65%;
-    --accent: 240 10% 15%;
-    --accent-foreground: 260 90% 65%;
+    --accent: 263 39% 18%;
+    --accent-foreground: 279 81% 60%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 85.7% 97.3%;
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 260 90% 65%;
+    --border: 263 39% 22%;
+    --input: 263 39% 18%;
+    --ring: 279 81% 70%;
   }
 }
 

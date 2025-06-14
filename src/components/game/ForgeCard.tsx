@@ -35,17 +35,17 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
     }, [manaPerClick, onForgeClick]);
 
     const otherCurrencies = [
-        { key: 'cogwheelGears', name: 'Gears', Icon: Settings, color: 'text-yellow-500', colorLight: 'text-yellow-500/80' },
-        { key: 'essenceFlux', name: 'Essence', Icon: Gem, color: 'text-purple-500', colorLight: 'text-purple-500/80' },
-        { key: 'researchPoints', name: 'Research', Icon: BrainCircuit, color: 'text-cyan-500', colorLight: 'text-cyan-500/80' },
+        { key: 'cogwheelGears', name: 'Gears', Icon: Settings, color: 'text-yellow-400', colorLight: 'text-yellow-400/80' },
+        { key: 'essenceFlux', name: 'Essence', Icon: Gem, color: 'text-fuchsia-400', colorLight: 'text-fuchsia-400/80' },
+        { key: 'researchPoints', name: 'Research', Icon: BrainCircuit, color: 'text-sky-400', colorLight: 'text-sky-400/80' },
     ] as const;
 
     const visibleCurrencies = otherCurrencies.filter(c => currencies[c.key] > 0 || (generationPerSecond[c.key] || 0) > 0);
 
     return (
-        <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
+        <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg overflow-hidden">
             <CardHeader>
-                <CardTitle className="text-4xl font-bold text-primary">{formatNumber(currencies.mana)} Mana</CardTitle>
+                <CardTitle className="text-4xl font-bold text-primary drop-shadow-[0_2px_4px_rgba(168,85,247,0.4)]">{formatNumber(currencies.mana)} Mana</CardTitle>
                 <CardDescription className="text-muted-foreground flex justify-center items-center gap-2">
                     <span>{formatNumber(generationPerSecond.mana || 0)}/s</span>
                     <span className="text-xs">|</span>
@@ -53,18 +53,18 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                 </CardDescription>
 
                 {visibleCurrencies.length > 0 && (
-                    <div className={cn("grid gap-4 mt-4 border-t border-border pt-4 text-left", {
+                    <div className={cn("grid gap-2 mt-4 border-t border-border pt-4", {
                         'grid-cols-1': visibleCurrencies.length === 1,
                         'grid-cols-2': visibleCurrencies.length === 2,
                         'grid-cols-3': visibleCurrencies.length >= 3,
                     })}>
                         {visibleCurrencies.map(c => (
-                             <div key={c.key} className="flex items-center space-x-2">
+                             <div key={c.key} className="flex flex-col items-center justify-center text-center gap-1">
                                 <c.Icon className={cn("w-6 h-6", c.color)} />
                                 <div>
                                     <p className="text-lg font-bold">{formatNumber(currencies[c.key])}</p>
                                     <p className="text-xs text-muted-foreground">{c.name}</p>
-                                    <p className={cn("text-xs", c.colorLight)}>+{formatNumber(generationPerSecond[c.key] || 0)}/s</p>
+                                    <p className={cn("text-xs font-semibold", c.colorLight)}>+{formatNumber(generationPerSecond[c.key] || 0)}/s</p>
                                 </div>
                             </div>
                         ))}
@@ -75,12 +75,12 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                 <button 
                     onClick={handleForgeClick}
                     className={cn(
-                        "p-4 rounded-full transition-transform duration-200 focus:outline-none",
+                        "p-4 rounded-full transition-all duration-200 focus:outline-none group",
                         isClicking ? 'animate-click-bounce' : ''
                     )}
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                    <Zap className="w-48 h-48 sm:w-64 sm:h-64 text-primary drop-shadow-lg" strokeWidth={1.5} />
+                    <Zap className="w-48 h-48 sm:w-64 sm:h-64 text-primary drop-shadow-[0_4px_12px_rgba(168,85,247,0.5)] transition-all group-hover:drop-shadow-[0_4px_18px_rgba(168,85,247,0.7)] group-hover:scale-105" strokeWidth={1.5} />
                 </button>
                 {showTutorial && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-28 sm:mt-36 pointer-events-none">
@@ -92,7 +92,7 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                 {floatingTexts.map(ft => (
                     <div
                         key={ft.id}
-                        className="absolute text-2xl font-bold text-primary pointer-events-none animate-float-up"
+                        className="absolute text-2xl font-bold text-primary pointer-events-none animate-float-up drop-shadow-lg"
                         style={{ top: ft.y, left: ft.x }}
                     >
                         {ft.text}

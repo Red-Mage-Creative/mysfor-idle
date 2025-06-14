@@ -39,7 +39,7 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
         return (
             <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-dashed border-amber-500/20 shadow-lg animate-pulse">
                 <CardHeader>
-                    <CardTitle className="flex items-center justify-center gap-4 text-xl text-muted-foreground">
+                    <CardTitle className="flex items-center justify-center gap-4 text-xl text-amber-400/80">
                         <Star className="w-8 h-8 text-amber-400/50" />
                         <span>A greater power stirs...</span>
                     </CardTitle>
@@ -56,7 +56,7 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
     return (
         <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-amber-500/40 shadow-lg">
             <CardHeader>
-                <CardTitle className="flex items-center justify-center gap-4 text-2xl">
+                <CardTitle className="flex items-center justify-center gap-4 text-2xl text-amber-400 drop-shadow-[0_2px_4px_rgba(251,191,36,0.4)]">
                     <Star className="w-8 h-8 text-amber-400" />
                     <span>{formatNumber(currencies.aetherShards)} Aether Shards</span>
                 </CardTitle>
@@ -65,7 +65,7 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
             <CardContent>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button className="w-full" disabled={!canPrestige} variant="destructive">
+                        <Button className="w-full bg-gradient-to-r from-destructive to-amber-500 text-destructive-foreground hover:saturate-150 transition-all" disabled={!canPrestige}>
                             Dimensional Shift
                         </Button>
                     </AlertDialogTrigger>

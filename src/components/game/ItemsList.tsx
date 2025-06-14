@@ -26,9 +26,9 @@ interface ItemsListProps {
 }
 
 const categoryTierStyles = {
-    'Basic Magitech': 'border-primary/20',
-    'Advanced Machinery': 'border-yellow-500/30',
-    'Mystical Artifacts': 'border-purple-500/40',
+    'Basic Magitech': 'border-primary/30 bg-primary/5',
+    'Advanced Machinery': 'border-yellow-400/30 bg-yellow-400/5',
+    'Mystical Artifacts': 'border-fuchsia-400/40 bg-fuchsia-400/5',
 };
 
 const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));
@@ -69,7 +69,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                     }
                                     
                                     return (
-                                        <Card key={item.id} className={cn("flex items-center p-3 transition-colors hover:bg-secondary/50 border-2", categoryTierStyles[category as keyof typeof categoryTierStyles])}>
+                                        <Card key={item.id} className={cn("flex items-center p-3 transition-colors duration-300 hover:bg-secondary/80 border-2", categoryTierStyles[category as keyof typeof categoryTierStyles])}>
                                             <Icon className="w-10 h-10 text-primary/80 mr-4 flex-shrink-0" />
                                             <div className="flex-grow">
                                                 <div className="flex justify-between items-start">
@@ -151,7 +151,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                             ))
                                                         ) : (
                                                             Object.entries(item.cost).map(([curr, val], index) => (
-                                                                <span key={curr} className="font-semibold text-foreground/90 text-muted-foreground/50">
+                                                                <span key={curr} className="font-semibold text-muted-foreground/50">
                                                                     {formatNumber(val || 0)} {currencyName(curr as Currency)}
                                                                     {index < Object.keys(item.cost).length - 1 ? ', ' : ''}
                                                                 </span>
@@ -165,7 +165,9 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                 onClick={() => onBuyItem(item.id)}
                                                 disabled={!canAfford}
                                                 size="lg"
-                                                className="self-center ml-4 min-w-[140px] text-center"
+                                                className={cn("self-center ml-4 min-w-[140px] text-center transition-all",
+                                                   canAfford && "bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-[length:200%_auto] animate-background-shine text-primary-foreground hover:saturate-150"
+                                                )}
                                             >
                                                 {canAfford && details ? `Buy ${details.displayQuantity}` : 'Cannot Afford'}
                                             </Button>
