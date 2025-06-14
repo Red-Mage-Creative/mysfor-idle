@@ -1,6 +1,8 @@
 
 export const SAVE_KEY = 'magitech_idle_save_v1';
 export const CURRENT_SAVE_VERSION = '1.1.0';
+export const DEV_MODE_KEY = 'magitech_idle_dev_mode';
+export const DEV_MODE_MULTIPLIER = 1000;
 
 export const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
 export const PRESTIGE_TEASER_THRESHOLD = PRESTIGE_REQUIREMENT * 0.25; // 250M

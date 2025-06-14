@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity, UseGameState } from './useGameState';
 import { toast } from "@/components/ui/sonner";
@@ -35,6 +36,7 @@ export const useGameActions = ({
     debouncedSave,
     immediateSave,
     overclockInfo,
+    setDevMode,
 }: UseGameActionsProps) => {
 
     const updateBuyQuantity = useCallback((q: BuyQuantity) => {
@@ -207,6 +209,29 @@ export const useGameActions = ({
         debouncedSave();
     }, [overclockInfo.maxLevelUnlocked, setOverclockLevel, debouncedSave]);
 
+    const toggleDevMode = useCallback(() => {
+        setDevMode(prev => {
+            const newState = !prev;
+            if (newState) {
+                toast.info("Developer Mode Enabled", { description: "Mana generation and clicks are boosted." });
+            } else {
+                toast.info("Developer Mode Disabled");
+            }
+            return newState;
+        });
+    }, [setDevMode]);
+
+    const devGrantResources = useCallback(() => {
+        setCurrencies(prev => ({
+            mana: prev.mana + 1e9,
+            cogwheelGears: prev.cogwheelGears + 1e6,
+            essenceFlux: prev.essenceFlux + 1e6,
+            researchPoints: prev.researchPoints + 1e6,
+            aetherShards: prev.aetherShards + 1e3,
+        }));
+        toast.success("Granted Dev Resources!");
+    }, [setCurrencies]);
+
     const repairGameState = useCallback(() => {
         console.log("Manual game state repair triggered.");
         const originalUpgradesMap = new Map(allWorkshopUpgrades.map(u => [u.id, u]));
@@ -243,5 +268,7 @@ export const useGameActions = ({
         handleSetOverclockLevel,
         repairGameState,
         clearOfflineEarnings,
+        toggleDevMode,
+        devGrantResources,
     };
 };

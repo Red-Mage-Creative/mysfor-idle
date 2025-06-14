@@ -1,3 +1,4 @@
+
 import { useMemo, useCallback } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -14,7 +15,8 @@ type UseGameCalculationsProps = Pick<UseGameState,
     'prestigeUpgradeLevels' |
     'buyQuantity' |
     'hasEverClicked' |
-    'overclockLevel'
+    'overclockLevel' |
+    'devMode'
 >;
 
 const UPGRADE_THRESHOLDS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
@@ -83,6 +85,7 @@ export const useGameCalculations = ({
     buyQuantity,
     hasEverClicked,
     overclockLevel,
+    devMode,
 }: UseGameCalculationsProps) => {
 
     const prestigeMultipliers = useMemo(() => {
@@ -211,8 +214,12 @@ export const useGameCalculations = ({
             baseGeneration.cogwheelGears = (baseGeneration.cogwheelGears || 0) - overclockInfo.gearDrainPerSecond;
         }
 
+        if (devMode) {
+            baseGeneration.mana = (baseGeneration.mana || 0) * C.DEV_MODE_MULTIPLIER;
+        }
+
         return baseGeneration;
-    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode]);
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
@@ -225,8 +232,12 @@ export const useGameCalculations = ({
         
         const effectiveClickBonus = clickItemBonus * workshopUpgradeMultipliers.clickEffectiveness;
         
-        return (baseClick + effectiveClickBonus) * prestigeMultipliers.manaClick;
-    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers]);
+        let totalClick = (baseClick + effectiveClickBonus) * prestigeMultipliers.manaClick;
+        if (devMode) {
+            totalClick *= C.DEV_MODE_MULTIPLIER;
+        }
+        return totalClick;
+    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode]);
 
     const itemPurchaseDetails = useMemo(() => {
         const detailsMap = new Map<string, PurchaseDetails>();

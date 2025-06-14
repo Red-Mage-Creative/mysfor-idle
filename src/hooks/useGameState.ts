@@ -1,8 +1,10 @@
-import { useState } from 'react';
+
+import { useState, useCallback } from 'react';
 import { initialItems } from '@/lib/initialItems';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
 import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
 import { Currencies, Item, ItemUpgrade, WorkshopUpgrade, OfflineEarnings } from '@/lib/gameTypes';
+import { DEV_MODE_KEY } from '@/constants/gameConstants';
 
 export type BuyQuantity = 1 | 5 | 10 | 'next' | 'max';
 
@@ -26,6 +28,22 @@ export const useGameState = () => {
     const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
     const [buyQuantity, setBuyQuantity] = useState<BuyQuantity>(1);
     const [overclockLevel, setOverclockLevel] = useState(0);
+    const [devMode, _setDevMode] = useState(() => {
+        try {
+            const stored = localStorage.getItem(DEV_MODE_KEY);
+            return stored ? JSON.parse(stored) : false;
+        } catch {
+            return false;
+        }
+    });
+
+    const setDevMode = useCallback((value: boolean | ((prevState: boolean) => boolean)) => {
+        _setDevMode(prev => {
+            const newState = typeof value === 'function' ? value(prev) : value;
+            localStorage.setItem(DEV_MODE_KEY, JSON.stringify(newState));
+            return newState;
+        });
+    }, []);
 
     return {
         isLoaded, setIsLoaded,
@@ -42,6 +60,7 @@ export const useGameState = () => {
         lastSaveTime, setLastSaveTime,
         buyQuantity, setBuyQuantity,
         overclockLevel, setOverclockLevel,
+        devMode, setDevMode,
     };
 };
 

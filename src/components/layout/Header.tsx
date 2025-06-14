@@ -1,10 +1,29 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Gamepad2, Info, Settings } from 'lucide-react';
+import { Gamepad2, Info, Settings, Zap } from 'lucide-react';
+import { useGame } from '@/context/GameContext';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 
 const Header = () => {
-  const navLinkClasses = ({ isActive }: { isActive: boolean; }) =>
+    const game = useGame();
+    const { devMode, toggleDevMode, devGrantResources } = game || {};
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+                e.preventDefault();
+                toggleDevMode?.();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [toggleDevMode]);
+
+    const navLinkClasses = ({ isActive }: { isActive: boolean; }) =>
     `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
       isActive
         ? 'bg-primary text-primary-foreground'
@@ -17,7 +36,23 @@ const Header = () => {
         <Link to="/" className="flex items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-clip-text text-transparent">Mystic Forge</h1>
         </Link>
-        <nav className="hidden md:flex items-center gap-2">
+        <nav className="hidden md:flex items-center gap-4">
+            <div className="flex items-center gap-2 pr-4 border-r">
+                <Switch
+                    id="dev-mode-switch"
+                    checked={devMode}
+                    onCheckedChange={toggleDevMode}
+                    disabled={!toggleDevMode}
+                />
+                <Label htmlFor="dev-mode-switch" className="text-sm font-medium whitespace-nowrap">Dev Mode</Label>
+            </div>
+
+            {devMode && (
+                <Button size="sm" variant="outline" onClick={devGrantResources}>
+                    <Zap className="mr-2 h-4 w-4" />
+                    Grant Resources
+                </Button>
+            )}
           <NavLink to="/" className={navLinkClasses} end>
             <Gamepad2 className="h-4 w-4" />
             <span>Game</span>
