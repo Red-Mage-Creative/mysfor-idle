@@ -1,4 +1,3 @@
-
 import { useMemo, useCallback } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -15,6 +14,7 @@ type UseGameCalculationsProps = Pick<UseGameState,
     'prestigeUpgradeLevels' |
     'buyQuantity' |
     'hasEverClicked' |
+    'hasEverPrestiged' |
     'overclockLevel' |
     'devMode'
 >;
@@ -86,6 +86,7 @@ export const useGameCalculations = ({
     hasEverClicked,
     overclockLevel,
     devMode,
+    hasEverPrestiged,
 }: UseGameCalculationsProps) => {
 
     const prestigeMultipliers = useMemo(() => {
@@ -333,6 +334,7 @@ export const useGameCalculations = ({
             'Basic Magitech': [],
             'Advanced Machinery': [],
             'Mystical Artifacts': [],
+            'Transcendent Artifacts': [],
         };
         
         const allUpgradesByItem = allItemUpgrades.reduce((acc, upg) => {
@@ -392,8 +394,9 @@ export const useGameCalculations = ({
           'Basic Magitech': true,
           'Advanced Machinery': totalBasicLevels >= 5 || currencies.mana > 10000,
           'Mystical Artifacts': (items.find(u => u.id === 'clockwork_automaton')?.level || 0) > 0 || currencies.cogwheelGears > 500,
+          'Transcendent Artifacts': hasEverPrestiged,
         }
-    }, [itemCategories, currencies.mana, currencies.cogwheelGears, items]);
+    }, [itemCategories, currencies.mana, currencies.cogwheelGears, items, hasEverPrestiged]);
 
     const showUpgradesTab = useMemo(() => {
         return items.some(i => i.level >= 10);

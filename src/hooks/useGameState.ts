@@ -24,6 +24,7 @@ export const useGameState = () => {
     const [prestigeUpgradeLevels, setPrestigeUpgradeLevels] = useState<Record<string, number>>({});
     const [notifiedUpgrades, setNotifiedUpgrades] = useState<Set<string>>(new Set());
     const [hasEverClicked, setHasEverClicked] = useState(false);
+    const [hasEverPrestiged, setHasEverPrestiged] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'complete' | 'error'>('idle');
     const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
     const [buyQuantity, setBuyQuantity] = useState<BuyQuantity>(1);
@@ -64,6 +65,7 @@ export const useGameState = () => {
         prestigeUpgradeLevels, setPrestigeUpgradeLevels,
         notifiedUpgrades, setNotifiedUpgrades,
         hasEverClicked, setHasEverClicked,
+        hasEverPrestiged, setHasEverPrestiged,
         saveStatus, setSaveStatus,
         lastSaveTime, setLastSaveTime,
         buyQuantity, setBuyQuantity,

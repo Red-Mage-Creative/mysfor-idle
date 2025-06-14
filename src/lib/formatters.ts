@@ -2,15 +2,25 @@
 import { Currency } from './gameTypes';
 
 export const formatNumber = (num: number): string => {
-  if (num < 1000) return num.toFixed(1);
-  const suffixes = ["", "K", "M", "B", "T"];
-  const suffixNum = Math.floor(Math.log10(num) / 3);
-  let shortValue;
-  if (suffixNum === 0) {
-    shortValue = num.toFixed(0);
-  } else {
-    shortValue = (num / Math.pow(1000, suffixNum)).toFixed(2);
+  if (num < 1000) {
+    if (Number.isInteger(num)) return num.toString();
+    return num.toFixed(2).replace(/\.?0+$/, ''); // Clean up trailing zeros
   }
+
+  const suffixes = [
+    "", "K", "M", "B", "T", // Thousand, Million, Billion, Trillion
+    "Qa", "Qi", "Sx", "Sp", // Quadrillion, Quintillion, Sextillion, Septillion
+    "Oc", "No", "Dc", "UDc"  // Octillion, Nonillion, Decillion, Undecillion
+  ];
+
+  const suffixNum = Math.floor(Math.log10(num) / 3);
+
+  // Fallback to scientific notation for numbers beyond our suffixes
+  if (suffixNum >= suffixes.length) {
+    return num.toExponential(2);
+  }
+
+  const shortValue = (num / Math.pow(1000, suffixNum)).toFixed(2);
   return `${shortValue}${suffixes[suffixNum]}`;
 };
 

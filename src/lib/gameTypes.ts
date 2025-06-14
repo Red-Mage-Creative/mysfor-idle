@@ -27,7 +27,7 @@ export interface Item {
   clickBonus?: number;
   level: number;
   icon: LucideIcon;
-  category: 'Basic Magitech' | 'Advanced Machinery' | 'Mystical Artifacts';
+  category: 'Basic Magitech' | 'Advanced Machinery' | 'Mystical Artifacts' | 'Transcendent Artifacts';
 }
 
 export interface ItemWithStats extends Item {
@@ -98,6 +98,7 @@ export interface GameSaveData {
     prestigeUpgradeLevels: Record<string, number>;
     notifiedUpgrades: string[];
     hasEverClicked: boolean;
+    hasEverPrestiged: boolean;
     overclockLevel: number;
 }
 

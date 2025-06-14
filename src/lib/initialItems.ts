@@ -1,4 +1,5 @@
-import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand, Recycle, Waves } from 'lucide-react';
+
+import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand, Recycle, Waves, Atom } from 'lucide-react';
 import { Item } from './gameTypes';
 
 export const initialItems: Item[] = [
@@ -128,5 +129,18 @@ export const initialItems: Item[] = [
     level: 0,
     icon: BookOpen,
     category: 'Mystical Artifacts',
+  },
+  
+  // Transcendent Artifacts
+  {
+    id: 'cosmic_resonator',
+    name: 'Cosmic Resonator',
+    description: 'Draws upon the fabric of spacetime itself to generate immense mana.',
+    baseCost: { mana: 1e33 }, // 1 Decillion
+    cost: { mana: 1e33 },
+    generation: { mana: 1e28 },
+    level: 0,
+    icon: Atom,
+    category: 'Transcendent Artifacts',
   },
 ];
