@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { initialItems } from '@/lib/initialItems';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -30,6 +29,7 @@ export const useGameState = () => {
     const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
     const [buyQuantity, setBuyQuantity] = useState<BuyQuantity>(1);
     const [overclockLevel, setOverclockLevel] = useState(0);
+    const [autoBuySettings, setAutoBuySettings] = useState({ items: false, upgrades: false });
     const [devMode, _setDevMode] = useState(() => {
         // Dev mode is only available in development environments
         if (!import.meta.env.DEV) {
@@ -72,6 +72,7 @@ export const useGameState = () => {
         lastSaveTime, setLastSaveTime,
         buyQuantity, setBuyQuantity,
         overclockLevel, setOverclockLevel,
+        autoBuySettings, setAutoBuySettings,
         devMode, setDevMode,
     };
 };

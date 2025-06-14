@@ -5,14 +5,16 @@ import { Button } from '@/components/ui/button';
 import { WorkshopUpgrade, Currencies, Currency } from '@/lib/gameTypes';
 import { formatNumber, currencyName } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
+import { UseGameCalculations } from '@/hooks/useGameCalculations';
 
 interface WorkshopUpgradesListProps {
     currencies: Currencies;
     onBuyWorkshopUpgrade: (upgradeId: string) => void;
     availableWorkshopUpgrades: WorkshopUpgrade[];
+    prestigeMultipliers: ReturnType<typeof UseGameCalculations>['prestigeMultipliers'];
 }
 
-const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, availableWorkshopUpgrades }: WorkshopUpgradesListProps) => {
+const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, availableWorkshopUpgrades, prestigeMultipliers }: WorkshopUpgradesListProps) => {
     return (
         <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-yellow-400/20 shadow-lg">
             <CardHeader>
@@ -27,7 +29,8 @@ const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, availableWorks
                 )}
                 {availableWorkshopUpgrades.map(upgrade => {
                     const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
-                        return currencies[currency as Currency] >= cost;
+                        const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+                        return currencies[currency as Currency] >= actualCost;
                     });
                     const Icon = upgrade.icon;
                     
@@ -54,7 +57,7 @@ const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, availableWorks
                                     <span className="text-muted-foreground">Cost: </span>
                                     {Object.entries(upgrade.cost).map(([curr, val], index) => (
                                         <span key={curr} className={cn("font-semibold", !canAfford && "text-muted-foreground/50")}>
-                                            {formatNumber(val || 0)} {currencyName(curr as Currency)}
+                                            {formatNumber(Math.ceil((val || 0) * prestigeMultipliers.costReduction))} {currencyName(curr as Currency)}
                                             {index < Object.keys(upgrade.cost).length - 1 ? ', ' : ''}
                                         </span>
                                     ))}

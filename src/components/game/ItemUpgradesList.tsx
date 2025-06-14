@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,16 +5,18 @@ import { ItemUpgrade, Currencies, Currency } from '@/lib/gameTypes';
 import { formatNumber, currencyName } from '@/lib/formatters';
 import { ArrowUp } from 'lucide-react';
 import { initialItems } from '@/lib/initialItems';
+import { UseGameCalculations } from '@/hooks/useGameCalculations';
 
 interface ItemUpgradesListProps {
     currencies: Currencies;
     onBuyItemUpgrade: (upgradeId: string) => void;
     availableItemUpgrades: ItemUpgrade[];
+    prestigeMultipliers: ReturnType<typeof UseGameCalculations>['prestigeMultipliers'];
 }
 
 const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));
 
-const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades }: ItemUpgradesListProps) => {
+const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades, prestigeMultipliers }: ItemUpgradesListProps) => {
     return (
         <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-green-500/30 shadow-lg">
             <CardHeader>
@@ -29,7 +30,8 @@ const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades 
             <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
                 {availableItemUpgrades.map(upgrade => {
                     const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
-                        return currencies[currency as Currency] >= cost;
+                        const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+                        return currencies[currency as Currency] >= actualCost;
                     });
                     const Icon = iconMap.get(upgrade.parentItemId);
 
@@ -52,7 +54,7 @@ const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades 
                                     <span className="text-muted-foreground">Cost: </span>
                                     {Object.entries(upgrade.cost).map(([curr, val], index) => (
                                         <span key={curr} className="font-semibold text-foreground/90">
-                                            {formatNumber(val || 0)} {currencyName(curr as Currency)}
+                                            {formatNumber(Math.ceil((val || 0) * prestigeMultipliers.costReduction))} {currencyName(curr as Currency)}
                                             {index < Object.keys(upgrade.cost).length - 1 ? ', ' : ''}
                                         </span>
                                     ))}

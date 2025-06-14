@@ -81,7 +81,7 @@ export interface PrestigeUpgrade {
   cost: (level: number) => number;
   maxLevel: number;
   effect: {
-    type: 'manaClickMultiplier' | 'allProductionMultiplier' | 'shardGainMultiplier' | 'offlineProductionMultiplier';
+    type: 'manaClickMultiplier' | 'allProductionMultiplier' | 'shardGainMultiplier' | 'offlineProductionMultiplier' | 'costReductionMultiplier' | 'unlockAutoBuyItems' | 'unlockAutoBuyUpgrades';
     value: (level: number) => number;
   };
   icon: LucideIcon;
@@ -97,6 +97,10 @@ export interface GameSaveData {
     workshopUpgrades: Array<Pick<WorkshopUpgrade, 'id' | 'purchased'>>;
     lifetimeMana: number;
     prestigeUpgradeLevels: Record<string, number>;
+    autoBuySettings: {
+        items: boolean;
+        upgrades: boolean;
+    };
     notifiedUpgrades: string[];
     hasEverClicked: boolean;
     hasEverPrestiged: boolean;

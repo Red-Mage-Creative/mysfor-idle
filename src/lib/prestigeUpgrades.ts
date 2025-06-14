@@ -1,6 +1,5 @@
-
 import { PrestigeUpgrade } from './gameTypes';
-import { Book, Gem, Star, Zap, Hourglass, Atom, Sparkles, Rabbit } from 'lucide-react';
+import { Book, Gem, Star, Zap, Hourglass, Atom, Sparkles, Rabbit, Bot, BrainCircuit } from 'lucide-react';
 
 export const prestigeUpgrades: PrestigeUpgrade[] = [
   {
@@ -62,6 +61,42 @@ export const prestigeUpgrades: PrestigeUpgrade[] = [
       value: level => Math.pow(5, level),
     },
     icon: Sparkles,
+  },
+  {
+    id: 'quantum_efficiency',
+    name: 'Quantum Efficiency',
+    description: level => `Reduces all non-Aether Shard costs by ${level * 20}%.`,
+    cost: level => Math.floor(1000 * Math.pow(100, level)),
+    maxLevel: 4, // 80% max reduction
+    effect: {
+      type: 'costReductionMultiplier',
+      value: level => 1 - level * 0.20,
+    },
+    icon: Atom,
+  },
+  {
+    id: 'automated_procurement',
+    name: 'Automated Procurement',
+    description: () => 'Unlocks a toggle to automatically buy affordable items.',
+    cost: () => 500,
+    maxLevel: 1,
+    effect: {
+      type: 'unlockAutoBuyItems',
+      value: () => 1,
+    },
+    icon: Bot,
+  },
+  {
+    id: 'intelligent_routing',
+    name: 'Intelligent Routing',
+    description: () => 'Unlocks a toggle to automatically buy affordable Item & Workshop upgrades.',
+    cost: () => 2500,
+    maxLevel: 1,
+    effect: {
+      type: 'unlockAutoBuyUpgrades',
+      value: () => 1,
+    },
+    icon: BrainCircuit,
   },
   {
     id: 'temporal_flux',

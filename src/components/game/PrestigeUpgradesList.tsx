@@ -6,21 +6,47 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { formatNumber } from '@/lib/formatters';
 import { Gem } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface PrestigeUpgradesListProps {
   prestigeUpgrades: PrestigeUpgradeType[];
   prestigeUpgradeLevels: Record<string, number>;
   currencies: Currencies;
   onBuyPrestigeUpgrade: (upgradeId: string) => void;
+  autoBuySettings: { items: boolean, upgrades: boolean };
+  onToggleAutoBuy: (setting: 'items' | 'upgrades') => void;
+  prestigeMultipliers: { autoBuyItemsUnlocked: boolean, autoBuyUpgradesUnlocked: boolean };
 }
 
-const PrestigeUpgradeItem = ({ upgrade, level, currencies, onBuyPrestigeUpgrade }: { upgrade: PrestigeUpgradeType, level: number, currencies: Currencies, onBuyPrestigeUpgrade: (id: string) => void }) => {
+const PrestigeUpgradeItem = ({ 
+    upgrade, 
+    level, 
+    currencies, 
+    onBuyPrestigeUpgrade,
+    autoBuySettings,
+    onToggleAutoBuy,
+    prestigeMultipliers,
+}: { 
+    upgrade: PrestigeUpgradeType, 
+    level: number, 
+    currencies: Currencies, 
+    onBuyPrestigeUpgrade: (id: string) => void,
+    autoBuySettings: { items: boolean, upgrades: boolean },
+    onToggleAutoBuy: (setting: 'items' | 'upgrades') => void,
+    prestigeMultipliers: { autoBuyItemsUnlocked: boolean, autoBuyUpgradesUnlocked: boolean };
+}) => {
     const cost = upgrade.cost(level);
     const canAfford = currencies.aetherShards >= cost;
     const isMaxLevel = level >= upgrade.maxLevel;
     const Icon = upgrade.icon;
     const currentEffect = level > 0 ? upgrade.description(level) : 'No bonus yet.';
     const isGameChanger = ['dimensional_mastery', 'mana_singularity', 'reality_forge'].includes(upgrade.id);
+    const isAutoBuyItemsUpgrade = upgrade.effect.type === 'unlockAutoBuyItems';
+    const isAutoBuyUpgradesUpgrade = upgrade.effect.type === 'unlockAutoBuyUpgrades';
+    const isAutoBuyUpgrade = isAutoBuyItemsUpgrade || isAutoBuyUpgradesUpgrade;
+
+    const showToggle = isAutoBuyUpgrade && level > 0;
 
     return (
         <Tooltip>
@@ -37,19 +63,30 @@ const PrestigeUpgradeItem = ({ upgrade, level, currencies, onBuyPrestigeUpgrade 
                             <p className="text-sm font-medium text-primary mt-1">{currentEffect}</p>
                         </div>
                     </div>
-                    <Button
-                        onClick={() => onBuyPrestigeUpgrade(upgrade.id)}
-                        disabled={!canAfford || isMaxLevel}
-                        className="w-28 flex-shrink-0"
-                        variant="secondary"
-                    >
-                        {isMaxLevel ? 'Maxed' : (
-                            <div className="flex items-center gap-1">
-                                <Gem />
-                                <span>{formatNumber(cost)}</span>
-                            </div>
-                        )}
-                    </Button>
+                    {showToggle ? (
+                        <div className="flex items-center space-x-2 w-28 flex-shrink-0 justify-end">
+                            <Switch
+                                id={`autobuy-${upgrade.id}`}
+                                checked={isAutoBuyItemsUpgrade ? autoBuySettings.items : autoBuySettings.upgrades}
+                                onCheckedChange={() => onToggleAutoBuy(isAutoBuyItemsUpgrade ? 'items' : 'upgrades')}
+                            />
+                            <Label htmlFor={`autobuy-${upgrade.id}`}>{isAutoBuyItemsUpgrade ? (autoBuySettings.items ? 'On' : 'Off') : (autoBuySettings.upgrades ? 'On' : 'Off')}</Label>
+                        </div>
+                    ) : (
+                        <Button
+                            onClick={() => onBuyPrestigeUpgrade(upgrade.id)}
+                            disabled={!canAfford || isMaxLevel}
+                            className="w-28 flex-shrink-0"
+                            variant="secondary"
+                        >
+                            {isMaxLevel ? 'Maxed' : (
+                                <div className="flex items-center gap-1">
+                                    <Gem />
+                                    <span>{formatNumber(cost)}</span>
+                                </div>
+                            )}
+                        </Button>
+                    )}
                 </div>
             </TooltipTrigger>
             <TooltipContent>
@@ -64,7 +101,16 @@ const PrestigeUpgradeItem = ({ upgrade, level, currencies, onBuyPrestigeUpgrade 
 }
 
 
-const PrestigeUpgradesList = ({ prestigeUpgrades, prestigeUpgradeLevels, currencies, onBuyPrestigeUpgrade }: PrestigeUpgradesListProps) => {
+const PrestigeUpgradesList = ({ 
+    prestigeUpgrades, 
+    prestigeUpgradeLevels, 
+    currencies, 
+    onBuyPrestigeUpgrade,
+    autoBuySettings,
+    onToggleAutoBuy,
+    prestigeMultipliers,
+}: PrestigeUpgradesListProps) => {
+  const { prestigeUpgrades, prestigeUpgradeLevels, currencies, onBuyPrestigeUpgrade, autoBuySettings, onToggleAutoBuy, prestigeMultipliers } = props;
   return (
     <Card className="w-full bg-transparent border-none shadow-none">
       <CardHeader className="p-2">
@@ -81,6 +127,9 @@ const PrestigeUpgradesList = ({ prestigeUpgrades, prestigeUpgradeLevels, currenc
               level={level}
               currencies={currencies}
               onBuyPrestigeUpgrade={onBuyPrestigeUpgrade}
+              autoBuySettings={autoBuySettings}
+              onToggleAutoBuy={onToggleAutoBuy}
+              prestigeMultipliers={prestigeMultipliers}
             />
           );
         })}

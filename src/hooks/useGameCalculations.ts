@@ -22,7 +22,7 @@ type UseGameCalculationsProps = Pick<UseGameState,
 
 const UPGRADE_THRESHOLDS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
 
-const calculateBulkCost = (item: Item, quantity: number): CurrencyRecord => {
+const calculateBulkCost = (item: Item, quantity: number, costReduction: number): CurrencyRecord => {
     if (quantity <= 0) return {};
     
     const totalCost: CurrencyRecord = {};
@@ -36,7 +36,7 @@ const calculateBulkCost = (item: Item, quantity: number): CurrencyRecord => {
         for (const currency in item.baseCost) {
             const key = currency as Currency;
             const base = item.baseCost[key] || 0;
-            const costForThisLevel = Math.ceil(base * Math.pow(C.ITEM_COST_GROWTH_RATE, currentLevel + i));
+            const costForThisLevel = Math.ceil(base * Math.pow(C.ITEM_COST_GROWTH_RATE, currentLevel + i) * costReduction);
             totalCost[key] = (totalCost[key] || 0) + costForThisLevel;
         }
     }
@@ -44,7 +44,7 @@ const calculateBulkCost = (item: Item, quantity: number): CurrencyRecord => {
     return totalCost;
 };
 
-const calculateMaxAffordable = (item: Item, currentCurrencies: Currencies): number => {
+const calculateMaxAffordable = (item: Item, currentCurrencies: Currencies, costReduction: number): number => {
     let affordableLevels = 0;
     const tempCurrencies = { ...currentCurrencies };
 
@@ -56,7 +56,7 @@ const calculateMaxAffordable = (item: Item, currentCurrencies: Currencies): numb
         for (const currency in item.baseCost) {
             const key = currency as Currency;
             const base = item.baseCost[key] || 0;
-            const cost = Math.ceil(base * Math.pow(C.ITEM_COST_GROWTH_RATE, nextLevel));
+            const cost = Math.ceil(base * Math.pow(C.ITEM_COST_GROWTH_RATE, nextLevel) * costReduction);
             nextLevelCost[key] = cost;
             if ((tempCurrencies[key] || 0) < cost) {
                 canAffordNext = false;
@@ -97,6 +97,9 @@ export const useGameCalculations = ({
             allProduction: 1,
             shardGain: 1,
             offlineProduction: 1,
+            costReduction: 1,
+            autoBuyItemsUnlocked: false,
+            autoBuyUpgradesUnlocked: false,
         };
 
         for (const upgrade of prestigeUpgrades) {
@@ -114,6 +117,15 @@ export const useGameCalculations = ({
                         break;
                     case 'offlineProductionMultiplier':
                         multipliers.offlineProduction *= upgrade.effect.value(level);
+                        break;
+                    case 'costReductionMultiplier':
+                        multipliers.costReduction *= upgrade.effect.value(level);
+                        break;
+                    case 'unlockAutoBuyItems':
+                        multipliers.autoBuyItemsUnlocked = true;
+                        break;
+                    case 'unlockAutoBuyUpgrades':
+                        multipliers.autoBuyUpgradesUnlocked = true;
                         break;
                 }
             }
@@ -250,7 +262,7 @@ export const useGameCalculations = ({
         const detailsMap = new Map<string, PurchaseDetails>();
         
         for (const item of items) {
-            const maxAffordable = calculateMaxAffordable(item, currencies);
+            const maxAffordable = calculateMaxAffordable(item, currencies, prestigeMultipliers.costReduction);
             
             let intendedPurchaseQuantity = 0;
             let purchaseQuantity = 0;
@@ -281,8 +293,8 @@ export const useGameCalculations = ({
             }
             // else, purchaseQuantity remains 0 for bulk buys you can't afford.
             
-            const intendedPurchaseCost = calculateBulkCost(item, intendedPurchaseQuantity);
-            const purchaseCost = calculateBulkCost(item, purchaseQuantity);
+            const intendedPurchaseCost = calculateBulkCost(item, intendedPurchaseQuantity, prestigeMultipliers.costReduction);
+            const purchaseCost = calculateBulkCost(item, purchaseQuantity, prestigeMultipliers.costReduction);
 
             // Determine display string for the button
             if (nextLevelTarget) {
@@ -304,7 +316,7 @@ export const useGameCalculations = ({
             });
         }
         return detailsMap;
-    }, [items, currencies, buyQuantity]);
+    }, [items, currencies, buyQuantity, prestigeMultipliers.costReduction]);
 
     const prestigeRequirement = useMemo(() => {
         return 1e9 * Math.pow(10, prestigeCount);

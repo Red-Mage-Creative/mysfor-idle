@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
@@ -7,11 +6,11 @@ import { useGameActions } from './useGameActions';
 import { toast } from "@/components/ui/sonner";
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
-import { WorkshopUpgrade } from '@/lib/gameTypes';
+import { WorkshopUpgrade, Currency } from '@/lib/gameTypes';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
-    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, setWorkshopUpgrades, currencies, overclockLevel } = gameState;
+    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, setWorkshopUpgrades, currencies, overclockLevel, autoBuySettings } = gameState;
     const repairAttempted = useRef(false);
 
     useEffect(() => {
@@ -49,7 +48,7 @@ export const useGameLogic = () => {
     }, [isLoaded, workshopUpgrades, setWorkshopUpgrades]);
 
     const calculations = useGameCalculations(gameState);
-    const { availableItemUpgrades, generationPerSecond } = calculations;
+    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, availableWorkshopUpgrades, prestigeMultipliers } = calculations;
     
     const { manualSave, debouncedSave, immediateSave, resetGame, exportSave, importSave } = useGameSession({
         ...gameState,
@@ -62,6 +61,70 @@ export const useGameLogic = () => {
         debouncedSave,
         immediateSave,
     });
+
+    // Auto-buy logic
+    useEffect(() => {
+        const autoBuyTick = () => {
+            if (!isLoaded) return;
+            
+            // Auto-buy items
+            if (autoBuySettings.items && prestigeMultipliers.autoBuyItemsUnlocked) {
+                // Iterate backwards to prioritize later-game items
+                for (let i = items.length - 1; i >= 0; i--) {
+                    const item = items[i];
+                    const details = itemPurchaseDetails.get(item.id);
+                    // Check if item is visible/unlocked via itemPurchaseDetails map
+                    if (details && details.canAffordPurchase && details.purchaseQuantity > 0) {
+                        actions.handleBuyItem(item.id);
+                        return; // Buy one type of item per tick to avoid draining resources instantly
+                    }
+                }
+            }
+            
+            // Auto-buy upgrades
+            if (autoBuySettings.upgrades && prestigeMultipliers.autoBuyUpgradesUnlocked) {
+                // Item Upgrades
+                if (availableItemUpgrades.length > 0) {
+                    const upgrade = availableItemUpgrades[0];
+                    const canAfford = Object.entries(upgrade.cost).every(([c, cost]) => {
+                        const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+                        return currencies[c as Currency] >= actualCost;
+                    });
+                    if (canAfford) {
+                        actions.handleBuyItemUpgrade(upgrade.id);
+                        return;
+                    }
+                }
+                
+                // Workshop Upgrades
+                if (availableWorkshopUpgrades.length > 0) {
+                    const upgrade = availableWorkshopUpgrades[0];
+                     const canAfford = Object.entries(upgrade.cost).every(([c, cost]) => {
+                        const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+                        return currencies[c as Currency] >= actualCost;
+                    });
+                    if (canAfford) {
+                        actions.handleBuyWorkshopUpgrade(upgrade.id);
+                        return;
+                    }
+                }
+            }
+        };
+        
+        const intervalId = setInterval(autoBuyTick, 500); // Check every 500ms
+        
+        return () => clearInterval(intervalId);
+    }, [
+        isLoaded, 
+        autoBuySettings, 
+        prestigeMultipliers, 
+        items, 
+        itemPurchaseDetails,
+        availableItemUpgrades,
+        availableWorkshopUpgrades,
+        currencies,
+        actions
+    ]);
 
     // Auto-downshift for overclock
     useEffect(() => {

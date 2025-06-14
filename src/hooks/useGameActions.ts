@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity, UseGameState } from './useGameState';
 import { toast } from "@/components/ui/sonner";
@@ -6,6 +5,7 @@ import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { PurchaseDetails, WorkshopUpgrade } from '@/lib/gameTypes';
 import { Currency } from '@/lib/gameTypes';
 import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
+import { UseGameCalculations } from '@/hooks/useGameCalculations';
 
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 
@@ -16,30 +16,34 @@ type UseGameActionsProps = UseGameState & {
     debouncedSave: () => void;
     immediateSave: (reason?: string) => void;
     overclockInfo: ReturnType<typeof import('./useGameCalculations')['useGameCalculations']>['overclockInfo'];
+    prestigeMultipliers: ReturnType<typeof useGameCalculations>['prestigeMultipliers'];
 };
 
-export const useGameActions = ({
-    currencies, setCurrencies,
-    items, setItems,
-    itemUpgrades, setItemUpgrades,
-    workshopUpgrades, setWorkshopUpgrades,
-    setLifetimeMana,
-    hasEverClicked, setHasEverClicked,
-    prestigeUpgradeLevels, setPrestigeUpgradeLevels,
-    setNotifiedUpgrades,
-    setOfflineEarnings,
-    setBuyQuantity,
-    overclockLevel, setOverclockLevel,
-    itemPurchaseDetails,
-    potentialShards,
-    canPrestige,
-    debouncedSave,
-    immediateSave,
-    overclockInfo,
-    setDevMode,
-    setHasEverPrestiged,
-    prestigeCount, setPrestigeCount,
-}: UseGameActionsProps) => {
+export const useGameActions = (props: UseGameActionsProps) => {
+    const {
+        currencies, setCurrencies,
+        items, setItems,
+        itemUpgrades, setItemUpgrades,
+        workshopUpgrades, setWorkshopUpgrades,
+        setLifetimeMana,
+        hasEverClicked, setHasEverClicked,
+        prestigeUpgradeLevels, setPrestigeUpgradeLevels,
+        setNotifiedUpgrades,
+        setOfflineEarnings,
+        setBuyQuantity,
+        overclockLevel, setOverclockLevel,
+        itemPurchaseDetails,
+        potentialShards,
+        canPrestige,
+        debouncedSave,
+        immediateSave,
+        overclockInfo,
+        setDevMode,
+        setHasEverPrestiged,
+        prestigeCount, setPrestigeCount,
+        prestigeMultipliers,
+        setAutoBuySettings,
+    } = props;
 
     const updateBuyQuantity = useCallback((q: BuyQuantity) => {
         setBuyQuantity(q);
@@ -53,7 +57,7 @@ export const useGameActions = ({
             setHasEverClicked(true);
         }
     }, [hasEverClicked, setCurrencies, setLifetimeMana, setHasEverClicked]);
-
+    
     const handleBuyItem = useCallback((itemId: string) => {
         const details = itemPurchaseDetails.get(itemId);
         const item = items.find(i => i.id === itemId);
@@ -100,7 +104,8 @@ export const useGameActions = ({
         if (!upgrade || upgrade.purchased) return;
         
         const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
-            return currencies[currency as Currency] >= cost;
+            const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+            return currencies[currency as Currency] >= actualCost;
         });
 
         if (!canAfford) {
@@ -111,7 +116,8 @@ export const useGameActions = ({
         setCurrencies(prev => {
             const newCurrencies = { ...prev };
             for (const currency in upgrade.cost) {
-                newCurrencies[currency as Currency] -= upgrade.cost[currency as Currency] || 0;
+                const actualCost = Math.ceil((upgrade.cost[currency as Currency] || 0) * prestigeMultipliers.costReduction);
+                newCurrencies[currency as Currency] -= actualCost;
             }
             return newCurrencies;
         });
@@ -122,14 +128,15 @@ export const useGameActions = ({
           description: `You have purchased ${upgrade.name}.`,
         });
         immediateSave('buy-item-upgrade');
-    }, [currencies, itemUpgrades, immediateSave, setItemUpgrades, setCurrencies]);
+    }, [currencies, itemUpgrades, immediateSave, setItemUpgrades, setCurrencies, prestigeMultipliers.costReduction]);
     
     const handleBuyWorkshopUpgrade = useCallback((upgradeId: string) => {
         const upgrade = workshopUpgrades.find(u => u.id === upgradeId);
         if (!upgrade || upgrade.purchased) return;
         
         const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
-            return currencies[currency as Currency] >= cost;
+            const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+            return currencies[currency as Currency] >= actualCost;
         });
 
         if (!canAfford) {
@@ -140,7 +147,8 @@ export const useGameActions = ({
         setCurrencies(prev => {
             const newCurrencies = { ...prev };
             for (const currency in upgrade.cost) {
-                newCurrencies[currency as Currency] -= upgrade.cost[currency as Currency] || 0;
+                const actualCost = Math.ceil((upgrade.cost[currency as Currency] || 0) * prestigeMultipliers.costReduction);
+                newCurrencies[currency as Currency] -= actualCost;
             }
             return newCurrencies;
         });
@@ -151,7 +159,7 @@ export const useGameActions = ({
           description: `You have purchased ${upgrade.name}.`,
         });
         immediateSave('buy-workshop-upgrade');
-    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, immediateSave]);
+    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, immediateSave, prestigeMultipliers.costReduction]);
     
     const handlePrestige = useCallback(() => {
         if (!canPrestige) return;
@@ -264,6 +272,14 @@ export const useGameActions = ({
 
     const clearOfflineEarnings = useCallback(() => setOfflineEarnings(null), [setOfflineEarnings]);
 
+    const toggleAutoBuySetting = useCallback((setting: 'items' | 'upgrades') => {
+        setAutoBuySettings(prev => ({
+            ...prev,
+            [setting]: !prev[setting],
+        }));
+        debouncedSave();
+    }, [setAutoBuySettings, debouncedSave]);
+
     return {
         updateBuyQuantity,
         addMana,
@@ -277,5 +293,6 @@ export const useGameActions = ({
         clearOfflineEarnings,
         toggleDevMode,
         devGrantResources,
+        toggleAutoBuySetting,
     };
 };

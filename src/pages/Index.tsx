@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -51,6 +50,8 @@ const Index = () => {
     handleSetOverclockLevel,
     prestigeCount,
     prestigeMultipliers,
+    autoBuySettings,
+    toggleAutoBuySetting,
   } = useGame();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
@@ -138,6 +139,7 @@ const Index = () => {
                     currencies={currencies}
                     onBuyItemUpgrade={handleBuyItemUpgrade}
                     availableItemUpgrades={availableItemUpgrades}
+                    prestigeMultipliers={prestigeMultipliers}
                   />
                 </TabsContent>
               )}
@@ -147,6 +149,7 @@ const Index = () => {
                     currencies={currencies}
                     onBuyWorkshopUpgrade={handleBuyWorkshopUpgrade}
                     availableWorkshopUpgrades={availableWorkshopUpgrades}
+                    prestigeMultipliers={prestigeMultipliers}
                   />
                 </TabsContent>
               )}
@@ -157,6 +160,9 @@ const Index = () => {
                       prestigeUpgradeLevels={prestigeUpgradeLevels}
                       currencies={currencies}
                       onBuyPrestigeUpgrade={handleBuyPrestigeUpgrade}
+                      autoBuySettings={autoBuySettings}
+                      onToggleAutoBuy={toggleAutoBuySetting}
+                      prestigeMultipliers={prestigeMultipliers}
                   />
                 </TabsContent>
               )}
