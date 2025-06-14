@@ -14,6 +14,7 @@ export interface Upgrade {
   cost: CurrencyRecord;
   baseCost: CurrencyRecord;
   generation: CurrencyRecord;
+  clickBonus?: number;
   level: number;
   icon: LucideIcon;
   category: 'Basic Magitech' | 'Advanced Machinery' | 'Mystical Artifacts';

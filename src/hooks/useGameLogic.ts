@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { initialUpgrades } from '@/lib/initialUpgrades';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
@@ -95,7 +94,14 @@ export const useGameLogic = () => {
         return () => clearInterval(gameLoop);
     }, [generationPerSecond]);
 
-    const manaPerClick = useMemo(() => 1 * prestigeMultipliers.manaClick, [prestigeMultipliers.manaClick]);
+    const manaPerClick = useMemo(() => {
+        const baseClick = 1;
+        const clickUpgradeBonus = upgrades
+            .filter(u => u.clickBonus && u.level > 0)
+            .reduce((sum, u) => sum + (u.clickBonus || 0) * u.level, 0);
+        
+        return (baseClick + clickUpgradeBonus) * prestigeMultipliers.manaClick;
+    }, [upgrades, prestigeMultipliers.manaClick]);
 
     const addMana = useCallback((amount: number) => {
         setCurrencies(prev => ({ ...prev, mana: prev.mana + amount }));

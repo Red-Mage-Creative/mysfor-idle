@@ -1,4 +1,3 @@
-
 import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit } from 'lucide-react';
 import { Upgrade } from './gameTypes';
 
@@ -24,6 +23,18 @@ export const initialUpgrades: Upgrade[] = [
     generation: { mana: 1 },
     level: 0,
     icon: Star,
+    category: 'Basic Magitech',
+  },
+  {
+    id: 'clicking_gloves',
+    name: 'Clicking Gloves',
+    description: 'Enchanted gloves that make each click produce more mana.',
+    baseCost: { mana: 25 },
+    cost: { mana: 25 },
+    generation: {},
+    clickBonus: 1,
+    level: 0,
+    icon: Zap,
     category: 'Basic Magitech',
   },
   {
