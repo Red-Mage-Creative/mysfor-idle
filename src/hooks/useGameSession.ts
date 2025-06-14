@@ -12,6 +12,39 @@ type UseGameSessionProps = UseGameState & {
 
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 
+// Returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2
+const compareVersions = (v1: string, v2: string): number => {
+    const parts1 = (v1 || '0.0.0').split('.').map(Number);
+    const parts2 = (v2 || '0.0.0').split('.').map(Number);
+    const len = Math.max(parts1.length, parts2.length);
+
+    for (let i = 0; i < len; i++) {
+        const p1 = parts1[i] || 0;
+        const p2 = parts2[i] || 0;
+        if (p1 < p2) return -1;
+        if (p1 > p2) return 1;
+    }
+    return 0;
+};
+
+const migrateSaveData = (data: any): GameSaveData => {
+    let migratedData = { ...data };
+    const initialVersion = migratedData.version || '0.0.0';
+
+    if (compareVersions(initialVersion, '1.1.0') < 0) {
+        if (typeof migratedData.overclockLevel === 'undefined') {
+            migratedData.overclockLevel = 0;
+            console.log("Migrated save: Added 'overclockLevel: 0' field.");
+        }
+    }
+
+    // Future migrations go here, e.g.:
+    // if (compareVersions(initialVersion, '1.2.0') < 0) { ... }
+
+    migratedData.version = C.CURRENT_SAVE_VERSION;
+    return migratedData as GameSaveData;
+};
+
 export const useGameSession = ({
     isLoaded, setIsLoaded,
     currencies, setCurrencies,
@@ -156,13 +189,18 @@ export const useGameSession = ({
                     return; // No save data, start fresh
                 }
                 
-                const saveData = JSON.parse(savedGame) as GameSaveData;
+                const saveDataAsAny = JSON.parse(savedGame) as any;
                 
-                if(saveData.version !== C.CURRENT_SAVE_VERSION) {
-                    console.warn(`Save file version mismatch. Expected ${C.CURRENT_SAVE_VERSION}, got ${saveData.version}. Starting fresh.`);
+                if (compareVersions(saveDataAsAny.version, C.CURRENT_SAVE_VERSION) > 0) {
+                    console.error(`Save file is from a newer version of the game. Expected <= ${C.CURRENT_SAVE_VERSION}, got ${saveDataAsAny.version}. Starting fresh.`);
                     resetState();
-                    toast.info("Game updated!", { description: "Your save data was from an older version and has been reset." });
+                    toast.error("Newer save data found", { description: "Your save file is from a future version and cannot be loaded. The game has been reset." });
                     return;
+                }
+                
+                const saveData = migrateSaveData(saveDataAsAny);
+                if(saveData.version !== saveDataAsAny.version) {
+                    toast.info("Game Save Updated", { description: `Your save data has been migrated to v${saveData.version}.`});
                 }
                 
                 let restoredWorkshopUpgrades = getFreshInitialWorkshopUpgrades();
@@ -371,14 +409,17 @@ export const useGameSession = ({
         reader.onload = (event) => {
             try {
                 const importedString = event.target?.result as string;
-                const saveData = JSON.parse(importedString) as GameSaveData;
+                const rawData = JSON.parse(importedString) as any;
 
-                if (!saveData.version || !saveData.currencies || saveData.version < C.CURRENT_SAVE_VERSION) {
-                    throw new Error("Invalid or outdated save file format.");
+                if (!rawData.version || !rawData.currencies) {
+                     throw new Error("Invalid or outdated save file format.");
                 }
-                if (saveData.version > C.CURRENT_SAVE_VERSION) {
+                
+                if (compareVersions(rawData.version, C.CURRENT_SAVE_VERSION) > 0) {
                     throw new Error("This save file is from a newer version of the game.");
                 }
+
+                const saveData = migrateSaveData(rawData);
 
                 // Restore state
                 setCurrencies(saveData.currencies);
@@ -402,6 +443,9 @@ export const useGameSession = ({
                 setOfflineEarnings(null);
                 
                 toast.success("Save data imported successfully!");
+                if(saveData.version !== rawData.version) {
+                    toast.info("Save Migrated", { description: `Your imported save has been updated to v${saveData.version}.`});
+                }
                 manualSave(); // Immediately save the new state.
             
             } catch (error) {
