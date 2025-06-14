@@ -15,7 +15,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-primary drop-shadow-[0_2px_2px_rgba(168,85,247,0.4)]">Mystic Forge</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-primary drop-shadow-[0_2px_8px_hsl(var(--primary)/0.6)]">Mystic Forge</h1>
         </Link>
         <nav className="hidden md:flex items-center gap-2">
           <NavLink to="/" className={navLinkClasses} end>

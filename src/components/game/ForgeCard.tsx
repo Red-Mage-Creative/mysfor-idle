@@ -43,7 +43,7 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
     const visibleCurrencies = otherCurrencies.filter(c => currencies[c.key] > 0 || (generationPerSecond[c.key] || 0) > 0);
 
     return (
-        <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg overflow-hidden">
+        <Card className="w-full text-center bg-gradient-to-b from-card/80 via-primary/10 to-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg overflow-hidden">
             <CardHeader>
                 <CardTitle className="text-4xl font-bold text-primary drop-shadow-[0_2px_4px_rgba(168,85,247,0.4)]">{formatNumber(currencies.mana)} Mana</CardTitle>
                 <CardDescription className="text-muted-foreground flex justify-center items-center gap-2">
@@ -80,7 +80,7 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     )}
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                    <Zap className="w-48 h-48 sm:w-64 sm:h-64 text-primary drop-shadow-[0_4px_12px_rgba(168,85,247,0.5)] transition-all group-hover:drop-shadow-[0_4px_18px_rgba(168,85,247,0.7)] group-hover:scale-105" strokeWidth={1.5} />
+                    <Zap className="w-48 h-48 sm:w-64 sm:h-64 text-primary drop-shadow-[0_0_12px_hsl(var(--primary)/0.7)] transition-all group-hover:drop-shadow-[0_0_24px_hsl(var(--primary)/0.7)] group-hover:scale-105" strokeWidth={1.5} />
                 </button>
                 {showTutorial && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-28 sm:mt-36 pointer-events-none">

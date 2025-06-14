@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -101,6 +100,10 @@ export default {
           from: { backgroundPosition: '0 0' },
           to: { backgroundPosition: '-200% 0' },
         },
+        'aurora': {
+            from: { backgroundPosition: '0% 0%' },
+            to: { backgroundPosition: '100% 100%' },
+        },
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -108,6 +111,7 @@ export default {
         'click-bounce': 'click-bounce 0.2s ease-in-out',
         'float-up': 'float-up 0.5s ease-out forwards',
         'background-shine': 'background-shine 2s linear infinite',
+        'aurora': 'aurora 25s ease-in-out infinite alternate',
 			}
 		}
 	},

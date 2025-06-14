@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,9 +25,9 @@ interface ItemsListProps {
 }
 
 const categoryTierStyles = {
-    'Basic Magitech': 'border-primary/30 bg-primary/5',
-    'Advanced Machinery': 'border-yellow-400/30 bg-yellow-400/5',
-    'Mystical Artifacts': 'border-fuchsia-400/40 bg-fuchsia-400/5',
+    'Basic Magitech': 'border-primary/30 bg-primary/10',
+    'Advanced Machinery': 'border-yellow-400/30 bg-yellow-400/10',
+    'Mystical Artifacts': 'border-fuchsia-400/40 bg-fuchsia-400/10',
 };
 
 const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));
@@ -88,7 +87,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                                                 : "text-yellow-400 fill-yellow-400"
                                                                         )}
                                                                         strokeWidth={1.5}
-                                                                    />
+                                                                    />}
                                                                 ))}
                                                                 {isComplete && (
                                                                     <span className="text-xs font-bold text-green-400 ml-1">COMPLETE</span>
