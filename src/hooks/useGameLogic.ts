@@ -198,26 +198,7 @@ export const useGameLogic = () => {
             };
           })
         );
-
-        const newlyAvailableUpgrades = allItemUpgrades.filter(upgrade =>
-            upgrade.parentItemId === itemId &&
-            newLevel === upgrade.unlocksAtLevel &&
-            !itemUpgrades.find(u => u.id === upgrade.id)?.purchased &&
-            !notifiedUpgrades.has(upgrade.id)
-        );
-
-        if (newlyAvailableUpgrades.length > 0) {
-            const upgrade = newlyAvailableUpgrades[0];
-            toast.info("New Upgrade Available!", {
-                description: `'${upgrade.name}' for your ${item.name}.`,
-            });
-            setNotifiedUpgrades(prev => {
-                const newSet = new Set(prev);
-                newlyAvailableUpgrades.forEach(u => newSet.add(u.id));
-                return newSet;
-            });
-        }
-    }, [currencies, items, itemUpgrades, notifiedUpgrades]);
+    }, [currencies, items]);
     
     const handleBuyItemUpgrade = useCallback((upgradeId: string) => {
         const upgrade = itemUpgrades.find(u => u.id === upgradeId);
@@ -399,6 +380,28 @@ export const useGameLogic = () => {
             return parentItem && parentItem.level >= upgrade.unlocksAtLevel;
         });
     }, [itemUpgrades, items]);
+
+    useEffect(() => {
+        const newlyAvailable = availableItemUpgrades.filter(upgrade => !notifiedUpgrades.has(upgrade.id));
+
+        if (newlyAvailable.length > 0) {
+            const firstUpgrade = newlyAvailable[0];
+            const parentItem = items.find(i => i.id === firstUpgrade.parentItemId);
+            let description = `'${firstUpgrade.name}' for your ${parentItem?.name || 'item'}.`;
+            if (newlyAvailable.length > 1) {
+                description += ` (+${newlyAvailable.length - 1} more)`;
+            }
+            description += " Check the Upgrades tab!";
+
+            toast.info("New Upgrade Available!", { description });
+
+            setNotifiedUpgrades(prev => {
+                const newSet = new Set(prev);
+                newlyAvailable.forEach(u => newSet.add(u.id));
+                return newSet;
+            });
+        }
+    }, [availableItemUpgrades, items, notifiedUpgrades]);
 
     const showTutorial = useMemo(() => {
         return !hasEverClicked && currencies.mana === 0 && (generationPerSecond.mana || 0) === 0;
