@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { ItemUpgrade, Currencies, Currency } from '@/lib/gameTypes';
 import { formatNumber, currencyName } from '@/lib/formatters';
 import { ArrowUp } from 'lucide-react';
+import { initialItems } from '@/lib/initialItems';
 
 interface ItemUpgradesListProps {
     currencies: Currencies;
     onBuyItemUpgrade: (upgradeId: string) => void;
     availableItemUpgrades: ItemUpgrade[];
 }
+
+const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));
 
 const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades }: ItemUpgradesListProps) => {
     return (
@@ -28,10 +31,16 @@ const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades 
                     const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
                         return currencies[currency as Currency] >= cost;
                     });
+                    const Icon = iconMap.get(upgrade.parentItemId);
+
+                    if (!Icon) {
+                      return null; // Don't render if icon is not found
+                    }
+
                     return (
                         <Card key={upgrade.id} className="flex items-center p-3 transition-colors hover:bg-secondary/50 border-2 border-dashed border-green-500/40">
                             <div className="relative mr-4 flex-shrink-0">
-                                <upgrade.icon className="w-10 h-10 text-primary/80" />
+                                <Icon className="w-10 h-10 text-primary/80" />
                                 <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border-2 border-card">
                                     <ArrowUp className="w-3 h-3 text-white" />
                                 </div>
