@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -6,7 +5,6 @@ import PrestigeCard from '@/components/game/PrestigeCard';
 import ItemsList from '@/components/game/ItemsList';
 import ItemUpgradesList from '@/components/game/ItemUpgradesList';
 import PrestigeUpgradesList from '@/components/game/PrestigeUpgradesList';
-import StatsCard from '@/components/game/StatsCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PrestigeVisibility } from '@/components/game/PrestigeCard';
 import { cn } from '@/lib/utils';
@@ -46,7 +44,6 @@ const Index = () => {
             manaPerClick={manaPerClick}
             onForgeClick={addMana}
           />
-          <StatsCard manaPerClick={manaPerClick} />
           <PrestigeCard 
             currencies={currencies}
             lifetimeMana={lifetimeMana}

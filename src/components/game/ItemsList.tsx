@@ -2,14 +2,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Item, Currencies, Currency } from '@/lib/gameTypes';
+import { ItemWithStats, Currencies, Currency } from '@/lib/gameTypes';
 import { formatNumber, currencyName } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
+import { Star } from 'lucide-react';
 
 interface ItemsListProps {
     currencies: Currencies;
     onBuyItem: (itemId: string) => void;
-    itemCategories: Record<string, Item[]>;
+    itemCategories: Record<string, ItemWithStats[]>;
     categoryUnlockStatus: Record<string, boolean>;
 }
 
@@ -48,24 +49,36 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                         <Card key={item.id} className={cn("flex items-center p-3 transition-colors hover:bg-secondary/50 border-2", categoryTierStyles[category as keyof typeof categoryTierStyles])}>
                                             <item.icon className="w-10 h-10 text-primary/80 mr-4 flex-shrink-0" />
                                             <div className="flex-grow">
-                                                <p className="font-bold text-lg">{item.name}</p>
-                                                <p className="text-xs text-muted-foreground/80 italic">{item.description}</p>
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <p className="font-bold text-lg">{item.name}</p>
+                                                        <p className="text-xs text-muted-foreground/80 italic">{item.description}</p>
+                                                    </div>
+                                                    <div className="text-right ml-2 flex-shrink-0 min-w-[60px]">
+                                                        <p className="font-semibold text-xl">{item.level}</p>
+                                                        <p className="text-sm text-muted-foreground">Level</p>
+                                                         <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-1" title={`Upgrades: ${item.upgradeStats.purchased} / ${item.upgradeStats.total}`}>
+                                                            <Star className="w-3 h-3 text-yellow-400" />
+                                                            <span>{item.upgradeStats.purchased}/{item.upgradeStats.total}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 
                                                 <div className="mt-2 space-y-1 text-sm">
-                                                    {Object.keys(item.generation).length > 0 &&
+                                                    {Object.keys(item.totalProduction).length > 0 &&
                                                         <div>
-                                                            <span className="text-muted-foreground">Generates: </span>
-                                                            {Object.entries(item.generation).map(([curr, val]) => (
+                                                            <span className="text-muted-foreground">Total Gen: </span>
+                                                            {Object.entries(item.totalProduction).map(([curr, val]) => (
                                                                 <span key={curr} className="font-semibold text-foreground/90">
                                                                     {formatNumber(val || 0)} {currencyName(curr as Currency)}/s
                                                                 </span>
                                                             ))}
                                                         </div>
                                                     }
-                                                    {item.clickBonus ?
+                                                    {item.clickBonus && item.level > 0 ?
                                                         <div>
-                                                            <span className="text-muted-foreground">Click Bonus: </span>
-                                                            <span className="font-semibold text-foreground/90">+{formatNumber(item.clickBonus)} Mana</span>
+                                                            <span className="text-muted-foreground">Total Click: </span>
+                                                            <span className="font-semibold text-foreground/90">+{formatNumber(item.totalClickBonus)} Mana</span>
                                                         </div> : null
                                                     }
                                                     <div>
@@ -79,14 +92,12 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="text-right mr-4">
-                                                <p className="font-semibold text-xl">{item.level}</p>
-                                                <p className="text-sm text-muted-foreground">Level</p>
-                                            </div>
+                                            
                                             <Button
                                                 onClick={() => onBuyItem(item.id)}
                                                 disabled={!canAfford}
                                                 size="sm"
+                                                className="self-center ml-4"
                                             >
                                                 Buy
                                             </Button>

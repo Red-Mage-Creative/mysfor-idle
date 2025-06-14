@@ -21,6 +21,15 @@ export interface Item {
   category: 'Basic Magitech' | 'Advanced Machinery' | 'Mystical Artifacts';
 }
 
+export interface ItemWithStats extends Item {
+    totalProduction: CurrencyRecord;
+    totalClickBonus: number;
+    upgradeStats: {
+        purchased: number;
+        total: number;
+    };
+}
+
 // New type for item upgrades
 export type ItemUpgradeEffect = {
   type: 'generationMultiplier' | 'clickMultiplier';

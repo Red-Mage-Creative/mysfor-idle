@@ -34,37 +34,42 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
         }, 500);
     }, [manaPerClick, onForgeClick]);
 
+    const otherCurrencies = [
+        { key: 'cogwheelGears', name: 'Gears', Icon: Settings, color: 'text-yellow-500', colorLight: 'text-yellow-500/80' },
+        { key: 'essenceFlux', name: 'Essence', Icon: Gem, color: 'text-purple-500', colorLight: 'text-purple-500/80' },
+        { key: 'researchPoints', name: 'Research', Icon: BrainCircuit, color: 'text-cyan-500', colorLight: 'text-cyan-500/80' },
+    ] as const;
+
+    const visibleCurrencies = otherCurrencies.filter(c => currencies[c.key] > 0 || (generationPerSecond[c.key] || 0) > 0);
+
     return (
         <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
             <CardHeader>
                 <CardTitle className="text-4xl font-bold text-primary">{formatNumber(currencies.mana)} Mana</CardTitle>
-                <CardDescription className="text-muted-foreground">{formatNumber(generationPerSecond.mana || 0)} per second</CardDescription>
-                <div className="grid grid-cols-3 gap-4 mt-4 border-t border-border pt-4 text-left">
-                    <div className="flex items-center space-x-2">
-                        <Settings className="w-6 h-6 text-yellow-500" />
-                        <div>
-                            <p className="text-lg font-bold">{formatNumber(currencies.cogwheelGears)}</p>
-                            <p className="text-xs text-muted-foreground">Gears</p>
-                            <p className="text-xs text-yellow-500/80">+{formatNumber(generationPerSecond.cogwheelGears || 0)}/s</p>
-                        </div>
+                <CardDescription className="text-muted-foreground flex justify-center items-center gap-2">
+                    <span>{formatNumber(generationPerSecond.mana || 0)}/s</span>
+                    <span className="text-xs">|</span>
+                    <span>{formatNumber(manaPerClick)}/click</span>
+                </CardDescription>
+
+                {visibleCurrencies.length > 0 && (
+                    <div className={cn("grid gap-4 mt-4 border-t border-border pt-4 text-left", {
+                        'grid-cols-1': visibleCurrencies.length === 1,
+                        'grid-cols-2': visibleCurrencies.length === 2,
+                        'grid-cols-3': visibleCurrencies.length >= 3,
+                    })}>
+                        {visibleCurrencies.map(c => (
+                             <div key={c.key} className="flex items-center space-x-2">
+                                <c.Icon className={cn("w-6 h-6", c.color)} />
+                                <div>
+                                    <p className="text-lg font-bold">{formatNumber(currencies[c.key])}</p>
+                                    <p className="text-xs text-muted-foreground">{c.name}</p>
+                                    <p className={cn("text-xs", c.colorLight)}>+{formatNumber(generationPerSecond[c.key] || 0)}/s</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <Gem className="w-6 h-6 text-purple-500" />
-                        <div>
-                            <p className="text-lg font-bold">{formatNumber(currencies.essenceFlux)}</p>
-                            <p className="text-xs text-muted-foreground">Essence</p>
-                            <p className="text-xs text-purple-500/80">+{formatNumber(generationPerSecond.essenceFlux || 0)}/s</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <BrainCircuit className="w-6 h-6 text-cyan-500" />
-                        <div>
-                            <p className="text-lg font-bold">{formatNumber(currencies.researchPoints)}</p>
-                            <p className="text-xs text-muted-foreground">Research</p>
-                            <p className="text-xs text-cyan-500/80">+{formatNumber(generationPerSecond.researchPoints || 0)}/s</p>
-                        </div>
-                    </div>
-                </div>
+                )}
             </CardHeader>
             <CardContent className="relative">
                 <button 

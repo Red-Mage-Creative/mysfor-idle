@@ -8,13 +8,51 @@ const getIconByItemId = (itemId: string) => {
     return item.icon;
 }
 
+const generateUpgradesForItem = (
+    itemId: string,
+    baseManaCost: number,
+    effectType: 'generationMultiplier' | 'clickMultiplier'
+): ItemUpgrade[] => {
+    const levels = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
+    const names = [
+        'Minor Boost', 'Enhanced Efficiency', 'Significant Power-up', 'Major Amplification',
+        'Arcane Infusion', 'Mystical Attunement', 'Legendary Surge', 'Divine Blessing', 'Ultimate Transcendence'
+    ];
+    const descriptionTemplates = [
+        'Doubles the {item_name}\'s effectiveness.',
+        'Doubles the {item_name}\'s effectiveness again.',
+        'A significant power-up, doubling effectiveness.',
+        'A major amplification that doubles effectiveness.',
+        'An arcane infusion doubles the {item_name}\'s power.',
+        'Mystical energies attune, doubling effectiveness.',
+        'A legendary surge of power doubles effectiveness.',
+        'A divine blessing that doubles the {item_name}\'s power.',
+        'The ultimate transcendence, doubling effectiveness.'
+    ];
+
+    const itemName = initialItems.find(i => i.id === itemId)?.name || 'item';
+
+    return levels.map((level, index) => ({
+        id: `${itemId}_upgrade_${index + 1}`,
+        parentItemId: itemId,
+        name: `${names[index]}`,
+        description: descriptionTemplates[index].replace('{item_name}', itemName),
+        unlocksAtLevel: level,
+        cost: { mana: baseManaCost * Math.pow(8, index) * (index + 1) }, // Exponential cost increase
+        effect: { type: effectType, value: 2 },
+        purchased: false,
+        icon: getIconByItemId(itemId)
+    }));
+};
+
 export const allItemUpgrades: ItemUpgrade[] = [
-    // === Basic Magitech ===
-    // Apprentice's Wand
-    { id: 'wand_upgrade_1', parentItemId: 'apprentice_wand', name: 'Polished Wand', description: "Doubles the Apprentice's Wand mana generation.", unlocksAtLevel: 10, cost: { mana: 1000 }, effect: { type: 'generationMultiplier', value: 2 }, purchased: false, icon: getIconByItemId('apprentice_wand') },
-    { id: 'wand_upgrade_2', parentItemId: 'apprentice_wand', name: 'Runic Inscriptions', description: "Doubles the Apprentice's Wand mana generation again.", unlocksAtLevel: 25, cost: { mana: 5000 }, effect: { type: 'generationMultiplier', value: 2 }, purchased: false, icon: getIconByItemId('apprentice_wand') },
-    // Mana Crystal
-    { id: 'crystal_upgrade_1', parentItemId: 'mana_crystal', name: 'Focusing Lens', description: "Doubles the Mana Crystal's mana generation.", unlocksAtLevel: 10, cost: { mana: 10000 }, effect: { type: 'generationMultiplier', value: 2 }, purchased: false, icon: getIconByItemId('mana_crystal') },
-    // Clicking Gloves
-    { id: 'gloves_upgrade_1', parentItemId: 'clicking_gloves', name: 'Reinforced Seams', description: 'Doubles the mana bonus from Clicking Gloves.', unlocksAtLevel: 10, cost: { mana: 500 }, effect: { type: 'clickMultiplier', value: 2 }, purchased: false, icon: getIconByItemId('clicking_gloves') },
+    ...generateUpgradesForItem('apprentice_wand', 1000, 'generationMultiplier'),
+    ...generateUpgradesForItem('mana_crystal', 10000, 'generationMultiplier'),
+    ...generateUpgradesForItem('clicking_gloves', 500, 'clickMultiplier'),
+    ...generateUpgradesForItem('enchanted_shield', 110000, 'generationMultiplier'),
+    ...generateUpgradesForItem('clockwork_automaton', 1.2e6, 'generationMultiplier'),
+    ...generateUpgradesForItem('arcane_engine', 7.5e6, 'generationMultiplier'),
+    ...generateUpgradesForItem('enchanted_workshop', 5e7, 'generationMultiplier'),
+    ...generateUpgradesForItem('philosophers_transmuter', 1e8, 'generationMultiplier'),
+    ...generateUpgradesForItem('chaos_codex', 5e9, 'generationMultiplier'),
 ];
