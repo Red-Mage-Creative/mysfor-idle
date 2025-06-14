@@ -38,7 +38,7 @@ const Index = () => {
     availableItemUpgrades,
     handleBuyItemUpgrade,
     showWorkshopTab,
-    availableWorkshopUpgrades,
+    workshopUpgrades,
     handleBuyWorkshopUpgrade,
     showTutorial,
     offlineEarnings,
@@ -148,8 +148,7 @@ const Index = () => {
                   <WorkshopUpgradesList
                     currencies={currencies}
                     onBuyWorkshopUpgrade={handleBuyWorkshopUpgrade}
-                    availableWorkshopUpgrades={availableWorkshopUpgrades}
-                    prestigeMultipliers={prestigeMultipliers}
+                    workshopUpgrades={workshopUpgrades}
                   />
                 </TabsContent>
               )}

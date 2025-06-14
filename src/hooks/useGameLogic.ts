@@ -63,14 +63,20 @@ export const useGameLogic = () => {
                 }
                 
                 // Workshop Upgrades
-                if (availableWorkshopUpgrades.length > 0) {
-                    const upgrade = availableWorkshopUpgrades[0];
-                     const canAfford = Object.entries(upgrade.cost).every(([c, cost]) => {
-                        const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
-                        return currencies[c as Currency] >= actualCost;
-                    });
-                    if (canAfford) {
-                        actions.handleBuyWorkshopUpgrade(upgrade.id);
+                if (workshopUpgrades.length > 0) {
+                    const WORKSHOP_UPGRADE_COST_GROWTH_RATE = 1.25;
+                    const affordableUpgrades = workshopUpgrades.map(upgrade => {
+                        const cost = Math.ceil(
+                            (upgrade.baseCost.cogwheelGears || 0) * 
+                            Math.pow(WORKSHOP_UPGRADE_COST_GROWTH_RATE, upgrade.level) *
+                            prestigeMultipliers.costReduction
+                        );
+                        return { upgrade, cost };
+                    }).filter(({ cost }) => currencies.cogwheelGears >= cost)
+                      .sort((a, b) => a.cost - b.cost);
+
+                    if (affordableUpgrades.length > 0) {
+                        actions.handleBuyWorkshopUpgrade(affordableUpgrades[0].upgrade.id);
                         return;
                     }
                 }
@@ -87,7 +93,7 @@ export const useGameLogic = () => {
         items, 
         itemPurchaseDetails,
         availableItemUpgrades,
-        availableWorkshopUpgrades,
+        workshopUpgrades,
         currencies,
         actions
     ]);

@@ -135,22 +135,23 @@ export const useGameCalculations = ({
 
     const workshopUpgradeMultipliers = useMemo(() => {
         const multipliers = {
-            gearProduction: 1,
-            clickEffectiveness: 1,
-            manaFromMachinery: 1,
+            mana: 1,
+            essenceFlux: 1,
+            researchPoints: 1,
         };
 
         for (const upgrade of workshopUpgrades) {
-            if (upgrade.purchased) {
+            if (upgrade.level > 0) {
+                const bonus = upgrade.effect.value * upgrade.level;
                 switch (upgrade.effect.type) {
-                    case 'gearProductionMultiplier':
-                        multipliers.gearProduction *= upgrade.effect.value;
+                    case 'manaMultiplier':
+                        multipliers.mana += bonus;
                         break;
-                    case 'clickEffectivenessMultiplier':
-                        multipliers.clickEffectiveness *= upgrade.effect.value;
+                    case 'essenceFluxMultiplier':
+                        multipliers.essenceFlux += bonus;
                         break;
-                    case 'manaFromMachineryMultiplier':
-                        multipliers.manaFromMachinery *= upgrade.effect.value;
+                    case 'researchPointsMultiplier':
+                        multipliers.researchPoints += bonus;
                         break;
                 }
             }
@@ -204,13 +205,6 @@ export const useGameCalculations = ({
                     const itemMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
                     let value = (item.generation[key] || 0) * item.level * itemMultiplier;
                     
-                    if (key === 'mana' && item.category === 'Advanced Machinery') {
-                        value *= workshopUpgradeMultipliers.manaFromMachinery;
-                    }
-                    if (key === 'cogwheelGears') {
-                        value *= workshopUpgradeMultipliers.gearProduction;
-                    }
-                    
                     acc[key] = (acc[key] || 0) + value;
                 }
             }
@@ -220,6 +214,17 @@ export const useGameCalculations = ({
         for (const key in baseGeneration) {
             const currency = key as Currency;
             baseGeneration[currency] = (baseGeneration[currency] || 0) * prestigeMultipliers.allProduction;
+        }
+
+        // Apply new workshop multipliers
+        if (baseGeneration.mana) {
+            baseGeneration.mana *= workshopUpgradeMultipliers.mana;
+        }
+        if (baseGeneration.essenceFlux) {
+            baseGeneration.essenceFlux *= workshopUpgradeMultipliers.essenceFlux;
+        }
+        if (baseGeneration.researchPoints) {
+            baseGeneration.researchPoints *= workshopUpgradeMultipliers.researchPoints;
         }
 
         // Apply overclock effects
@@ -249,9 +254,11 @@ export const useGameCalculations = ({
                 return sum + (i.clickBonus || 0) * i.level * itemMultiplier;
             }, 0);
         
-        const effectiveClickBonus = clickItemBonus * workshopUpgradeMultipliers.clickEffectiveness;
-        
-        let totalClick = (baseClick + effectiveClickBonus) * prestigeMultipliers.manaClick;
+        let totalClick = (baseClick + clickItemBonus) * prestigeMultipliers.manaClick;
+
+        // Apply new workshop multiplier for mana
+        totalClick *= workshopUpgradeMultipliers.mana;
+
         if (devMode) {
             totalClick *= C.DEV_MODE_MULTIPLIER;
         }
@@ -435,10 +442,10 @@ export const useGameCalculations = ({
 
     const showWorkshopTab = useMemo(() => {
         const hasGears = currencies.cogwheelGears > 0;
-        const hasPurchasedWorkshopUpgrade = workshopUpgrades.some(u => u.purchased);
+        const hasLeveledWorkshopUpgrade = workshopUpgrades.some(u => u.level > 0);
         const hasUnlockedAutomaton = (items.find(i => i.id === 'clockwork_automaton')?.level || 0) > 0;
         
-        return hasGears || hasPurchasedWorkshopUpgrade || hasUnlockedAutomaton;
+        return hasGears || hasLeveledWorkshopUpgrade || hasUnlockedAutomaton;
     }, [currencies.cogwheelGears, workshopUpgrades, items]);
 
     const availableItemUpgrades = useMemo(() => {
@@ -449,38 +456,6 @@ export const useGameCalculations = ({
         });
     }, [itemUpgrades, items]);
 
-    const availableWorkshopUpgrades = useMemo(() => {
-        const purchasedIds = new Set(workshopUpgrades.filter(u => u.purchased).map(u => u.id));
-        
-        return workshopUpgrades.filter(upgrade => {
-            if (upgrade.purchased) return false;
-
-            // Unlock logic: A tier 2 or 3 upgrade is available if the previous tier is purchased.
-            // Tier 1 upgrades are available if they haven't been purchased yet.
-            const isTier1 = !upgrade.id.includes('_2') && !upgrade.id.includes('_3');
-
-            switch (upgrade.id) {
-                // Tier 2 unlocks
-                case 'gear_optimization_2':
-                    return purchasedIds.has('gear_optimization_1');
-                case 'precision_engineering_2':
-                    return purchasedIds.has('precision_engineering_1');
-                case 'advanced_assembly_lines_2':
-                    return purchasedIds.has('advanced_assembly_lines_1');
-                // Tier 3 unlocks
-                case 'gear_optimization_3':
-                    return purchasedIds.has('gear_optimization_2');
-                case 'precision_engineering_3':
-                    return purchasedIds.has('precision_engineering_2');
-                case 'advanced_assembly_lines_3':
-                    return purchasedIds.has('advanced_assembly_lines_2');
-                default:
-                    // Show tier 1 by default
-                    return isTier1;
-            }
-        });
-    }, [workshopUpgrades]);
-    
     const showTutorial = useMemo(() => {
         return !hasEverClicked && currencies.mana === 0 && (generationPerSecond.mana || 0) === 0;
     }, [hasEverClicked, currencies.mana, generationPerSecond]);
@@ -503,7 +478,6 @@ export const useGameCalculations = ({
         showUpgradesTab,
         showWorkshopTab,
         availableItemUpgrades,
-        availableWorkshopUpgrades,
         showTutorial,
     };
 };

@@ -59,17 +59,19 @@ export interface ItemUpgrade {
   icon: LucideIcon;
 }
 
-// New type for workshop upgrades
+// New type for workshop upgrades - refactored to be level-based
 export interface WorkshopUpgrade {
   id: string;
   name: string;
   description: string;
-  cost: CurrencyRecord;
+  cost: CurrencyRecord; // cost for the next level
+  baseCost: CurrencyRecord; // base cost at level 0
+  level: number;
   effect: {
-    type: 'gearProductionMultiplier' | 'clickEffectivenessMultiplier' | 'manaFromMachineryMultiplier';
+    type: 'manaMultiplier' | 'essenceFluxMultiplier' | 'researchPointsMultiplier';
+    // This value is the additive bonus per level, e.g., 0.05 for +5%
     value: number;
   };
-  purchased: boolean;
   icon: LucideIcon;
 }
 
@@ -93,7 +95,8 @@ export interface GameSaveData {
     currencies: Currencies;
     items: Item[];
     itemUpgrades: ItemUpgrade[];
-    workshopUpgrades: Array<Pick<WorkshopUpgrade, 'id' | 'purchased'>>;
+    // Updated to save workshop upgrade levels instead of purchased status
+    workshopUpgrades: Array<Pick<WorkshopUpgrade, 'id' | 'level'>>;
     lifetimeMana: number;
     prestigeUpgradeLevels: Record<string, number>;
     autoBuySettings?: {
