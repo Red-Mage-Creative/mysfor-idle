@@ -1,10 +1,10 @@
-
 import { useCallback } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity, UseGameState } from './useGameState';
 import { toast } from "@/components/ui/sonner";
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
-import { PurchaseDetails } from '@/lib/gameTypes';
+import { PurchaseDetails, WorkshopUpgrade } from '@/lib/gameTypes';
 import { Currency } from '@/lib/gameTypes';
+import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
 
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 
@@ -116,7 +116,7 @@ export const useGameActions = ({
         });
         debouncedSave();
     }, [currencies, itemUpgrades, debouncedSave]);
-
+    
     const handleBuyWorkshopUpgrade = useCallback((upgradeId: string) => {
         const upgrade = workshopUpgrades.find(u => u.id === upgradeId);
         if (!upgrade || upgrade.purchased) return;
@@ -192,6 +192,29 @@ export const useGameActions = ({
         debouncedSave();
     }, [currencies.aetherShards, prestigeUpgradeLevels, debouncedSave]);
 
+    const repairGameState = useCallback(() => {
+        console.log("Manual game state repair triggered.");
+        const originalUpgradesMap = new Map(allWorkshopUpgrades.map(u => [u.id, u]));
+        const needsRepair = workshopUpgrades.some(u => typeof u.icon !== 'function' || !u.description);
+
+        if (needsRepair) {
+            const repairedUpgrades = workshopUpgrades
+                .map(savedUpgrade => {
+                    const original = originalUpgradesMap.get(savedUpgrade.id);
+                    if (original) {
+                        return { ...original, purchased: savedUpgrade.purchased };
+                    }
+                    return null;
+                })
+                .filter((u): u is WorkshopUpgrade => u !== null);
+            
+            setWorkshopUpgrades(repairedUpgrades);
+            toast.success("Game data repaired successfully!");
+        } else {
+            toast.info("No data corruption found.");
+        }
+    }, [workshopUpgrades, setWorkshopUpgrades]);
+
     const clearOfflineEarnings = useCallback(() => setOfflineEarnings(null), [setOfflineEarnings]);
 
     return {
@@ -202,6 +225,7 @@ export const useGameActions = ({
         handleBuyWorkshopUpgrade,
         handlePrestige,
         handleBuyPrestigeUpgrade,
+        repairGameState,
         clearOfflineEarnings,
     };
 };

@@ -2,12 +2,12 @@
 import React, { useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, Download, Trash2, ShieldAlert } from 'lucide-react';
+import { Upload, Download, Trash2, ShieldAlert, Wrench } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import SaveStatusDisplay from '@/components/layout/SaveStatus';
 
 const SettingsPage = () => {
-    const { exportSave, importSave, resetGame, manualSave, saveStatus, lastSaveTime } = useGame();
+    const { exportSave, importSave, resetGame, manualSave, saveStatus, lastSaveTime, repairGameState } = useGame();
     const importInputRef = useRef<HTMLInputElement>(null);
 
     const handleImportClick = () => {
@@ -57,6 +57,12 @@ const SettingsPage = () => {
                             className="hidden"
                             accept=".txt,application/json"
                         />
+                         <div className="sm:col-span-2">
+                            <Button onClick={repairGameState} variant="outline" className="w-full">
+                                <Wrench className="mr-2 h-4 w-4" />
+                                Scan & Repair Game Data
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

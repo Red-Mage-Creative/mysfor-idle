@@ -1,14 +1,43 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
 import { useGameSession } from './useGameSession';
 import { useGameActions } from './useGameActions';
 import { toast } from "@/components/ui/sonner";
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
+import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
+import { WorkshopUpgrade } from '@/lib/gameTypes';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
-    const { items, notifiedUpgrades, setNotifiedUpgrades } = gameState;
+    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, setWorkshopUpgrades } = gameState;
+    const repairAttempted = useRef(false);
+
+    useEffect(() => {
+        if (isLoaded && !repairAttempted.current) {
+            const needsRepair = workshopUpgrades.some(u => typeof u.icon !== 'function' || !u.description);
+            if (needsRepair) {
+                console.log("Corrupted workshop upgrades detected in state, repairing...");
+                
+                const originalUpgradesMap = new Map(allWorkshopUpgrades.map(u => [u.id, u]));
+                
+                const repairedUpgrades = workshopUpgrades
+                    .map(savedUpgrade => {
+                        const original = originalUpgradesMap.get(savedUpgrade.id);
+                        if (original) {
+                            return { ...original, purchased: savedUpgrade.purchased };
+                        }
+                        console.warn(`Could not find original workshop upgrade for id during auto-repair: ${savedUpgrade.id}`);
+                        return null; 
+                    })
+                    .filter((u): u is WorkshopUpgrade => u !== null);
+                
+                setWorkshopUpgrades(repairedUpgrades);
+                toast.info("Game data repaired", { description: "Some game data was found to be out of date and has been automatically repaired." });
+            }
+            repairAttempted.current = true;
+        }
+    }, [isLoaded, workshopUpgrades, setWorkshopUpgrades]);
 
     const calculations = useGameCalculations(gameState);
     const { availableItemUpgrades } = calculations;
