@@ -38,6 +38,11 @@ const migrateSaveData = (data: any): GameSaveData => {
         }
     }
 
+    if (typeof migratedData.hasEverPrestiged === 'undefined') {
+        migratedData.hasEverPrestiged = false;
+        console.log("Migrated save: Added 'hasEverPrestiged: false' field.");
+    }
+
     // Future migrations go here, e.g.:
     // if (compareVersions(initialVersion, '1.2.0') < 0) { ... }
 
@@ -55,6 +60,7 @@ export const useGameSession = ({
     prestigeUpgradeLevels, setPrestigeUpgradeLevels,
     notifiedUpgrades, setNotifiedUpgrades,
     hasEverClicked, setHasEverClicked,
+    hasEverPrestiged, setHasEverPrestiged,
     setOfflineEarnings,
     setLastSaveTime,
     saveStatus, setSaveStatus,
@@ -75,6 +81,7 @@ export const useGameSession = ({
         setPrestigeUpgradeLevels({});
         setNotifiedUpgrades(new Set());
         setHasEverClicked(false);
+        setHasEverPrestiged(false);
         setOfflineEarnings(null);
         setLastSaveTime(null);
         setSaveStatus('idle');
@@ -85,7 +92,7 @@ export const useGameSession = ({
     }, [
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
-        setHasEverClicked, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity,
+        setHasEverClicked, setHasEverPrestiged, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity,
         setOverclockLevel
     ]);
 
@@ -102,6 +109,7 @@ export const useGameSession = ({
                 prestigeUpgradeLevels,
                 notifiedUpgrades: Array.from(notifiedUpgrades),
                 hasEverClicked,
+                hasEverPrestiged,
                 overclockLevel,
             };
             localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
@@ -112,7 +120,7 @@ export const useGameSession = ({
             toast.error("Could not save game progress.");
             throw error;
         }
-    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, overclockLevel, setLastSaveTime, setSaveStatus]);
+    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, hasEverPrestiged, overclockLevel, setLastSaveTime, setSaveStatus]);
 
     useEffect(() => {
         if (saveRequest) {
@@ -331,6 +339,7 @@ export const useGameSession = ({
                 setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
                 setHasEverClicked(saveData.hasEverClicked);
+                setHasEverPrestiged(saveData.hasEverPrestiged);
                 setOverclockLevel(saveData.overclockLevel || 0);
 
             } catch (error) {
@@ -343,7 +352,7 @@ export const useGameSession = ({
         };
 
         loadGame();
-    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setOfflineEarnings, setLastSaveTime, setOverclockLevel]); // Dependencies are now just setters
+    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setOfflineEarnings, setLastSaveTime, setOverclockLevel]); // Dependencies are now just setters
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
@@ -440,6 +449,7 @@ export const useGameSession = ({
                 setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
                 setHasEverClicked(saveData.hasEverClicked);
+                setHasEverPrestiged(saveData.hasEverPrestiged);
                 setOfflineEarnings(null);
                 
                 toast.success("Save data imported successfully!");
@@ -458,7 +468,7 @@ export const useGameSession = ({
         manualSave,
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
-        setHasEverClicked, setOfflineEarnings
+        setHasEverClicked, setHasEverPrestiged, setOfflineEarnings
     ]);
     
     return {
