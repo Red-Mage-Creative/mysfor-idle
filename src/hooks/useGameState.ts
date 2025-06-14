@@ -4,8 +4,8 @@ import { initialItems } from '@/lib/initialItems';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
 import { Currencies, Item, ItemUpgrade, OfflineEarnings } from '@/lib/gameTypes';
 
-const getFreshInitialItems = (): Item[] => initialItems.map(item => ({...item, cost: { ...item.cost }, baseCost: { ...item.baseCost }, generation: { ...item.generation }}));
-const getFreshInitialItemUpgrades = (): ItemUpgrade[] => allItemUpgrades.map(upgrade => ({ ...upgrade }));
+export const getFreshInitialItems = (): Item[] => initialItems.map(item => ({...item, cost: { ...item.cost }, baseCost: { ...item.baseCost }, generation: { ...item.generation }}));
+export const getFreshInitialItemUpgrades = (): ItemUpgrade[] => allItemUpgrades.map(upgrade => ({ ...upgrade }));
 
 export const useGameState = () => {
     const [isLoaded, setIsLoaded] = useState(false);

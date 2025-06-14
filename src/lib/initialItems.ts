@@ -1,7 +1,5 @@
-
 import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand } from 'lucide-react';
 import { Item } from './gameTypes';
-import { allItemUpgrades } from './itemUpgrades'; // Import allItemUpgrades here
 
 export const initialItems: Item[] = [
   // Basic Magitech

@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, GameSaveData } from '@/lib/gameTypes';
+import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, GameSaveData, ItemWithStats } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
-import { useGameState } from './useGameState';
-import { getFreshInitialItems, getFreshInitialItemUpgrades } from '@/lib/initialItems';
+import { useGameState, getFreshInitialItems, getFreshInitialItemUpgrades } from './useGameState';
 import * as C from '@/constants/gameConstants';
 
 export const useGameLogic = () => {
