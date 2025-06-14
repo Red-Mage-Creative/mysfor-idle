@@ -6,7 +6,7 @@ export interface Upgrade {
   name: string;
   cost: number;
   baseCost: number;
-  pps: number; // purrs per second
+  mps: number; // mana per second
   level: number;
   icon: LucideIcon;
 }

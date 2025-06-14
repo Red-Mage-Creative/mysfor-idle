@@ -1,42 +1,42 @@
 
-import { Mouse, Fish, ToyBrick, Cat } from 'lucide-react';
+import { Zap, Star, Shield, Settings } from 'lucide-react';
 import { Upgrade } from './gameTypes';
 
 export const initialUpgrades: Upgrade[] = [
   {
-    id: 'catnip_mouse',
-    name: 'Catnip Mouse',
+    id: 'apprentice_wand',
+    name: "Apprentice's Wand",
     baseCost: 15,
     cost: 15,
-    pps: 0.1,
+    mps: 0.1,
     level: 0,
-    icon: Mouse,
+    icon: Zap,
   },
   {
-    id: 'tasty_fish',
-    name: 'Tasty Fish',
+    id: 'mana_crystal',
+    name: 'Mana Crystal',
     baseCost: 100,
     cost: 100,
-    pps: 1,
+    mps: 1,
     level: 0,
-    icon: Fish,
+    icon: Star,
   },
   {
-    id: 'yarn_ball',
-    name: 'Ball of Yarn',
+    id: 'enchanted_shield',
+    name: 'Enchanted Shield',
     baseCost: 1100,
     cost: 1100,
-    pps: 8,
+    mps: 8,
     level: 0,
-    icon: ToyBrick, // Using ToyBrick as a stand-in for a yarn ball
+    icon: Shield,
   },
   {
-    id: 'fellow_cat',
-    name: 'Another Cat',
+    id: 'clockwork_automaton',
+    name: 'Clockwork Automaton',
     baseCost: 12000,
     cost: 12000,
-    pps: 47,
+    mps: 47,
     level: 0,
-    icon: Cat,
+    icon: Settings,
   },
 ];

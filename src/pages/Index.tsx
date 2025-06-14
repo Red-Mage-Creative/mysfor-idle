@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Cat } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { initialUpgrades } from '@/lib/initialUpgrades';
@@ -8,29 +8,29 @@ import { Upgrade } from '@/lib/gameTypes';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
-  const [purrs, setPurrs] = useState<number>(0);
+  const [mana, setMana] = useState<number>(0);
   const [upgrades, setUpgrades] = useState<Upgrade[]>(initialUpgrades);
   const [isClicking, setIsClicking] = useState(false);
   const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number }[]>([]);
 
-  const purrsPerSecond = useMemo(() => {
-    return upgrades.reduce((sum, upgrade) => sum + upgrade.pps * upgrade.level, 0);
+  const manaPerSecond = useMemo(() => {
+    return upgrades.reduce((sum, upgrade) => sum + upgrade.mps * upgrade.level, 0);
   }, [upgrades]);
   
-  // Game tick for automatic purr generation
+  // Game tick for automatic mana generation
   useEffect(() => {
     const gameLoop = setInterval(() => {
-      setPurrs(prev => prev + purrsPerSecond / 10);
+      setMana(prev => prev + manaPerSecond / 10);
     }, 100);
     return () => clearInterval(gameLoop);
-  }, [purrsPerSecond]);
+  }, [manaPerSecond]);
   
-  const handleCatClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleForgeClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    setPurrs(prev => prev + 1);
+    setMana(prev => prev + 1);
     setIsClicking(true);
     setTimeout(() => setIsClicking(false), 200);
 
@@ -42,9 +42,9 @@ const Index = () => {
 
   const handleBuyUpgrade = useCallback((upgradeId: string) => {
     const upgrade = upgrades.find(u => u.id === upgradeId);
-    if (!upgrade || purrs < upgrade.cost) return;
+    if (!upgrade || mana < upgrade.cost) return;
 
-    setPurrs(prev => prev - upgrade.cost);
+    setMana(prev => prev - upgrade.cost);
     setUpgrades(prevUpgrades =>
       prevUpgrades.map(u =>
         u.id === upgradeId
@@ -56,7 +56,7 @@ const Index = () => {
           : u
       )
     );
-  }, [purrs, upgrades]);
+  }, [mana, upgrades]);
 
   const formatNumber = (num: number): string => {
     if (num < 1000) return num.toFixed(1);
@@ -72,32 +72,32 @@ const Index = () => {
         
         <div className="lg:col-span-1 flex flex-col items-center justify-center space-y-6 order-2 lg:order-1">
           <div className="text-center">
-            <h1 className="text-5xl font-bold tracking-tight">Cat Clicker</h1>
-            <p className="text-muted-foreground mt-2">The purr-fect idle game.</p>
+            <h1 className="text-5xl font-bold tracking-tight">Mystic Forge</h1>
+            <p className="text-muted-foreground mt-2">Harness the arcane and technological.</p>
           </div>
         </div>
 
         <div className="lg:col-span-1 flex flex-col items-center justify-center space-y-6 order-1 lg:order-2">
           <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-4xl font-bold text-primary">{formatNumber(purrs)} Purrs</CardTitle>
-              <CardDescription className="text-muted-foreground">{formatNumber(purrsPerSecond)} per second</CardDescription>
+              <CardTitle className="text-4xl font-bold text-primary">{formatNumber(mana)} Mana</CardTitle>
+              <CardDescription className="text-muted-foreground">{formatNumber(manaPerSecond)} per second</CardDescription>
             </CardHeader>
             <CardContent className="relative">
                 <button 
-                    onClick={handleCatClick}
+                    onClick={handleForgeClick}
                     className={cn(
                         "p-4 rounded-full transition-transform duration-200 focus:outline-none",
                         isClicking ? 'animate-click-bounce' : ''
                     )}
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                    <Cat className="w-48 h-48 sm:w-64 sm:h-64 text-primary drop-shadow-lg" strokeWidth={1.5} />
+                    <Zap className="w-48 h-48 sm:w-64 sm:h-64 text-primary drop-shadow-lg" strokeWidth={1.5} />
                 </button>
                 {floatingTexts.map(ft => (
                     <div
                         key={ft.id}
-                        className="absolute text-2xl font-bold text-primary pointer-events-none animate-purr-up"
+                        className="absolute text-2xl font-bold text-primary pointer-events-none animate-float-up"
                         style={{ top: ft.y, left: ft.x }}
                     >
                         +1
@@ -126,7 +126,7 @@ const Index = () => {
                   </div>
                   <Button 
                     onClick={() => handleBuyUpgrade(upgrade.id)} 
-                    disabled={purrs < upgrade.cost}
+                    disabled={mana < upgrade.cost}
                     size="sm"
                   >
                     Buy
