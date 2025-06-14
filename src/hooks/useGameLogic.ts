@@ -3,8 +3,19 @@ import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
 import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, GameSaveData, ItemWithStats } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
-import { useGameState, getFreshInitialItems, getFreshInitialItemUpgrades } from './useGameState';
+import { useGameState, getFreshInitialItems, getFreshInitialItemUpgrades, BuyQuantity } from './useGameState';
 import * as C from '@/constants/gameConstants';
+
+export type PurchaseDetails = {
+    purchaseQuantity: number;
+    purchaseCost: CurrencyRecord;
+    canAffordPurchase: boolean;
+    nextLevelTarget: number | null;
+    displayQuantity: string;
+};
+
+const UPGRADE_THRESHOLDS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
+const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 
 export const useGameLogic = () => {
     const {
@@ -19,9 +30,29 @@ export const useGameLogic = () => {
         hasEverClicked, setHasEverClicked,
         saveStatus, setSaveStatus,
         lastSaveTime, setLastSaveTime,
+        buyQuantity, setBuyQuantity,
     } = useGameState();
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(BUY_QUANTITY_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (['1', '5', '10', 'next', 'max'].includes(String(parsed))) {
+                    setBuyQuantity(parsed);
+                }
+            }
+        } catch (e) {
+            console.error("Could not load buy quantity", e)
+        }
+    }, [setBuyQuantity]);
+
+    const updateBuyQuantity = useCallback((q: BuyQuantity) => {
+        setBuyQuantity(q);
+        localStorage.setItem(BUY_QUANTITY_KEY, JSON.stringify(q));
+    }, [setBuyQuantity]);
 
     const saveGame = useCallback((isAutoSave = false) => {
         try {
@@ -297,31 +328,127 @@ export const useGameLogic = () => {
         }
     }, [hasEverClicked, setCurrencies, setLifetimeMana, setHasEverClicked]);
 
+    const calculateBulkCost = useCallback((item: Item, quantity: number): CurrencyRecord => {
+        if (quantity <= 0) return {};
+        
+        const totalCost: CurrencyRecord = {};
+        
+        for (const currency in item.baseCost) {
+            totalCost[currency as Currency] = 0;
+        }
+
+        let currentLevel = item.level;
+        for (let i = 0; i < quantity; i++) {
+            for (const currency in item.baseCost) {
+                const key = currency as Currency;
+                const base = item.baseCost[key] || 0;
+                const costForThisLevel = Math.ceil(base * Math.pow(C.ITEM_COST_GROWTH_RATE, currentLevel + i));
+                totalCost[key] = (totalCost[key] || 0) + costForThisLevel;
+            }
+        }
+
+        return totalCost;
+    }, []);
+
+    const calculateMaxAffordable = useCallback((item: Item, currentCurrencies: Currencies): number => {
+        let affordableLevels = 0;
+        const tempCurrencies = { ...currentCurrencies };
+    
+        while (true) {
+            const nextLevel = item.level + affordableLevels;
+            const nextLevelCost: CurrencyRecord = {};
+            let canAffordNext = true;
+    
+            for (const currency in item.baseCost) {
+                const key = currency as Currency;
+                const base = item.baseCost[key] || 0;
+                const cost = Math.ceil(base * Math.pow(C.ITEM_COST_GROWTH_RATE, nextLevel));
+                nextLevelCost[key] = cost;
+                if ((tempCurrencies[key] || 0) < cost) {
+                    canAffordNext = false;
+                }
+            }
+            
+            if (canAffordNext) {
+                Object.entries(nextLevelCost).forEach(([c, cost]) => {
+                    const key = c as Currency;
+                    tempCurrencies[key] = (tempCurrencies[key] || 0) - cost;
+                });
+                affordableLevels++;
+            } else {
+                break;
+            }
+        }
+        return affordableLevels;
+    }, []);
+
+    const itemPurchaseDetails = useMemo((): Map<string, PurchaseDetails> => {
+        const detailsMap = new Map<string, PurchaseDetails>();
+        
+        for (const item of items) {
+            const maxAffordable = calculateMaxAffordable(item, currencies);
+            let purchaseQuantity = 0;
+            let displayQuantity = '1';
+            let nextLevelTarget: number | null = null;
+            
+            if (buyQuantity === 'max') {
+                purchaseQuantity = maxAffordable;
+                displayQuantity = `${purchaseQuantity} Lvl(s)`;
+            } else if (buyQuantity === 'next') {
+                const nextThreshold = UPGRADE_THRESHOLDS.find(t => t > item.level);
+                if (nextThreshold) {
+                    const quantityToNext = nextThreshold - item.level;
+                    if(maxAffordable >= quantityToNext) {
+                        purchaseQuantity = quantityToNext;
+                        nextLevelTarget = nextThreshold;
+                        displayQuantity = `to Lvl ${nextThreshold}`;
+                    }
+                }
+            } else { // 1, 5, 10
+                if (maxAffordable >= buyQuantity) {
+                     purchaseQuantity = Math.floor(maxAffordable / buyQuantity) * buyQuantity;
+                     displayQuantity = `${purchaseQuantity} Lvl(s)`;
+                }
+            }
+    
+            const purchaseCost = calculateBulkCost(item, purchaseQuantity);
+            const canAffordPurchase = purchaseQuantity > 0;
+
+            detailsMap.set(item.id, {
+                purchaseQuantity,
+                purchaseCost,
+                canAffordPurchase,
+                nextLevelTarget,
+                displayQuantity: purchaseQuantity === 1 ? '1' : displayQuantity,
+            });
+        }
+        return detailsMap;
+    }, [items, currencies, buyQuantity, calculateMaxAffordable, calculateBulkCost]);
+
     const handleBuyItem = useCallback((itemId: string) => {
+        const details = itemPurchaseDetails.get(itemId);
         const item = items.find(i => i.id === itemId);
-        if (!item) return;
 
-        const canAfford = Object.entries(item.cost).every(([currency, cost]) => {
-            return currencies[currency as Currency] >= cost;
-        });
-
-        if (!canAfford) return;
+        if (!details || !item || !details.canAffordPurchase || details.purchaseQuantity <= 0) {
+            return;
+        }
+        
+        const { purchaseQuantity, purchaseCost } = details;
 
         setCurrencies(prev => {
             const newCurrencies = { ...prev };
-            for (const currency in item.cost) {
+            for (const currency in purchaseCost) {
                 const key = currency as Currency;
-                newCurrencies[key] -= item.cost[key] || 0;
+                newCurrencies[key] -= purchaseCost[key] || 0;
             }
             return newCurrencies;
         });
         
-        let newLevel = 0;
         setItems(prevItems =>
           prevItems.map(i => {
             if (i.id !== itemId) return i;
 
-            newLevel = i.level + 1;
+            const newLevel = i.level + purchaseQuantity;
             const newCost: CurrencyRecord = {};
             for (const currency in i.baseCost) {
                 const key = currency as Currency;
@@ -337,7 +464,7 @@ export const useGameLogic = () => {
           })
         );
         debouncedSave();
-    }, [currencies, items, debouncedSave]);
+    }, [items, itemPurchaseDetails, setCurrencies, setItems, debouncedSave]);
     
     const handleBuyItemUpgrade = useCallback((upgradeId: string) => {
         const upgrade = itemUpgrades.find(u => u.id === upgradeId);
@@ -611,6 +738,7 @@ export const useGameLogic = () => {
         potentialShards,
         handlePrestige,
         itemCategories,
+        itemPurchaseDetails,
         categoryUnlockStatus,
         prestigeUpgrades,
         prestigeUpgradeLevels,
@@ -628,5 +756,7 @@ export const useGameLogic = () => {
         manualSave,
         saveStatus,
         lastSaveTime,
+        buyQuantity,
+        setBuyQuantity: updateBuyQuantity,
     };
 };

@@ -4,6 +4,8 @@ import { initialItems } from '@/lib/initialItems';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
 import { Currencies, Item, ItemUpgrade, OfflineEarnings } from '@/lib/gameTypes';
 
+export type BuyQuantity = 1 | 5 | 10 | 'next' | 'max';
+
 export const getFreshInitialItems = (): Item[] => initialItems.map(item => ({...item, cost: { ...item.cost }, baseCost: { ...item.baseCost }, generation: { ...item.generation }}));
 export const getFreshInitialItemUpgrades = (): ItemUpgrade[] => allItemUpgrades.map(upgrade => ({ ...upgrade }));
 
@@ -20,6 +22,7 @@ export const useGameState = () => {
     const [hasEverClicked, setHasEverClicked] = useState(false);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'complete' | 'error'>('idle');
     const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+    const [buyQuantity, setBuyQuantity] = useState<BuyQuantity>(1);
 
     return {
         isLoaded, setIsLoaded,
@@ -33,5 +36,6 @@ export const useGameState = () => {
         hasEverClicked, setHasEverClicked,
         saveStatus, setSaveStatus,
         lastSaveTime, setLastSaveTime,
+        buyQuantity, setBuyQuantity,
     };
 };

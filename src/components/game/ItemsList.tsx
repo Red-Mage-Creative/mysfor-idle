@@ -1,17 +1,26 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ItemWithStats, Currencies, Currency } from '@/lib/gameTypes';
+import { ItemWithStats, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { formatNumber, currencyName } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
 import { initialItems } from '@/lib/initialItems';
+
+export interface PurchaseDetails {
+    purchaseQuantity: number;
+    purchaseCost: CurrencyRecord;
+    canAffordPurchase: boolean;
+    nextLevelTarget: number | null;
+    displayQuantity: string;
+}
 
 interface ItemsListProps {
     currencies: Currencies;
     onBuyItem: (itemId: string) => void;
     itemCategories: Record<string, ItemWithStats[]>;
     categoryUnlockStatus: Record<string, boolean>;
+    itemPurchaseDetails: Map<string, PurchaseDetails>;
 }
 
 const categoryTierStyles = {
@@ -22,7 +31,7 @@ const categoryTierStyles = {
 
 const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));
 
-const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus }: ItemsListProps) => {
+const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus, itemPurchaseDetails }: ItemsListProps) => {
     const hasAnyVisibleItems = Object.values(itemCategories).some(items => items.length > 0);
 
     return (
@@ -44,9 +53,9 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                             <h4 className="text-xl font-bold mb-3 text-secondary-foreground">{category}</h4>
                             <div className="space-y-4">
                                 {categoryItems.map(item => {
-                                    const canAfford = Object.entries(item.cost).every(([currency, cost]) => {
-                                        return currencies[currency as Currency] >= cost;
-                                    });
+                                    const details = itemPurchaseDetails.get(item.id);
+                                    const canAfford = details?.canAffordPurchase ?? false;
+
                                     const isComplete = item.upgradeStats.total > 0 && item.upgradeStats.purchased === item.upgradeStats.total;
                                     const Icon = iconMap.get(item.id);
 
@@ -128,12 +137,21 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                     ) : null}
                                                     <div>
                                                         <span className="text-muted-foreground">Cost: </span>
-                                                        {Object.entries(item.cost).map(([curr, val], index) => (
-                                                            <span key={curr} className="font-semibold text-foreground/90">
-                                                                {formatNumber(val || 0)} {currencyName(curr as Currency)}
-                                                                {index < Object.keys(item.cost).length - 1 ? ', ' : ''}
-                                                            </span>
-                                                        ))}
+                                                        {details && details.canAffordPurchase && Object.keys(details.purchaseCost).length > 0 ? (
+                                                            Object.entries(details.purchaseCost).map(([curr, val], index) => (
+                                                                <span key={curr} className="font-semibold text-foreground/90">
+                                                                    {formatNumber(val || 0)} {currencyName(curr as Currency)}
+                                                                    {index < Object.keys(details.purchaseCost).length - 1 ? ', ' : ''}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            Object.entries(item.cost).map(([curr, val], index) => (
+                                                                <span key={curr} className="font-semibold text-foreground/90 text-muted-foreground/50">
+                                                                    {formatNumber(val || 0)} {currencyName(curr as Currency)}
+                                                                    {index < Object.keys(item.cost).length - 1 ? ', ' : ''}
+                                                                </span>
+                                                            ))
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -141,10 +159,10 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                             <Button
                                                 onClick={() => onBuyItem(item.id)}
                                                 disabled={!canAfford}
-                                                size="sm"
-                                                className="self-center ml-4"
+                                                size="lg"
+                                                className="self-center ml-4 min-w-[140px] text-center"
                                             >
-                                                Buy
+                                                {canAfford && details ? `Buy ${details.displayQuantity}` : 'Cannot Afford'}
                                             </Button>
                                         </Card>
                                     )

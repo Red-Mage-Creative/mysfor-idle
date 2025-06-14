@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import OfflineEarningsModal from '@/components/game/OfflineEarningsModal';
 import SaveStatusDisplay from '@/components/layout/SaveStatus';
+import { BulkQuantitySelector } from '@/components/game/BulkQuantitySelector';
 
 const Index = () => {
   const {
@@ -26,6 +27,7 @@ const Index = () => {
     potentialShards,
     handlePrestige,
     itemCategories,
+    itemPurchaseDetails,
     categoryUnlockStatus,
     prestigeUpgrades,
     prestigeUpgradeLevels,
@@ -87,12 +89,15 @@ const Index = () => {
           </div>
 
           <div className="lg:col-span-2 flex flex-col items-center justify-start">
-            <div className="w-full flex justify-end mb-4">
+            <div className="w-full flex justify-end mb-2">
               <SaveStatusDisplay
                 status={saveStatus}
                 onSave={manualSave}
                 lastSaveTime={lastSaveTime}
               />
+            </div>
+            <div className="w-full mb-4">
+              <BulkQuantitySelector />
             </div>
             <Tabs defaultValue="items" className="w-full">
               {tabCount > 1 && (
@@ -111,6 +116,7 @@ const Index = () => {
                   onBuyItem={handleBuyItem}
                   itemCategories={itemCategories}
                   categoryUnlockStatus={categoryUnlockStatus}
+                  itemPurchaseDetails={itemPurchaseDetails}
                 />
               </TabsContent>
               {showUpgradesTab && (
