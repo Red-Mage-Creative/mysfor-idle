@@ -1,5 +1,4 @@
-
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
 import { useGameSession } from './useGameSession';
@@ -13,7 +12,6 @@ export const useGameLogic = () => {
     const gameState = useGameState();
     const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, setWorkshopUpgrades } = gameState;
     const repairAttempted = useRef(false);
-    const [isSaveQueued, setIsSaveQueued] = useState(false);
 
     useEffect(() => {
         if (isLoaded && !repairAttempted.current) {
@@ -52,27 +50,16 @@ export const useGameLogic = () => {
     const calculations = useGameCalculations(gameState);
     const { availableItemUpgrades } = calculations;
     
-    const { saveGame, manualSave, debouncedSave, resetGame, exportSave, importSave } = useGameSession({
+    const { manualSave, debouncedSave, immediateSave, resetGame, exportSave, importSave } = useGameSession({
         ...gameState,
         generationPerSecond: calculations.generationPerSecond,
     });
-
-    useEffect(() => {
-        if (isSaveQueued) {
-            manualSave();
-            setIsSaveQueued(false);
-        }
-    }, [isSaveQueued, manualSave]);
-
-    const queueSave = useCallback(() => {
-        setIsSaveQueued(true);
-    }, []);
 
     const actions = useGameActions({
         ...gameState,
         ...calculations,
         debouncedSave,
-        queueSave,
+        immediateSave,
     });
 
     useEffect(() => {

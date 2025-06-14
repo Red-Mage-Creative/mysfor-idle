@@ -1,3 +1,4 @@
+
 import { useEffect, useCallback, useRef } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, UseGameState } from './useGameState';
 import { GameSaveData, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
@@ -76,6 +77,20 @@ export const useGameSession = ({
         }
     }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, setLastSaveTime, setSaveStatus]);
 
+    const immediateSave = useCallback(() => {
+        if (saveStatus === 'saving') return;
+        setSaveStatus('saving');
+        try {
+            saveGame();
+            setSaveStatus('complete');
+            setTimeout(() => setSaveStatus('idle'), 1500);
+        } catch (error) {
+            console.error("Immediate save failed:", error);
+            setSaveStatus('error');
+            setTimeout(() => setSaveStatus('idle'), 1500);
+        }
+    }, [saveGame, saveStatus, setSaveStatus]);
+
     const manualSave = useCallback(() => {
         if (saveStatus === 'saving') return;
         setSaveStatus('saving');
@@ -86,6 +101,7 @@ export const useGameSession = ({
                 setSaveStatus('complete');
                 setTimeout(() => setSaveStatus('idle'), 2000);
             } catch (e) {
+                setSaveStatus('error');
                 setTimeout(() => setSaveStatus('idle'), 2000);
             }
         }, 100);
@@ -385,9 +401,9 @@ export const useGameSession = ({
     ]);
     
     return {
-        saveGame,
         manualSave,
         debouncedSave,
+        immediateSave,
         resetGame,
         exportSave,
         importSave,

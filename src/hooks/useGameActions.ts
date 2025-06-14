@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity, UseGameState } from './useGameState';
 import { toast } from "@/components/ui/sonner";
@@ -13,7 +14,7 @@ type UseGameActionsProps = UseGameState & {
     potentialShards: number;
     canPrestige: boolean;
     debouncedSave: () => void;
-    queueSave: () => void;
+    immediateSave: () => void;
 };
 
 export const useGameActions = ({
@@ -31,7 +32,7 @@ export const useGameActions = ({
     potentialShards,
     canPrestige,
     debouncedSave,
-    queueSave,
+    immediateSave,
 }: UseGameActionsProps) => {
 
     const updateBuyQuantity = useCallback((q: BuyQuantity) => {
@@ -114,8 +115,8 @@ export const useGameActions = ({
         toast.success("Item Upgraded!", {
           description: `You have purchased ${upgrade.name}.`,
         });
-        queueSave();
-    }, [currencies, itemUpgrades, queueSave, setItemUpgrades, setCurrencies]);
+        immediateSave();
+    }, [currencies, itemUpgrades, immediateSave, setItemUpgrades, setCurrencies]);
     
     const handleBuyWorkshopUpgrade = useCallback((upgradeId: string) => {
         const upgrade = workshopUpgrades.find(u => u.id === upgradeId);
@@ -143,10 +144,10 @@ export const useGameActions = ({
         toast.success("Workshop Upgraded!", {
           description: `You have purchased ${upgrade.name}.`,
         });
-        queueSave();
-    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, queueSave]);
+        immediateSave();
+    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, immediateSave]);
     
-    const handlePrestige = () => {
+    const handlePrestige = useCallback(() => {
         if (!canPrestige) return;
 
         const shardsGained = potentialShards;
@@ -168,8 +169,12 @@ export const useGameActions = ({
         toast("Dimensional Shift!", {
           description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
         });
-        queueSave();
-    };
+        immediateSave();
+    }, [
+        canPrestige, potentialShards, currencies.aetherShards, 
+        setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, 
+        setLifetimeMana, setNotifiedUpgrades, immediateSave
+    ]);
 
     const handleBuyPrestigeUpgrade = useCallback((upgradeId: string) => {
         const upgrade = prestigeUpgrades.find(u => u.id === upgradeId);
@@ -189,8 +194,8 @@ export const useGameActions = ({
 
         setCurrencies(prev => ({ ...prev, aetherShards: prev.aetherShards - cost }));
         setPrestigeUpgradeLevels(prev => ({ ...prev, [upgradeId]: currentLevel + 1 }));
-        queueSave();
-    }, [currencies.aetherShards, prestigeUpgradeLevels, queueSave, setCurrencies, setPrestigeUpgradeLevels]);
+        immediateSave();
+    }, [currencies.aetherShards, prestigeUpgradeLevels, immediateSave, setCurrencies, setPrestigeUpgradeLevels]);
 
     const repairGameState = useCallback(() => {
         console.log("Manual game state repair triggered.");
