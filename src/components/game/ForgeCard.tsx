@@ -80,7 +80,6 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     )}
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                    <div className="absolute -inset-4 rounded-full bg-primary/10 blur-xl group-hover:bg-primary/20 duration-500" />
                     <Zap 
                         className="relative w-48 h-48 sm:w-64 sm:h-64 text-primary transition-all group-hover:scale-105" 
                         strokeWidth={1.5}
