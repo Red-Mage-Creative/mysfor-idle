@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Accordion,
@@ -6,7 +5,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { formatNumber } from '@/lib/formatters';
 import { Badge } from '@/components/ui/badge';
 import { Star, Zap, Gem, Hourglass, ChevronsUp } from 'lucide-react';
 
@@ -22,7 +20,7 @@ interface PrestigeBonusesSummaryProps {
 
 const formatMultiplier = (value: number) => {
     if (value <= 1) return 'No bonus';
-    return `x${formatNumber(value, 2)}`;
+    return `x${value.toFixed(2)}`;
 }
 
 const PrestigeBonusesSummary = ({ prestigeCount, prestigeMultipliers }: PrestigeBonusesSummaryProps) => {
