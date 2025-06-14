@@ -255,7 +255,11 @@ export const useGameLogic = () => {
                         }
                     }
 
-                    const workshopUpgradeMultipliers: Record<string, { gearProduction: number; clickEffectiveness: number; manaFromMachinery: number }> = {};
+                    const workshopUpgradeMultipliers = {
+                        gearProduction: 1,
+                        clickEffectiveness: 1,
+                        manaFromMachinery: 1,
+                    };
                     for (const upgrade of saveData.workshopUpgrades || getFreshInitialWorkshopUpgrades()) {
                         if (upgrade.purchased) {
                             switch (upgrade.effect.type) {
@@ -277,7 +281,15 @@ export const useGameLogic = () => {
                             for (const currency in item.generation) {
                                 const key = currency as Currency;
                                 const itemMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
-                                const value = (item.generation[key] || 0) * item.level * itemMultiplier;
+                                let value = (item.generation[key] || 0) * item.level * itemMultiplier;
+
+                                if (key === 'mana' && item.category === 'Advanced Machinery') {
+                                    value *= workshopUpgradeMultipliers.manaFromMachinery;
+                                }
+                                if (key === 'cogwheelGears') {
+                                    value *= workshopUpgradeMultipliers.gearProduction;
+                                }
+                                
                                 acc[key] = (acc[key] || 0) + value;
                             }
                         }
