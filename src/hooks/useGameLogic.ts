@@ -1,41 +1,33 @@
-
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { initialItems } from '@/lib/initialItems';
+import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, GameSaveData, OfflineEarnings } from '@/lib/gameTypes';
+import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, GameSaveData } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
-
-const SAVE_KEY = 'magitech_idle_save_v1';
-const CURRENT_SAVE_VERSION = '1.0.0';
-
-const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
-const PRESTIGE_TEASER_THRESHOLD = PRESTIGE_REQUIREMENT * 0.25; // 250M
-const PRESTIGE_VISIBLE_THRESHOLD = PRESTIGE_REQUIREMENT * 0.50; // 500M
-
-const getFreshInitialItems = (): Item[] => initialItems.map(item => ({...item, cost: { ...item.cost }, baseCost: { ...item.baseCost }, generation: { ...item.generation }}));
-const getFreshInitialItemUpgrades = (): ItemUpgrade[] => allItemUpgrades.map(upgrade => ({ ...upgrade }));
+import { useGameState } from './useGameState';
+import { getFreshInitialItems, getFreshInitialItemUpgrades } from '@/lib/initialItems';
+import * as C from '@/constants/gameConstants';
 
 export const useGameLogic = () => {
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [offlineEarnings, setOfflineEarnings] = useState<OfflineEarnings | null>(null);
-
-    const [currencies, setCurrencies] = useState<Currencies>({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0 });
-    const [items, setItems] = useState<Item[]>(getFreshInitialItems());
-    const [itemUpgrades, setItemUpgrades] = useState<ItemUpgrade[]>(getFreshInitialItemUpgrades());
-    const [lifetimeMana, setLifetimeMana] = useState(0);
-    const [prestigeUpgradeLevels, setPrestigeUpgradeLevels] = useState<Record<string, number>>({});
-    const [notifiedUpgrades, setNotifiedUpgrades] = useState<Set<string>>(new Set());
-    const [hasEverClicked, setHasEverClicked] = useState(false);
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'complete' | 'error'>('idle');
-    const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+    const {
+        isLoaded, setIsLoaded,
+        offlineEarnings, setOfflineEarnings,
+        currencies, setCurrencies,
+        items, setItems,
+        itemUpgrades, setItemUpgrades,
+        lifetimeMana, setLifetimeMana,
+        prestigeUpgradeLevels, setPrestigeUpgradeLevels,
+        notifiedUpgrades, setNotifiedUpgrades,
+        hasEverClicked, setHasEverClicked,
+        saveStatus, setSaveStatus,
+        lastSaveTime, setLastSaveTime,
+    } = useGameState();
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
     const saveGame = useCallback((isAutoSave = false) => {
         try {
             const saveData: GameSaveData = {
-                version: CURRENT_SAVE_VERSION,
+                version: C.CURRENT_SAVE_VERSION,
                 lastSaveTimestamp: Date.now(),
                 currencies,
                 items,
@@ -45,7 +37,7 @@ export const useGameLogic = () => {
                 notifiedUpgrades: Array.from(notifiedUpgrades),
                 hasEverClicked,
             };
-            localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+            localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
             setLastSaveTime(new Date(saveData.lastSaveTimestamp));
         } catch (error) {
             console.error("Failed to save game:", error);
@@ -53,7 +45,7 @@ export const useGameLogic = () => {
             toast.error("Could not save game progress.");
             throw error;
         }
-    }, [currencies, items, itemUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked]);
+    }, [currencies, items, itemUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, setLastSaveTime, setSaveStatus]);
 
     const manualSave = useCallback(() => {
         if (saveStatus === 'saving') return;
@@ -68,7 +60,7 @@ export const useGameLogic = () => {
                 setTimeout(() => setSaveStatus('idle'), 2000);
             }
         }, 100);
-    }, [saveGame, saveStatus]);
+    }, [saveGame, saveStatus, setSaveStatus]);
 
     const debouncedSave = useCallback(() => {
         if (debounceSaveTimeout.current) {
@@ -76,7 +68,7 @@ export const useGameLogic = () => {
         }
         debounceSaveTimeout.current = setTimeout(() => {
             manualSave();
-        }, 3000);
+        }, C.DEBOUNCE_SAVE_DELAY);
     }, [manualSave]);
     
     const prestigeMultipliers = useMemo(() => {
@@ -147,7 +139,7 @@ export const useGameLogic = () => {
     useEffect(() => {
         const loadGame = () => {
             try {
-                const savedGame = localStorage.getItem(SAVE_KEY);
+                const savedGame = localStorage.getItem(C.SAVE_KEY);
 
                 if (!savedGame) {
                     return; // No save data, start fresh
@@ -155,9 +147,9 @@ export const useGameLogic = () => {
                 
                 const saveData: GameSaveData = JSON.parse(savedGame);
 
-                if(saveData.version !== CURRENT_SAVE_VERSION) {
-                    console.warn(`Save file version mismatch. Expected ${CURRENT_SAVE_VERSION}, got ${saveData.version}. Starting fresh.`);
-                    localStorage.removeItem(SAVE_KEY);
+                if(saveData.version !== C.CURRENT_SAVE_VERSION) {
+                    console.warn(`Save file version mismatch. Expected ${C.CURRENT_SAVE_VERSION}, got ${saveData.version}. Starting fresh.`);
+                    localStorage.removeItem(C.SAVE_KEY);
                     return;
                 }
                 
@@ -217,7 +209,7 @@ export const useGameLogic = () => {
                     // --- Calculate and apply earnings ---
                     const earnings: CurrencyRecord = {};
                     Object.entries(offlineGps).forEach(([currency, rate]) => {
-                        earnings[currency as Currency] = rate * timeAway * 0.5; // 50% offline rate
+                        earnings[currency as Currency] = rate * timeAway * C.OFFLINE_EARNING_RATE;
                     });
                     
                     let manaEarned = 0;
@@ -245,23 +237,24 @@ export const useGameLogic = () => {
 
             } catch (error) {
                 console.error("Failed to load save data. Starting fresh.", error);
-                localStorage.removeItem(SAVE_KEY);
+                localStorage.removeItem(C.SAVE_KEY);
             } finally {
                 setIsLoaded(true);
             }
         };
 
         loadGame();
-    }, []); // Empty dependency array ensures this runs only once on mount
+    }, [setCurrencies, setItems, setItemUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setIsLoaded, setOfflineEarnings, setLastSaveTime]); // Dependencies are now just setters
 
     useEffect(() => {
+        if(!isLoaded) return;
         const gameLoop = setInterval(() => {
             let manaGeneratedThisTick = 0;
             setCurrencies(prev => {
                 const newCurrencies = { ...prev };
                 for (const key in generationPerSecond) {
                     const currency = key as Currency;
-                    const amountGenerated = (generationPerSecond[currency] || 0) / 10;
+                    const amountGenerated = (generationPerSecond[currency] || 0) / (1000 / C.GAME_TICK_MS);
                     newCurrencies[currency] += amountGenerated;
                     if (currency === 'mana') {
                         manaGeneratedThisTick = amountGenerated;
@@ -270,9 +263,9 @@ export const useGameLogic = () => {
                 return newCurrencies;
             });
             setLifetimeMana(prev => prev + manaGeneratedThisTick);
-        }, 100);
+        }, C.GAME_TICK_MS);
         return () => clearInterval(gameLoop);
-    }, [generationPerSecond, isLoaded]); // Depends on isLoaded now
+    }, [generationPerSecond, isLoaded, setCurrencies, setLifetimeMana]);
 
     // Periodic Autosave
     useEffect(() => {
@@ -280,7 +273,7 @@ export const useGameLogic = () => {
 
         const autoSaveInterval = setInterval(() => {
             manualSave();
-        }, 5 * 60 * 1000); // 5 minutes
+        }, C.AUTOSAVE_INTERVAL);
 
         return () => clearInterval(autoSaveInterval);
     }, [isLoaded, manualSave]);
@@ -303,7 +296,7 @@ export const useGameLogic = () => {
         if (!hasEverClicked) {
             setHasEverClicked(true);
         }
-    }, [hasEverClicked]);
+    }, [hasEverClicked, setCurrencies, setLifetimeMana, setHasEverClicked]);
 
     const handleBuyItem = useCallback((itemId: string) => {
         const item = items.find(i => i.id === itemId);
@@ -334,7 +327,7 @@ export const useGameLogic = () => {
             for (const currency in i.baseCost) {
                 const key = currency as Currency;
                 const base = i.baseCost[key] || 0;
-                newCost[key] = Math.ceil(base * Math.pow(1.15, newLevel));
+                newCost[key] = Math.ceil(base * Math.pow(C.ITEM_COST_GROWTH_RATE, newLevel));
             }
 
             return {
@@ -376,16 +369,16 @@ export const useGameLogic = () => {
         debouncedSave();
     }, [currencies, itemUpgrades, debouncedSave]);
 
-    const canPrestige = useMemo(() => lifetimeMana >= PRESTIGE_REQUIREMENT, [lifetimeMana]);
+    const canPrestige = useMemo(() => lifetimeMana >= C.PRESTIGE_REQUIREMENT, [lifetimeMana]);
     
     const prestigeVisibility = useMemo(() => {
-        if (currencies.aetherShards > 0 || lifetimeMana >= PRESTIGE_VISIBLE_THRESHOLD) return 'visible';
-        if (lifetimeMana >= PRESTIGE_TEASER_THRESHOLD) return 'teaser';
+        if (currencies.aetherShards > 0 || lifetimeMana >= C.PRESTIGE_VISIBLE_THRESHOLD) return 'visible';
+        if (lifetimeMana >= C.PRESTIGE_TEASER_THRESHOLD) return 'teaser';
         return 'hidden';
     }, [lifetimeMana, currencies.aetherShards]);
 
     const potentialShards = useMemo(() => {
-        if (lifetimeMana < PRESTIGE_REQUIREMENT) return 0;
+        if (lifetimeMana < C.PRESTIGE_REQUIREMENT) return 0;
         const baseShards = Math.floor(Math.pow(lifetimeMana / 1e9, 0.5) * 5);
         return Math.floor(baseShards * prestigeMultipliers.shardGain);
     }, [lifetimeMana, prestigeMultipliers.shardGain]);
@@ -555,18 +548,18 @@ export const useGameLogic = () => {
         return !hasEverClicked && currencies.mana === 0 && (generationPerSecond.mana || 0) === 0;
     }, [hasEverClicked, currencies.mana, generationPerSecond]);
 
-    const clearOfflineEarnings = useCallback(() => setOfflineEarnings(null), []);
+    const clearOfflineEarnings = useCallback(() => setOfflineEarnings(null), [setOfflineEarnings]);
 
     const resetGame = useCallback(() => {
         if(window.confirm("Are you sure you want to reset all progress? This cannot be undone.")){
-            localStorage.removeItem(SAVE_KEY);
+            localStorage.removeItem(C.SAVE_KEY);
             window.location.reload();
         }
     }, []);
 
     const exportSave = useCallback(() => {
         try {
-            const dataStr = localStorage.getItem(SAVE_KEY);
+            const dataStr = localStorage.getItem(C.SAVE_KEY);
             if (!dataStr) {
                 toast.error("No save data to export.");
                 return;
@@ -593,7 +586,7 @@ export const useGameLogic = () => {
                 // Basic validation before reloading
                 const data = JSON.parse(importedString);
                 if (data.version && data.currencies) {
-                    localStorage.setItem(SAVE_KEY, importedString);
+                    localStorage.setItem(C.SAVE_KEY, importedString);
                     toast.success("Save data imported successfully! Reloading game...");
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
