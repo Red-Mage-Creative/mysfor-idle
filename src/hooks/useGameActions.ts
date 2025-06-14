@@ -222,15 +222,17 @@ export const useGameActions = ({
     }, [setDevMode]);
 
     const devGrantResources = useCallback(() => {
+        const manaToGrant = 1e9;
         setCurrencies(prev => ({
-            mana: prev.mana + 1e9,
+            mana: prev.mana + manaToGrant,
             cogwheelGears: prev.cogwheelGears + 1e6,
             essenceFlux: prev.essenceFlux + 1e6,
             researchPoints: prev.researchPoints + 1e6,
             aetherShards: prev.aetherShards + 1e3,
         }));
+        setLifetimeMana(prev => prev + manaToGrant);
         toast.success("Granted Dev Resources!");
-    }, [setCurrencies]);
+    }, [setCurrencies, setLifetimeMana]);
 
     const repairGameState = useCallback(() => {
         console.log("Manual game state repair triggered.");
