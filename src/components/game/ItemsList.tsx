@@ -65,7 +65,7 @@ const OverclockControls = ({ overclockInfo, onSetOverclockLevel }: { overclockIn
                      </div>
                 </div>
                 <div className="text-center">
-                    <p className="font-semibold text-green-400">x{formatNumber(speedMultiplier, 2)}</p>
+                    <p className="font-semibold text-green-400">x{speedMultiplier.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">Speed</p>
                 </div>
                 <div className="text-center">
