@@ -13,40 +13,6 @@ export const useGameLogic = () => {
     const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, setWorkshopUpgrades, currencies, overclockLevel, autoBuySettings } = gameState;
     const repairAttempted = useRef(false);
 
-    useEffect(() => {
-        if (isLoaded && !repairAttempted.current) {
-            // A more robust check for incomplete upgrade data. Freshly initialized or
-            // correctly loaded upgrades from a save should have all their properties.
-            const needsRepair = workshopUpgrades.some(u => !u.name || !u.description || typeof u.icon !== 'function');
-
-            if (needsRepair) {
-                console.log("Incomplete workshop upgrade data detected in state, attempting repair...");
-                // For debugging, log the state of the problematic data.
-                console.log('Problematic workshopUpgrades:', workshopUpgrades.map(
-                    u => ({ id: u.id, purchased: u.purchased, hasName: !!u.name, hasDescription: !!u.description, iconType: typeof u.icon })
-                ));
-                
-                const originalUpgradesMap = new Map(allWorkshopUpgrades.map(u => [u.id, u]));
-                
-                const repairedUpgrades = workshopUpgrades
-                    .map(savedUpgrade => {
-                        const original = originalUpgradesMap.get(savedUpgrade.id);
-                        if (original) {
-                            // Reconstitute the upgrade object from the original template, preserving its purchased status.
-                            return { ...original, purchased: savedUpgrade.purchased || false };
-                        }
-                        console.warn(`Could not find original workshop upgrade for id during auto-repair: ${savedUpgrade.id}`);
-                        return null; 
-                    })
-                    .filter((u): u is WorkshopUpgrade => u !== null);
-                
-                setWorkshopUpgrades(repairedUpgrades);
-                toast.info("Game data repaired", { description: "Some game data was found to be out of date and has been automatically repaired." });
-            }
-            repairAttempted.current = true;
-        }
-    }, [isLoaded, workshopUpgrades, setWorkshopUpgrades]);
-
     const calculations = useGameCalculations(gameState);
     const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, availableWorkshopUpgrades, prestigeMultipliers } = calculations;
     
