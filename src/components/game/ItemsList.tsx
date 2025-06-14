@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { formatNumber, currencyName } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
 import { initialItems } from '@/lib/initialItems';
+import { BulkQuantitySelector } from '@/components/game/BulkQuantitySelector';
 
 export interface PurchaseDetails {
     purchaseQuantity: number;
@@ -37,7 +39,10 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
     return (
         <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
             <CardHeader>
-                <CardTitle className="text-3xl">Items</CardTitle>
+                <div className="flex justify-between items-center">
+                    <CardTitle className="text-3xl">Items</CardTitle>
+                    <BulkQuantitySelector />
+                </div>
                 {!hasAnyVisibleItems && (
                     <p className="text-sm text-muted-foreground italic pt-2">
                         More items will be revealed as you progress...

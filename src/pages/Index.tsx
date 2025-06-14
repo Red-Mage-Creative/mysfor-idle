@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -12,7 +11,6 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import OfflineEarningsModal from '@/components/game/OfflineEarningsModal';
 import SaveStatusDisplay from '@/components/layout/SaveStatus';
-import { BulkQuantitySelector } from '@/components/game/BulkQuantitySelector';
 
 const Index = () => {
   const {
@@ -95,9 +93,6 @@ const Index = () => {
                 onSave={manualSave}
                 lastSaveTime={lastSaveTime}
               />
-            </div>
-            <div className="w-full mb-4">
-              <BulkQuantitySelector />
             </div>
             <Tabs defaultValue="items" className="w-full">
               {tabCount > 1 && (

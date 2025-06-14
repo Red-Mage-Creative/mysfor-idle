@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -388,12 +389,13 @@ export const useGameLogic = () => {
         for (const item of items) {
             const maxAffordable = calculateMaxAffordable(item, currencies);
             let purchaseQuantity = 0;
-            let displayQuantity = '1';
+            let displayQuantity = '';
             let nextLevelTarget: number | null = null;
             
-            if (buyQuantity === 'max') {
+            if (buyQuantity === 1) {
+                purchaseQuantity = maxAffordable >= 1 ? 1 : 0;
+            } else if (buyQuantity === 'max') {
                 purchaseQuantity = maxAffordable;
-                displayQuantity = `${purchaseQuantity} Lvl(s)`;
             } else if (buyQuantity === 'next') {
                 const nextThreshold = UPGRADE_THRESHOLDS.find(t => t > item.level);
                 if (nextThreshold) {
@@ -401,16 +403,24 @@ export const useGameLogic = () => {
                     if(maxAffordable >= quantityToNext) {
                         purchaseQuantity = quantityToNext;
                         nextLevelTarget = nextThreshold;
-                        displayQuantity = `to Lvl ${nextThreshold}`;
                     }
                 }
-            } else { // 1, 5, 10
+            } else { // 5, 10
                 if (maxAffordable >= buyQuantity) {
-                     purchaseQuantity = Math.floor(maxAffordable / buyQuantity) * buyQuantity;
-                     displayQuantity = `${purchaseQuantity} Lvl(s)`;
+                     purchaseQuantity = maxAffordable - (maxAffordable % buyQuantity);
                 }
             }
     
+            // Set display quantity based on the result
+            if (nextLevelTarget) {
+                displayQuantity = `to Lvl ${nextLevelTarget}`;
+            } else if (purchaseQuantity > 0) {
+                displayQuantity = `${purchaseQuantity} Lvl${purchaseQuantity > 1 ? '(s)' : ''}`;
+            } else {
+                // Fallback for button text when disabled
+                displayQuantity = `1 Lvl`;
+            }
+
             const purchaseCost = calculateBulkCost(item, purchaseQuantity);
             const canAffordPurchase = purchaseQuantity > 0;
 
@@ -419,7 +429,7 @@ export const useGameLogic = () => {
                 purchaseCost,
                 canAffordPurchase,
                 nextLevelTarget,
-                displayQuantity: purchaseQuantity === 1 ? '1' : displayQuantity,
+                displayQuantity,
             });
         }
         return detailsMap;
