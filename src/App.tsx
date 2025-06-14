@@ -13,11 +13,11 @@ import { GameProvider } from "./context/GameContext";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Sonner />
-      <BrowserRouter>
+  <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
         <GameProvider>
+          <Sonner />
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Index />} />
@@ -27,9 +27,9 @@ const App = () => (
             </Route>
           </Routes>
         </GameProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </BrowserRouter>
 );
 
 export default App;
