@@ -13,23 +13,13 @@ interface SaveStatusProps {
 }
 
 const SaveStatusDisplay: React.FC<SaveStatusProps> = ({ status, onSave, lastSaveTime }) => {
-    const getButtonContent = () => {
-        switch (status) {
-            case 'saving':
-                return <><Loader2 className="animate-spin" /> Saving...</>;
-            case 'complete':
-                return <><Check /> Saved!</>;
-            case 'error':
-                 return <><AlertTriangle /> Error Saving</>;
-            default:
-                return <><Save /> Save Progress</>;
-        }
-    };
-    
     return (
         <div className="flex items-center gap-4">
-            <Button onClick={onSave} disabled={status === 'saving'} variant="secondary" size="sm">
-                {getButtonContent()}
+            <Button onClick={onSave} disabled={status === 'saving'} variant="secondary" size="sm" className="w-36 justify-center">
+                {status === 'idle' && <><Save className="mr-2 h-4 w-4" /> Save Progress</>}
+                {status === 'saving' && <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>}
+                {status === 'complete' && <><Check className="mr-2 h-4 w-4" /> Saved!</>}
+                {status === 'error' && <><AlertTriangle className="mr-2 h-4 w-4" /> Error Saving</>}
             </Button>
             {lastSaveTime && (
                 <p className="text-sm text-muted-foreground hidden sm:block">
