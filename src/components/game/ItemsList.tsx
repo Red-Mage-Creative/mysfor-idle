@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,8 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                     const canAfford = Object.entries(item.cost).every(([currency, cost]) => {
                                         return currencies[currency as Currency] >= cost;
                                     });
+                                    const isComplete = item.upgradeStats.total > 0 && item.upgradeStats.purchased === item.upgradeStats.total;
+
                                     return (
                                         <Card key={item.id} className={cn("flex items-center p-3 transition-colors hover:bg-secondary/50 border-2", categoryTierStyles[category as keyof typeof categoryTierStyles])}>
                                             <item.icon className="w-10 h-10 text-primary/80 mr-4 flex-shrink-0" />
@@ -52,16 +55,29 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                                     <div>
                                                         <p className="font-bold text-lg">{item.name}</p>
                                                         <p className="text-xs text-muted-foreground/80 italic">{item.description}</p>
+                                                        {item.upgradeStats.purchased > 0 && (
+                                                            <div className="flex items-center gap-1 mt-2" aria-label={`${item.upgradeStats.purchased} upgrades purchased`}>
+                                                                {Array.from({ length: item.upgradeStats.purchased }).map((_, i) => (
+                                                                    <Star
+                                                                        key={i}
+                                                                        className={cn(
+                                                                            "w-4 h-4",
+                                                                            isComplete
+                                                                                ? "text-green-400 fill-green-400"
+                                                                                : "text-yellow-400 fill-yellow-400"
+                                                                        )}
+                                                                        strokeWidth={1.5}
+                                                                    />
+                                                                ))}
+                                                                {isComplete && (
+                                                                    <span className="text-xs font-bold text-green-400 ml-1">COMPLETE</span>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="text-right ml-2 flex-shrink-0 min-w-[60px]">
                                                         <p className="font-semibold text-xl">{item.level}</p>
                                                         <p className="text-sm text-muted-foreground">Level</p>
-                                                         {item.level > 0 && item.upgradeStats.total > 0 && (
-                                                            <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground mt-1" title={`Upgrades: ${item.upgradeStats.purchased} / ${item.upgradeStats.total}`}>
-                                                                <Star className="w-3 h-3 text-yellow-400" />
-                                                                <span>{item.upgradeStats.purchased}/{item.upgradeStats.total}</span>
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </div>
                                                 
