@@ -42,6 +42,11 @@ const migrateSaveData = (data: any): GameSaveData => {
         migratedData.hasEverPrestiged = false;
         console.log("Migrated save: Added 'hasEverPrestiged: false' field.");
     }
+    
+    if (typeof migratedData.prestigeCount === 'undefined') {
+        migratedData.prestigeCount = 0;
+        console.log("Migrated save: Added 'prestigeCount: 0' field.");
+    }
 
     // Future migrations go here, e.g.:
     // if (compareVersions(initialVersion, '1.2.0') < 0) { ... }
@@ -61,6 +66,7 @@ export const useGameSession = ({
     notifiedUpgrades, setNotifiedUpgrades,
     hasEverClicked, setHasEverClicked,
     hasEverPrestiged, setHasEverPrestiged,
+    prestigeCount, setPrestigeCount,
     setOfflineEarnings,
     setLastSaveTime,
     saveStatus, setSaveStatus,
@@ -82,6 +88,7 @@ export const useGameSession = ({
         setNotifiedUpgrades(new Set());
         setHasEverClicked(false);
         setHasEverPrestiged(false);
+        setPrestigeCount(0);
         setOfflineEarnings(null);
         setLastSaveTime(null);
         setSaveStatus('idle');
@@ -92,7 +99,7 @@ export const useGameSession = ({
     }, [
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
-        setHasEverClicked, setHasEverPrestiged, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity,
+        setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity,
         setOverclockLevel
     ]);
 
@@ -110,6 +117,7 @@ export const useGameSession = ({
                 notifiedUpgrades: Array.from(notifiedUpgrades),
                 hasEverClicked,
                 hasEverPrestiged,
+                prestigeCount,
                 overclockLevel,
             };
             localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
@@ -120,7 +128,7 @@ export const useGameSession = ({
             toast.error("Could not save game progress.");
             throw error;
         }
-    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, hasEverPrestiged, overclockLevel, setLastSaveTime, setSaveStatus]);
+    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, setLastSaveTime, setSaveStatus]);
 
     useEffect(() => {
         if (saveRequest) {
@@ -340,6 +348,7 @@ export const useGameSession = ({
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
                 setHasEverClicked(saveData.hasEverClicked);
                 setHasEverPrestiged(saveData.hasEverPrestiged);
+                setPrestigeCount(saveData.prestigeCount || 0);
                 setOverclockLevel(saveData.overclockLevel || 0);
 
             } catch (error) {
@@ -352,7 +361,7 @@ export const useGameSession = ({
         };
 
         loadGame();
-    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setOfflineEarnings, setLastSaveTime, setOverclockLevel]); // Dependencies are now just setters
+    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setOverclockLevel]); // Dependencies are now just setters
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
@@ -450,6 +459,7 @@ export const useGameSession = ({
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
                 setHasEverClicked(saveData.hasEverClicked);
                 setHasEverPrestiged(saveData.hasEverPrestiged);
+                setPrestigeCount(saveData.prestigeCount || 0);
                 setOfflineEarnings(null);
                 
                 toast.success("Save data imported successfully!");
@@ -468,7 +478,7 @@ export const useGameSession = ({
         manualSave,
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
-        setHasEverClicked, setHasEverPrestiged, setOfflineEarnings
+        setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings
     ]);
     
     return {

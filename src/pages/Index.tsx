@@ -33,6 +33,7 @@ const Index = () => {
     prestigeUpgradeLevels,
     handleBuyPrestigeUpgrade,
     prestigeVisibility,
+    prestigeRequirement,
     showUpgradesTab,
     availableItemUpgrades,
     handleBuyItemUpgrade,
@@ -90,6 +91,7 @@ const Index = () => {
               potentialShards={potentialShards}
               onPrestige={handlePrestige}
               prestigeVisibility={prestigeVisibility as PrestigeVisibility}
+              prestigeRequirement={prestigeRequirement}
             />
           </div>
 
