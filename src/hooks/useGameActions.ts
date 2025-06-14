@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, BuyQuantity, UseGameState } from './useGameState';
 import { toast } from "@/components/ui/sonner";
@@ -15,6 +14,7 @@ type UseGameActionsProps = UseGameState & {
     canPrestige: boolean;
     debouncedSave: () => void;
     immediateSave: (reason?: string) => void;
+    overclockInfo: ReturnType<typeof import('./useGameCalculations')['useGameCalculations']>['overclockInfo'];
 };
 
 export const useGameActions = ({
@@ -28,11 +28,13 @@ export const useGameActions = ({
     setNotifiedUpgrades,
     setOfflineEarnings,
     setBuyQuantity,
+    overclockLevel, setOverclockLevel,
     itemPurchaseDetails,
     potentialShards,
     canPrestige,
     debouncedSave,
     immediateSave,
+    overclockInfo,
 }: UseGameActionsProps) => {
 
     const updateBuyQuantity = useCallback((q: BuyQuantity) => {
@@ -173,7 +175,7 @@ export const useGameActions = ({
     }, [
         canPrestige, potentialShards, currencies.aetherShards, 
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, 
-        setLifetimeMana, setNotifiedUpgrades, immediateSave
+        setLifetimeMana, setNotifiedUpgrades, immediateSave, setOverclockLevel
     ]);
 
     const handleBuyPrestigeUpgrade = useCallback((upgradeId: string) => {
@@ -196,6 +198,14 @@ export const useGameActions = ({
         setPrestigeUpgradeLevels(prev => ({ ...prev, [upgradeId]: currentLevel + 1 }));
         immediateSave('buy-prestige-upgrade');
     }, [currencies.aetherShards, prestigeUpgradeLevels, immediateSave, setCurrencies, setPrestigeUpgradeLevels]);
+
+    const handleSetOverclockLevel = useCallback((level: number) => {
+        if (level < 0 || level > overclockInfo.maxLevelUnlocked) {
+            return;
+        }
+        setOverclockLevel(level);
+        debouncedSave();
+    }, [overclockInfo.maxLevelUnlocked, setOverclockLevel, debouncedSave]);
 
     const repairGameState = useCallback(() => {
         console.log("Manual game state repair triggered.");
@@ -230,6 +240,7 @@ export const useGameActions = ({
         handleBuyWorkshopUpgrade,
         handlePrestige,
         handleBuyPrestigeUpgrade,
+        handleSetOverclockLevel,
         repairGameState,
         clearOfflineEarnings,
     };

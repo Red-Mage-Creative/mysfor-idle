@@ -43,7 +43,7 @@ export interface ItemWithStats extends Item {
 
 // New type for item upgrades
 export type ItemUpgradeEffect = {
-  type: 'generationMultiplier' | 'clickMultiplier';
+  type: 'generationMultiplier' | 'clickMultiplier' | 'unlockOverclockLevel';
   value: number;
 };
 
@@ -98,6 +98,7 @@ export interface GameSaveData {
     prestigeUpgradeLevels: Record<string, number>;
     notifiedUpgrades: string[];
     hasEverClicked: boolean;
+    overclockLevel: number;
 }
 
 export interface OfflineEarnings {

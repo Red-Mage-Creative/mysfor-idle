@@ -26,6 +26,7 @@ export const useGameSession = ({
     setLastSaveTime,
     saveStatus, setSaveStatus,
     setBuyQuantity,
+    overclockLevel, setOverclockLevel,
     generationPerSecond
 }: UseGameSessionProps) => {
 
@@ -45,12 +46,14 @@ export const useGameSession = ({
         setLastSaveTime(null);
         setSaveStatus('idle');
         setBuyQuantity(1);
+        setOverclockLevel(0);
         localStorage.removeItem(C.SAVE_KEY);
         localStorage.removeItem(BUY_QUANTITY_KEY);
     }, [
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
-        setHasEverClicked, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity
+        setHasEverClicked, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity,
+        setOverclockLevel
     ]);
 
     const saveGame = useCallback((isAutoSave = false) => {
@@ -66,6 +69,7 @@ export const useGameSession = ({
                 prestigeUpgradeLevels,
                 notifiedUpgrades: Array.from(notifiedUpgrades),
                 hasEverClicked,
+                overclockLevel,
             };
             localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
             setLastSaveTime(new Date(saveData.lastSaveTimestamp));
@@ -75,7 +79,7 @@ export const useGameSession = ({
             toast.error("Could not save game progress.");
             throw error;
         }
-    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, setLastSaveTime, setSaveStatus]);
+    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, overclockLevel, setLastSaveTime, setSaveStatus]);
 
     useEffect(() => {
         if (saveRequest) {
@@ -289,6 +293,7 @@ export const useGameSession = ({
                 setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
                 setHasEverClicked(saveData.hasEverClicked);
+                setOverclockLevel(saveData.overclockLevel || 0);
 
             } catch (error) {
                 console.error("Failed to load save data. Starting fresh.", error);
@@ -300,7 +305,7 @@ export const useGameSession = ({
         };
 
         loadGame();
-    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setOfflineEarnings, setLastSaveTime]); // Dependencies are now just setters
+    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setOfflineEarnings, setLastSaveTime, setOverclockLevel]); // Dependencies are now just setters
 
     useEffect(() => {
         const gameLoop = setInterval(() => {

@@ -10,7 +10,7 @@ import { WorkshopUpgrade } from '@/lib/gameTypes';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
-    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, setWorkshopUpgrades } = gameState;
+    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, setWorkshopUpgrades, currencies, overclockLevel } = gameState;
     const repairAttempted = useRef(false);
 
     useEffect(() => {
@@ -48,7 +48,7 @@ export const useGameLogic = () => {
     }, [isLoaded, workshopUpgrades, setWorkshopUpgrades]);
 
     const calculations = useGameCalculations(gameState);
-    const { availableItemUpgrades } = calculations;
+    const { availableItemUpgrades, generationPerSecond } = calculations;
     
     const { manualSave, debouncedSave, immediateSave, resetGame, exportSave, importSave } = useGameSession({
         ...gameState,
@@ -61,6 +61,19 @@ export const useGameLogic = () => {
         debouncedSave,
         immediateSave,
     });
+
+    // Auto-downshift for overclock
+    useEffect(() => {
+        const gearGeneration = generationPerSecond.cogwheelGears || 0;
+        if (
+            overclockLevel > 0 &&
+            currencies.cogwheelGears <= 0 &&
+            gearGeneration < 0
+        ) {
+            actions.handleSetOverclockLevel(overclockLevel - 1);
+            toast.warn("Emergency Downshift!", { description: "Overclock level reduced to prevent gear depletion." });
+        }
+    }, [currencies.cogwheelGears, overclockLevel, generationPerSecond.cogwheelGears, actions.handleSetOverclockLevel]);
 
     useEffect(() => {
         const newlyAvailable = availableItemUpgrades.filter(upgrade => !notifiedUpgrades.has(upgrade.id));

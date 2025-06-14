@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { initialItems } from '@/lib/initialItems';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -26,6 +25,7 @@ export const useGameState = () => {
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'complete' | 'error'>('idle');
     const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
     const [buyQuantity, setBuyQuantity] = useState<BuyQuantity>(1);
+    const [overclockLevel, setOverclockLevel] = useState(0);
 
     return {
         isLoaded, setIsLoaded,
@@ -41,6 +41,7 @@ export const useGameState = () => {
         saveStatus, setSaveStatus,
         lastSaveTime, setLastSaveTime,
         buyQuantity, setBuyQuantity,
+        overclockLevel, setOverclockLevel,
     };
 };
 

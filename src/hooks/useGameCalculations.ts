@@ -1,4 +1,3 @@
-
 import { useMemo, useCallback } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -14,7 +13,8 @@ type UseGameCalculationsProps = Pick<UseGameState,
     'lifetimeMana' |
     'prestigeUpgradeLevels' |
     'buyQuantity' |
-    'hasEverClicked'
+    'hasEverClicked' |
+    'overclockLevel'
 >;
 
 const UPGRADE_THRESHOLDS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
@@ -82,6 +82,7 @@ export const useGameCalculations = ({
     prestigeUpgradeLevels,
     buyQuantity,
     hasEverClicked,
+    overclockLevel,
 }: UseGameCalculationsProps) => {
 
     const prestigeMultipliers = useMemo(() => {
@@ -154,6 +155,25 @@ export const useGameCalculations = ({
         return multipliers;
     }, [itemUpgrades, items]);
 
+    const overclockInfo = useMemo(() => {
+        const maxLevelUnlocked = itemUpgrades
+            .filter(u => u.purchased && u.effect.type === 'unlockOverclockLevel')
+            .length;
+
+        const currentLevel = Math.min(overclockLevel, maxLevelUnlocked);
+
+        const speedMultiplier = currentLevel > 0 ? Math.pow(1.5, currentLevel) : 1;
+        const gearDrainPerSecond = currentLevel > 0 ? 5 * Math.pow(2, currentLevel - 1) : 0;
+        
+        return {
+            currentLevel,
+            maxLevelUnlocked,
+            speedMultiplier,
+            gearDrainPerSecond,
+            isUnlocked: maxLevelUnlocked > 0,
+        };
+    }, [itemUpgrades, overclockLevel]);
+
     const generationPerSecond = useMemo(() => {
         const baseGeneration = items.reduce((acc, item) => {
             if (item.level > 0) {
@@ -179,8 +199,20 @@ export const useGameCalculations = ({
             const currency = key as Currency;
             baseGeneration[currency] = (baseGeneration[currency] || 0) * prestigeMultipliers.allProduction;
         }
+
+        // Apply overclock effects
+        if (overclockInfo.speedMultiplier > 1) {
+            for (const key in baseGeneration) {
+                const currency = key as Currency;
+                baseGeneration[currency] = (baseGeneration[currency] || 0) * overclockInfo.speedMultiplier;
+            }
+        }
+        if (overclockInfo.gearDrainPerSecond > 0) {
+            baseGeneration.cogwheelGears = (baseGeneration.cogwheelGears || 0) - overclockInfo.gearDrainPerSecond;
+        }
+
         return baseGeneration;
-    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo]);
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
@@ -412,6 +444,7 @@ export const useGameCalculations = ({
         prestigeMultipliers,
         workshopUpgradeMultipliers,
         itemUpgradeMultipliers,
+        overclockInfo,
         generationPerSecond,
         manaPerClick,
         itemPurchaseDetails,

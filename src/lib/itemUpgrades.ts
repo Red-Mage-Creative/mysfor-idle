@@ -1,6 +1,6 @@
-
 import { ItemUpgrade } from './gameTypes';
 import { initialItems } from './initialItems';
+import { Settings } from 'lucide-react';
 
 const getIconByItemId = (itemId: string) => {
     const item = initialItems.find(i => i.id === itemId);
@@ -45,6 +45,25 @@ const generateUpgradesForItem = (
     }));
 };
 
+const generateOverclockUpgrades = (): ItemUpgrade[] => {
+    const upgrades: ItemUpgrade[] = [];
+    const MAX_OVERCLOCK_LEVEL = 10;
+    for (let i = 1; i <= MAX_OVERCLOCK_LEVEL; i++) {
+        upgrades.push({
+            id: `overclock_unlock_${i}`,
+            parentItemId: 'clockwork_automaton',
+            name: `Unlock Overclock Level ${i}`,
+            description: `Unlocks Overclock Level ${i}, boosting all production at the cost of gears. You can activate this from the Items panel.`,
+            unlocksAtLevel: i * 5, // Requires automaton to be leveled
+            cost: { cogwheelGears: 50 * Math.pow(3, i - 1) },
+            effect: { type: 'unlockOverclockLevel', value: i },
+            purchased: false,
+            icon: Settings,
+        });
+    }
+    return upgrades;
+};
+
 export const allItemUpgrades: ItemUpgrade[] = [
     ...generateUpgradesForItem('apprentice_wand', 1000, 'generationMultiplier'),
     ...generateUpgradesForItem('mana_crystal', 10000, 'generationMultiplier'),
@@ -55,4 +74,5 @@ export const allItemUpgrades: ItemUpgrade[] = [
     ...generateUpgradesForItem('enchanted_workshop', 5e7, 'generationMultiplier'),
     ...generateUpgradesForItem('philosophers_transmuter', 1e8, 'generationMultiplier'),
     ...generateUpgradesForItem('chaos_codex', 5e9, 'generationMultiplier'),
+    ...generateOverclockUpgrades(),
 ];
