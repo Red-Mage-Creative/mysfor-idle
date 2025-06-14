@@ -5,20 +5,19 @@ import { useGameSession } from './useGameSession';
 import { useGameActions } from './useGameActions';
 import { toast } from "@/components/ui/sonner";
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
-import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
-import { WorkshopUpgrade, Currency } from '@/lib/gameTypes';
+import { Currency } from '@/lib/gameTypes';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
-    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, setWorkshopUpgrades, currencies, overclockLevel, autoBuySettings } = gameState;
+    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings } = gameState;
     const repairAttempted = useRef(false);
 
     const calculations = useGameCalculations(gameState);
-    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, availableWorkshopUpgrades, prestigeMultipliers } = calculations;
+    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, prestigeMultipliers } = calculations;
     
     const { manualSave, debouncedSave, immediateSave, resetGame, exportSave, importSave } = useGameSession({
         ...gameState,
-        generationPerSecond: calculations.generationPerSecond,
+        generationPerSecond: calculations.generationPersecond,
     });
 
     const actions = useGameActions({
@@ -68,8 +67,7 @@ export const useGameLogic = () => {
                     const affordableUpgrades = workshopUpgrades.map(upgrade => {
                         const cost = Math.ceil(
                             (upgrade.baseCost.cogwheelGears || 0) * 
-                            Math.pow(WORKSHOP_UPGRADE_COST_GROWTH_RATE, upgrade.level) *
-                            prestigeMultipliers.costReduction
+                            Math.pow(WORKSHOP_UPGRADE_COST_GROWTH_RATE, upgrade.level)
                         );
                         return { upgrade, cost };
                     }).filter(({ cost }) => currencies.cogwheelGears >= cost)

@@ -1,18 +1,17 @@
-
 import { useCallback } from 'react';
-import { UseGameState } from './useGameState';
-import { BuyQuantity } from './useGameState';
+import { useGameState } from './useGameState';
+import type { BuyQuantity } from './useGameState';
 import { Currency, Item, ItemUpgrade, WorkshopUpgrade, PurchaseDetails, CurrencyRecord } from '@/lib/gameTypes';
 import { toast } from '@/components/ui/sonner';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/hooks/useGameState';
 import * as C from '@/constants/gameConstants';
 import { useGameCalculations } from '@/hooks/useGameCalculations';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
-import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
 
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
+const WORKSHOP_UPGRADE_COST_GROWTH_RATE = 1.25;
 
-type UseGameActionsProps = UseGameState & {
+type UseGameActionsProps = ReturnType<typeof useGameState> & {
     itemPurchaseDetails: Map<string, PurchaseDetails>;
     potentialShards: number;
     canPrestige: boolean;
@@ -135,34 +134,38 @@ export const useGameActions = (props: UseGameActionsProps) => {
     
     const handleBuyWorkshopUpgrade = useCallback((upgradeId: string) => {
         const upgrade = workshopUpgrades.find(u => u.id === upgradeId);
-        if (!upgrade || upgrade.purchased) return;
+        if (!upgrade) return;
+
+        const costForNextLevel = Math.ceil(
+            (upgrade.baseCost.cogwheelGears || 0) * Math.pow(WORKSHOP_UPGRADE_COST_GROWTH_RATE, upgrade.level)
+        );
         
-        const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
-            const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
-            return currencies[currency as Currency] >= actualCost;
-        });
+        const canAfford = currencies.cogwheelGears >= costForNextLevel;
 
         if (!canAfford) {
-            toast.error("Not enough resources.");
+            toast.error("Not enough Cogwheel Gears.");
             return;
         }
 
-        setCurrencies(prev => {
-            const newCurrencies = { ...prev };
-            for (const currency in upgrade.cost) {
-                const actualCost = Math.ceil((upgrade.cost[currency as Currency] || 0) * prestigeMultipliers.costReduction);
-                newCurrencies[currency as Currency] -= actualCost;
-            }
-            return newCurrencies;
-        });
+        setCurrencies(prev => ({
+            ...prev,
+            cogwheelGears: prev.cogwheelGears - costForNextLevel,
+        }));
 
-        setWorkshopUpgrades(prev => prev.map(u => u.id === upgradeId ? {...u, purchased: true} : u));
+        setWorkshopUpgrades(prev => prev.map(u => {
+            if (u.id === upgradeId) {
+                const newLevel = u.level + 1;
+                return {
+                    ...u,
+                    level: newLevel,
+                    cost: { cogwheelGears: Math.ceil((u.baseCost.cogwheelGears || 0) * Math.pow(WORKSHOP_UPGRADE_COST_GROWTH_RATE, newLevel)) }
+                };
+            }
+            return u;
+        }));
         
-        toast.success("Workshop Upgraded!", {
-          description: `You have purchased ${upgrade.name}.`,
-        });
-        immediateSave('buy-workshop-upgrade');
-    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, immediateSave, prestigeMultipliers.costReduction]);
+        debouncedSave();
+    }, [currencies.cogwheelGears, workshopUpgrades, setCurrencies, setWorkshopUpgrades, debouncedSave]);
     
     const handlePrestige = useCallback(() => {
         if (!canPrestige) return;
@@ -250,29 +253,6 @@ export const useGameActions = (props: UseGameActionsProps) => {
         toast.success("Granted Dev Resources!");
     }, [setCurrencies, setLifetimeMana]);
 
-    const repairGameState = useCallback(() => {
-        console.log("Manual game state repair triggered.");
-        const originalUpgradesMap = new Map(allWorkshopUpgrades.map(u => [u.id, u]));
-        const needsRepair = workshopUpgrades.some(u => typeof u.icon !== 'function' || !u.description);
-
-        if (needsRepair) {
-            const repairedUpgrades = workshopUpgrades
-                .map(savedUpgrade => {
-                    const original = originalUpgradesMap.get(savedUpgrade.id);
-                    if (original) {
-                        return { ...original, purchased: savedUpgrade.purchased };
-                    }
-                    return null;
-                })
-                .filter((u): u is WorkshopUpgrade => u !== null);
-            
-            setWorkshopUpgrades(repairedUpgrades);
-            toast.success("Game data repaired successfully!");
-        } else {
-            toast.info("No data corruption found.");
-        }
-    }, [workshopUpgrades, setWorkshopUpgrades]);
-
     const clearOfflineEarnings = useCallback(() => setOfflineEarnings(null), [setOfflineEarnings]);
 
     const toggleAutoBuySetting = useCallback((setting: 'items' | 'upgrades') => {
@@ -292,7 +272,6 @@ export const useGameActions = (props: UseGameActionsProps) => {
         handlePrestige,
         handleBuyPrestigeUpgrade,
         handleSetOverclockLevel,
-        repairGameState,
         clearOfflineEarnings,
         toggleDevMode,
         devGrantResources,
