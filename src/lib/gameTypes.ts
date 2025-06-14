@@ -1,7 +1,7 @@
 
 import { LucideIcon } from "lucide-react";
 
-export type Currency = 'mana' | 'cogwheelGears';
+export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints';
 
 export type Currencies = Record<Currency, number>;
 
@@ -16,4 +16,5 @@ export interface Upgrade {
   generation: CurrencyRecord;
   level: number;
   icon: LucideIcon;
+  category: 'Basic Magitech' | 'Advanced Machinery' | 'Mystical Artifacts';
 }
