@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ItemWithStats, Currencies, Currency, CurrencyRecord, PurchaseDetails } from '@/lib/gameTypes';
 import { formatNumber, currencyName } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-import { Star, ChevronsUp, ChevronsDown, Zap, HelpCircle } from 'lucide-react';
+import { Star, ChevronsUp, ChevronsDown, Zap, HelpCircle, Lock } from 'lucide-react';
 import { initialItems } from '@/lib/initialItems';
 import { BulkQuantitySelector } from '@/components/game/BulkQuantitySelector';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -125,7 +124,31 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
             </CardHeader>
             <CardContent className="space-y-6 max-h-[60vh] overflow-y-auto">
                 {Object.entries(itemCategories).map(([category, categoryItems]) => {
-                    if (!categoryUnlockStatus[category as keyof typeof categoryUnlockStatus] || categoryItems.length === 0) return null;
+                    const isUnlocked = categoryUnlockStatus[category as keyof typeof categoryUnlockStatus];
+
+                    if (!isUnlocked) {
+                        // Only show the locked 'Transcendent Artifacts' category
+                        if (category === 'Transcendent Artifacts') {
+                            return (
+                                <div key={category}>
+                                    <h4 className="text-xl font-bold mb-3 text-secondary-foreground opacity-50">{category}</h4>
+                                    <Card className="flex items-center justify-center p-6 text-center border-2 border-dashed border-muted-foreground/30 bg-muted/20">
+                                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                                            <Lock className="w-8 h-8" />
+                                            <p className="font-bold text-lg">Category Locked</p>
+                                            <p className="text-sm">This category unlocks after you Prestige for the first time.</p>
+                                        </div>
+                                    </Card>
+                                </div>
+                            );
+                        }
+                        // Hide other locked categories to keep changes minimal
+                        return null;
+                    }
+
+                    if (categoryItems.length === 0) {
+                        return null;
+                    }
 
                     return (
                         <div key={category}>
