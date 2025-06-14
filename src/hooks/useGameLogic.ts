@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
@@ -71,7 +72,7 @@ export const useGameLogic = () => {
             gearGeneration < 0
         ) {
             actions.handleSetOverclockLevel(overclockLevel - 1);
-            toast.warn("Emergency Downshift!", { description: "Overclock level reduced to prevent gear depletion." });
+            toast.warning("Emergency Downshift!", { description: "Overclock level reduced to prevent gear depletion." });
         }
     }, [currencies.cogwheelGears, overclockLevel, generationPerSecond.cogwheelGears, actions.handleSetOverclockLevel]);
 

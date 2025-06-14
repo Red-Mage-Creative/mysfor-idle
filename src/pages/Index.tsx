@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -44,6 +45,8 @@ const Index = () => {
     manualSave,
     saveStatus,
     lastSaveTime,
+    overclockInfo,
+    handleSetOverclockLevel,
   } = useGame();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
@@ -117,6 +120,8 @@ const Index = () => {
                   itemCategories={itemCategories}
                   categoryUnlockStatus={categoryUnlockStatus}
                   itemPurchaseDetails={itemPurchaseDetails}
+                  overclockInfo={overclockInfo}
+                  onSetOverclockLevel={handleSetOverclockLevel}
                 />
               </TabsContent>
               {showUpgradesTab && (
