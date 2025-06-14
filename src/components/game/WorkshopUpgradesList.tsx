@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, availableWorks
             <CardHeader>
                 <CardTitle className="text-3xl">Mechanical Workshop</CardTitle>
                 <CardDescription>
-                    Permanent upgrades purchased with gears and other resources. These persist through prestige resets.
+                    Purchase powerful, temporary upgrades with gears and other resources. These upgrades are reset upon prestiging.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">

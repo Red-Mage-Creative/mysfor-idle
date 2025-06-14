@@ -763,7 +763,35 @@ export const useGameLogic = () => {
     }, [itemUpgrades, items]);
 
     const availableWorkshopUpgrades = useMemo(() => {
-        return workshopUpgrades.filter(upgrade => !upgrade.purchased);
+        const purchasedIds = new Set(workshopUpgrades.filter(u => u.purchased).map(u => u.id));
+        
+        return workshopUpgrades.filter(upgrade => {
+            if (upgrade.purchased) return false;
+
+            // Unlock logic: A tier 2 or 3 upgrade is available if the previous tier is purchased.
+            // Tier 1 upgrades are available if they haven't been purchased yet.
+            const isTier1 = !upgrade.id.includes('_2') && !upgrade.id.includes('_3');
+
+            switch (upgrade.id) {
+                // Tier 2 unlocks
+                case 'gear_optimization_2':
+                    return purchasedIds.has('gear_optimization_1');
+                case 'precision_engineering_2':
+                    return purchasedIds.has('precision_engineering_1');
+                case 'advanced_assembly_lines_2':
+                    return purchasedIds.has('advanced_assembly_lines_1');
+                // Tier 3 unlocks
+                case 'gear_optimization_3':
+                    return purchasedIds.has('gear_optimization_2');
+                case 'precision_engineering_3':
+                    return purchasedIds.has('precision_engineering_2');
+                case 'advanced_assembly_lines_3':
+                    return purchasedIds.has('advanced_assembly_lines_2');
+                default:
+                    // Show tier 1 by default
+                    return isTier1;
+            }
+        });
     }, [workshopUpgrades]);
 
     useEffect(() => {
