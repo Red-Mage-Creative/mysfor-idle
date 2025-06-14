@@ -1,22 +1,27 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { initialUpgrades } from '@/lib/initialUpgrades';
+import { initialItems } from '@/lib/initialItems';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
-import { Upgrade, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
+import { allItemUpgrades } from '@/lib/itemUpgrades';
+import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
 
 const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
 const PRESTIGE_TEASER_THRESHOLD = PRESTIGE_REQUIREMENT * 0.25; // 250M
 const PRESTIGE_VISIBLE_THRESHOLD = PRESTIGE_REQUIREMENT * 0.50; // 500M
 
-const getFreshInitialUpgrades = (): Upgrade[] => {
-    // This creates a fresh copy of the upgrades, preserving the icon components.
-    return initialUpgrades.map(upgrade => ({
-        ...upgrade,
-        cost: { ...upgrade.cost },
-        baseCost: { ...upgrade.baseCost },
-        generation: { ...upgrade.generation },
+const getFreshInitialItems = (): Item[] => {
+    return initialItems.map(item => ({
+        ...item,
+        cost: { ...item.cost },
+        baseCost: { ...item.baseCost },
+        generation: { ...item.generation },
     }));
 };
+
+const getFreshInitialItemUpgrades = (): ItemUpgrade[] => {
+    return allItemUpgrades.map(upgrade => ({ ...upgrade }));
+};
+
 
 export const useGameLogic = () => {
     const [currencies, setCurrencies] = useState<Currencies>({
@@ -26,7 +31,8 @@ export const useGameLogic = () => {
         researchPoints: 0,
         aetherShards: 0,
     });
-    const [upgrades, setUpgrades] = useState<Upgrade[]>(getFreshInitialUpgrades());
+    const [items, setItems] = useState<Item[]>(getFreshInitialItems());
+    const [itemUpgrades, setItemUpgrades] = useState<ItemUpgrade[]>(getFreshInitialItemUpgrades());
     const [lifetimeMana, setLifetimeMana] = useState(0);
     const [prestigeUpgradeLevels, setPrestigeUpgradeLevels] = useState<Record<string, number>>({});
 
@@ -56,12 +62,33 @@ export const useGameLogic = () => {
         return multipliers;
     }, [prestigeUpgradeLevels]);
 
+    const itemUpgradeMultipliers = useMemo(() => {
+        const multipliers: Record<string, { generation: number; click: number }> = {};
+        for (const item of items) {
+            multipliers[item.id] = { generation: 1, click: 1 };
+        }
+
+        for (const upgrade of itemUpgrades) {
+            if (upgrade.purchased) {
+                if (upgrade.effect.type === 'generationMultiplier') {
+                    multipliers[upgrade.parentItemId].generation *= upgrade.effect.value;
+                }
+                if (upgrade.effect.type === 'clickMultiplier') {
+                    multipliers[upgrade.parentItemId].click *= upgrade.effect.value;
+                }
+            }
+        }
+        return multipliers;
+    }, [itemUpgrades, items]);
+
     const generationPerSecond = useMemo(() => {
-        const baseGeneration = upgrades.reduce((acc, upgrade) => {
-            if (upgrade.level > 0) {
-                for (const currency in upgrade.generation) {
+        const baseGeneration = items.reduce((acc, item) => {
+            if (item.level > 0) {
+                for (const currency in item.generation) {
                     const key = currency as Currency;
-                    acc[key] = (acc[key] || 0) + (upgrade.generation[key] || 0) * upgrade.level;
+                    const itemMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
+                    const value = (item.generation[key] || 0) * item.level * itemMultiplier;
+                    acc[key] = (acc[key] || 0) + value;
                 }
             }
             return acc;
@@ -72,7 +99,7 @@ export const useGameLogic = () => {
             baseGeneration[currency] = (baseGeneration[currency] || 0) * prestigeMultipliers.allProduction;
         }
         return baseGeneration;
-    }, [upgrades, prestigeMultipliers.allProduction]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers]);
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
@@ -96,23 +123,26 @@ export const useGameLogic = () => {
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
-        const clickUpgradeBonus = upgrades
-            .filter(u => u.clickBonus && u.level > 0)
-            .reduce((sum, u) => sum + (u.clickBonus || 0) * u.level, 0);
+        const clickItemBonus = items
+            .filter(i => i.clickBonus && i.level > 0)
+            .reduce((sum, i) => {
+                const itemMultiplier = itemUpgradeMultipliers[i.id]?.click || 1;
+                return sum + (i.clickBonus || 0) * i.level * itemMultiplier;
+            }, 0);
         
-        return (baseClick + clickUpgradeBonus) * prestigeMultipliers.manaClick;
-    }, [upgrades, prestigeMultipliers.manaClick]);
+        return (baseClick + clickItemBonus) * prestigeMultipliers.manaClick;
+    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers]);
 
     const addMana = useCallback((amount: number) => {
         setCurrencies(prev => ({ ...prev, mana: prev.mana + amount }));
         setLifetimeMana(prev => prev + amount);
     }, []);
 
-    const handleBuyUpgrade = useCallback((upgradeId: string) => {
-        const upgrade = upgrades.find(u => u.id === upgradeId);
-        if (!upgrade) return;
+    const handleBuyItem = useCallback((itemId: string) => {
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
 
-        const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
+        const canAfford = Object.entries(item.cost).every(([currency, cost]) => {
             return currencies[currency as Currency] >= cost;
         });
 
@@ -120,33 +150,62 @@ export const useGameLogic = () => {
 
         setCurrencies(prev => {
             const newCurrencies = { ...prev };
-            for (const currency in upgrade.cost) {
+            for (const currency in item.cost) {
                 const key = currency as Currency;
-                newCurrencies[key] -= upgrade.cost[key] || 0;
+                newCurrencies[key] -= item.cost[key] || 0;
             }
             return newCurrencies;
         });
         
-        setUpgrades(prevUpgrades =>
-          prevUpgrades.map(u => {
-            if (u.id !== upgradeId) return u;
+        setItems(prevItems =>
+          prevItems.map(i => {
+            if (i.id !== itemId) return i;
 
-            const newLevel = u.level + 1;
+            const newLevel = i.level + 1;
             const newCost: CurrencyRecord = {};
-            for (const currency in u.baseCost) {
+            for (const currency in i.baseCost) {
                 const key = currency as Currency;
-                const base = u.baseCost[key] || 0;
+                const base = i.baseCost[key] || 0;
                 newCost[key] = Math.ceil(base * Math.pow(1.15, newLevel));
             }
 
             return {
-              ...u,
+              ...i,
               level: newLevel,
               cost: newCost,
             };
           })
         );
-    }, [currencies, upgrades]);
+    }, [currencies, items]);
+    
+    const handleBuyItemUpgrade = useCallback((upgradeId: string) => {
+        const upgrade = itemUpgrades.find(u => u.id === upgradeId);
+        if (!upgrade || upgrade.purchased) return;
+        
+        const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
+            return currencies[currency as Currency] >= cost;
+        });
+
+        if (!canAfford) {
+            toast.error("Not enough resources.");
+            return;
+        }
+
+        setCurrencies(prev => {
+            const newCurrencies = { ...prev };
+            for (const currency in upgrade.cost) {
+                newCurrencies[currency as Currency] -= upgrade.cost[currency as Currency] || 0;
+            }
+            return newCurrencies;
+        });
+
+        setItemUpgrades(prev => prev.map(u => u.id === upgradeId ? {...u, purchased: true} : u));
+        
+        toast.success("Item Upgraded!", {
+          description: `You have purchased ${upgrade.name}.`,
+        });
+
+    }, [currencies, itemUpgrades]);
 
     const canPrestige = useMemo(() => lifetimeMana >= PRESTIGE_REQUIREMENT, [lifetimeMana]);
     
@@ -175,7 +234,8 @@ export const useGameLogic = () => {
             aetherShards: currencies.aetherShards + shardsGained,
         });
         
-        setUpgrades(getFreshInitialUpgrades());
+        setItems(getFreshInitialItems());
+        setItemUpgrades(getFreshInitialItemUpgrades());
         setLifetimeMana(0);
         
         toast("Dimensional Shift!", {
@@ -219,57 +279,69 @@ export const useGameLogic = () => {
         return unlocked;
     }, [generationPerSecond, currencies]);
 
-    const upgradeCategories = useMemo(() => {
-        const categories: Record<string, Upgrade[]> = {
+    const itemCategories = useMemo(() => {
+        const categories: Record<string, Item[]> = {
             'Basic Magitech': [],
             'Advanced Machinery': [],
             'Mystical Artifacts': [],
         };
 
-        for (const upgrade of upgrades) {
-            // Condition 1: Check if all required currencies for cost are unlocked
-            const requiredCurrencies = Object.keys(upgrade.baseCost) as Currency[];
+        for (const item of items) {
+            const requiredCurrencies = Object.keys(item.baseCost) as Currency[];
             const allCurrenciesUnlocked = requiredCurrencies.every(c => unlockedCurrencies.has(c));
             
-            if (!allCurrenciesUnlocked && upgrade.level === 0) continue;
+            if (!allCurrenciesUnlocked && item.level === 0) continue;
 
-            // Condition 2: Check if lifetime mana is 80% of the initial cost
-            const initialCostSum = Object.values(upgrade.baseCost).reduce((a, b) => a + (b || 0), 0);
+            const initialCostSum = Object.values(item.baseCost).reduce((a, b) => a + (b || 0), 0);
             const manaRequirement = initialCostSum * 0.8;
 
-            if (lifetimeMana < manaRequirement && upgrade.level === 0) continue;
+            if (lifetimeMana < manaRequirement && item.level === 0) continue;
 
-            categories[upgrade.category].push(upgrade);
+            categories[item.category].push(item);
         }
 
         return categories;
-    }, [upgrades, unlockedCurrencies, lifetimeMana]);
+    }, [items, unlockedCurrencies, lifetimeMana]);
     
     const categoryUnlockStatus = useMemo(() => {
-        const totalBasicLevels = upgradeCategories['Basic Magitech'].reduce((sum, u) => sum + u.level, 0);
+        const totalBasicLevels = itemCategories['Basic Magitech'].reduce((sum, u) => sum + u.level, 0);
         return {
           'Basic Magitech': true,
           'Advanced Machinery': totalBasicLevels >= 5 || currencies.mana > 10000,
-          'Mystical Artifacts': (upgrades.find(u => u.id === 'clockwork_automaton')?.level || 0) > 0 || currencies.cogwheelGears > 500,
+          'Mystical Artifacts': (items.find(u => u.id === 'clockwork_automaton')?.level || 0) > 0 || currencies.cogwheelGears > 500,
         }
-    }, [upgradeCategories, currencies.mana, currencies.cogwheelGears, upgrades]);
+    }, [itemCategories, currencies.mana, currencies.cogwheelGears, items]);
+
+    const showUpgradesTab = useMemo(() => {
+        return items.some(i => i.level >= 10);
+    }, [items]);
+
+    const availableItemUpgrades = useMemo(() => {
+        return itemUpgrades.filter(upgrade => {
+            if (upgrade.purchased) return false;
+            const parentItem = items.find(i => i.id === upgrade.parentItemId);
+            return parentItem && parentItem.level >= upgrade.unlocksAtLevel;
+        });
+    }, [itemUpgrades, items]);
 
     return {
         currencies,
-        upgrades,
         lifetimeMana,
         generationPerSecond,
         manaPerClick,
         addMana,
-        handleBuyUpgrade,
+        handleBuyItem,
         canPrestige,
         potentialShards,
         handlePrestige,
-        upgradeCategories,
+        itemCategories,
         categoryUnlockStatus,
         prestigeUpgrades,
         prestigeUpgradeLevels,
         handleBuyPrestigeUpgrade,
         prestigeVisibility,
+        showUpgradesTab,
+        availableItemUpgrades,
+        handleBuyItemUpgrade,
     };
 };

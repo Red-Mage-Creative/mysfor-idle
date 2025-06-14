@@ -1,7 +1,8 @@
-import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit } from 'lucide-react';
-import { Upgrade } from './gameTypes';
 
-export const initialUpgrades: Upgrade[] = [
+import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand } from 'lucide-react';
+import { Item } from './gameTypes';
+
+export const initialItems: Item[] = [
   // Basic Magitech
   {
     id: 'apprentice_wand',
@@ -34,7 +35,7 @@ export const initialUpgrades: Upgrade[] = [
     generation: {},
     clickBonus: 1,
     level: 0,
-    icon: Zap,
+    icon: Hand,
     category: 'Basic Magitech',
   },
   {

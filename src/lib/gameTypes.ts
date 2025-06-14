@@ -7,7 +7,8 @@ export type Currencies = Record<Currency, number>;
 
 export type CurrencyRecord = Partial<Currencies>;
 
-export interface Upgrade {
+// Renamed from Upgrade
+export interface Item {
   id: string;
   name: string;
   description: string;
@@ -18,6 +19,24 @@ export interface Upgrade {
   level: number;
   icon: LucideIcon;
   category: 'Basic Magitech' | 'Advanced Machinery' | 'Mystical Artifacts';
+}
+
+// New type for item upgrades
+export type ItemUpgradeEffect = {
+  type: 'generationMultiplier' | 'clickMultiplier';
+  value: number;
+};
+
+export interface ItemUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  parentItemId: string;
+  unlocksAtLevel: number;
+  cost: CurrencyRecord;
+  effect: ItemUpgradeEffect;
+  purchased: boolean;
+  icon: LucideIcon;
 }
 
 export interface PrestigeUpgrade {
