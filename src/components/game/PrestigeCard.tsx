@@ -19,15 +19,40 @@ import { Currencies } from '@/lib/gameTypes';
 
 const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
 
+export type PrestigeVisibility = 'hidden' | 'teaser' | 'visible';
+
 interface PrestigeCardProps {
     currencies: Currencies;
     lifetimeMana: number;
     canPrestige: boolean;
     potentialShards: number;
     onPrestige: () => void;
+    prestigeVisibility: PrestigeVisibility;
 }
 
-const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, onPrestige }: PrestigeCardProps) => {
+const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, onPrestige, prestigeVisibility }: PrestigeCardProps) => {
+    if (prestigeVisibility === 'hidden') {
+        return null;
+    }
+
+    if (prestigeVisibility === 'teaser') {
+        return (
+            <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-dashed border-amber-500/20 shadow-lg animate-pulse">
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-center gap-4 text-xl text-muted-foreground">
+                        <Star className="w-8 h-8 text-amber-400/50" />
+                        <span>A greater power stirs...</span>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                        Continue to grow your power to unlock a new path.
+                    </p>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-amber-500/40 shadow-lg">
             <CardHeader>

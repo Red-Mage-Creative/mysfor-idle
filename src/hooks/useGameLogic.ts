@@ -6,6 +6,8 @@ import { Upgrade, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
 
 const PRESTIGE_REQUIREMENT = 1e9; // 1 Billion Mana
+const PRESTIGE_TEASER_THRESHOLD = PRESTIGE_REQUIREMENT * 0.25; // 250M
+const PRESTIGE_VISIBLE_THRESHOLD = PRESTIGE_REQUIREMENT * 0.50; // 500M
 
 const getFreshInitialUpgrades = (): Upgrade[] => {
     // This creates a fresh copy of the upgrades, preserving the icon components.
@@ -142,6 +144,12 @@ export const useGameLogic = () => {
 
     const canPrestige = useMemo(() => lifetimeMana >= PRESTIGE_REQUIREMENT, [lifetimeMana]);
     
+    const prestigeVisibility = useMemo(() => {
+        if (currencies.aetherShards > 0 || lifetimeMana >= PRESTIGE_VISIBLE_THRESHOLD) return 'visible';
+        if (lifetimeMana >= PRESTIGE_TEASER_THRESHOLD) return 'teaser';
+        return 'hidden';
+    }, [lifetimeMana, currencies.aetherShards]);
+
     const potentialShards = useMemo(() => {
         if (lifetimeMana < PRESTIGE_REQUIREMENT) return 0;
         const baseShards = Math.floor(Math.pow(lifetimeMana / 1e9, 0.5) * 5);
@@ -190,11 +198,46 @@ export const useGameLogic = () => {
     }, [currencies.aetherShards, prestigeUpgradeLevels]);
 
 
-    const upgradeCategories = useMemo(() => ({
-        'Basic Magitech': upgrades.filter(u => u.category === 'Basic Magitech'),
-        'Advanced Machinery': upgrades.filter(u => u.category === 'Advanced Machinery'),
-        'Mystical Artifacts': upgrades.filter(u => u.category === 'Mystical Artifacts'),
-    }), [upgrades]);
+    const unlockedCurrencies = useMemo(() => {
+        const unlocked = new Set<Currency>(['mana']);
+        for (const currency in generationPerSecond) {
+            if ((generationPerSecond[currency as Currency] || 0) > 0) {
+                unlocked.add(currency as Currency);
+            }
+        }
+        Object.entries(currencies).forEach(([currency, amount]) => {
+            if (amount > 0) {
+                unlocked.add(currency as Currency);
+            }
+        });
+        return unlocked;
+    }, [generationPerSecond, currencies]);
+
+    const upgradeCategories = useMemo(() => {
+        const categories: Record<string, Upgrade[]> = {
+            'Basic Magitech': [],
+            'Advanced Machinery': [],
+            'Mystical Artifacts': [],
+        };
+
+        for (const upgrade of upgrades) {
+            // Condition 1: Check if all required currencies for cost are unlocked
+            const requiredCurrencies = Object.keys(upgrade.baseCost) as Currency[];
+            const allCurrenciesUnlocked = requiredCurrencies.every(c => unlockedCurrencies.has(c));
+            
+            if (!allCurrenciesUnlocked && upgrade.level === 0) continue;
+
+            // Condition 2: Check if lifetime mana is 80% of the initial cost
+            const initialCostSum = Object.values(upgrade.baseCost).reduce((a, b) => a + (b || 0), 0);
+            const manaRequirement = initialCostSum * 0.8;
+
+            if (lifetimeMana < manaRequirement && upgrade.level === 0) continue;
+
+            categories[upgrade.category].push(upgrade);
+        }
+
+        return categories;
+    }, [upgrades, unlockedCurrencies, lifetimeMana]);
     
     const categoryUnlockStatus = useMemo(() => {
         const totalBasicLevels = upgradeCategories['Basic Magitech'].reduce((sum, u) => sum + u.level, 0);
@@ -221,5 +264,6 @@ export const useGameLogic = () => {
         prestigeUpgrades,
         prestigeUpgradeLevels,
         handleBuyPrestigeUpgrade,
+        prestigeVisibility,
     };
 };

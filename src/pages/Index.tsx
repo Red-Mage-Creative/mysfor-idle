@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGameLogic } from '@/hooks/useGameLogic';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -6,6 +5,7 @@ import PrestigeCard from '@/components/game/PrestigeCard';
 import UpgradesList from '@/components/game/UpgradesList';
 import PrestigeUpgradesList from '@/components/game/PrestigeUpgradesList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PrestigeVisibility } from '@/components/game/PrestigeCard';
 
 const Index = () => {
   const {
@@ -23,6 +23,7 @@ const Index = () => {
     prestigeUpgrades,
     prestigeUpgradeLevels,
     handleBuyPrestigeUpgrade,
+    prestigeVisibility,
   } = useGameLogic();
 
   return (
@@ -41,14 +42,15 @@ const Index = () => {
             canPrestige={canPrestige}
             potentialShards={potentialShards}
             onPrestige={handlePrestige}
+            prestigeVisibility={prestigeVisibility as PrestigeVisibility}
           />
         </div>
 
         <div className="lg:col-span-2 flex flex-col items-center justify-start">
           <Tabs defaultValue="standard" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className={`grid w-full ${prestigeVisibility === 'visible' ? 'grid-cols-2' : 'grid-cols-1'}`}>
               <TabsTrigger value="standard">Upgrades</TabsTrigger>
-              <TabsTrigger value="prestige">Prestige</TabsTrigger>
+              {prestigeVisibility === 'visible' && <TabsTrigger value="prestige">Prestige</TabsTrigger>}
             </TabsList>
             <TabsContent value="standard">
               <UpgradesList
@@ -58,14 +60,16 @@ const Index = () => {
                 categoryUnlockStatus={categoryUnlockStatus}
               />
             </TabsContent>
-            <TabsContent value="prestige">
-              <PrestigeUpgradesList
-                prestigeUpgrades={prestigeUpgrades}
-                prestigeUpgradeLevels={prestigeUpgradeLevels}
-                currencies={currencies}
-                onBuyPrestigeUpgrade={handleBuyPrestigeUpgrade}
-              />
-            </TabsContent>
+            {prestigeVisibility === 'visible' && (
+                <TabsContent value="prestige">
+                <PrestigeUpgradesList
+                    prestigeUpgrades={prestigeUpgrades}
+                    prestigeUpgradeLevels={prestigeUpgradeLevels}
+                    currencies={currencies}
+                    onBuyPrestigeUpgrade={handleBuyPrestigeUpgrade}
+                />
+                </TabsContent>
+            )}
           </Tabs>
         </div>
 
