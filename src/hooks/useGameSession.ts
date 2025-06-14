@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { getFreshInitialWorkshopUpgrades, UseGameState } from './useGameState';
+import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, UseGameState } from './useGameState';
 import { GameSaveData, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import { allWorkshopUpgrades } from '@/lib/workshopUpgrades';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
@@ -30,6 +30,27 @@ export const useGameSession = ({
 }: UseGameSessionProps) => {
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    const resetState = useCallback(() => {
+        setCurrencies({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0 });
+        setItems(getFreshInitialItems());
+        setItemUpgrades(getFreshInitialItemUpgrades());
+        setWorkshopUpgrades(getFreshInitialWorkshopUpgrades());
+        setLifetimeMana(0);
+        setPrestigeUpgradeLevels({});
+        setNotifiedUpgrades(new Set());
+        setHasEverClicked(false);
+        setOfflineEarnings(null);
+        setLastSaveTime(null);
+        setSaveStatus('idle');
+        setBuyQuantity(1);
+        localStorage.removeItem(C.SAVE_KEY);
+        localStorage.removeItem(BUY_QUANTITY_KEY);
+    }, [
+        setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
+        setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
+        setHasEverClicked, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity
+    ]);
 
     const saveGame = useCallback((isAutoSave = false) => {
         try {
@@ -99,13 +120,19 @@ export const useGameSession = ({
                 const savedGame = localStorage.getItem(C.SAVE_KEY);
 
                 if (!savedGame) {
+                    setIsLoaded(true);
                     return; // No save data, start fresh
                 }
                 
                 const saveData = JSON.parse(savedGame) as GameSaveData;
-
-                // This logic correctly handles both old (corrupted) and new (clean) save formats
-                // by rebuilding the full upgrade object from the master list.
+                
+                if(saveData.version !== C.CURRENT_SAVE_VERSION) {
+                    console.warn(`Save file version mismatch. Expected ${C.CURRENT_SAVE_VERSION}, got ${saveData.version}. Starting fresh.`);
+                    resetState();
+                    toast.info("Game updated!", { description: "Your save data was from an older version and has been reset." });
+                    return;
+                }
+                
                 let restoredWorkshopUpgrades = getFreshInitialWorkshopUpgrades();
                 if (saveData.workshopUpgrades && saveData.workshopUpgrades.length > 0) {
                      const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.purchased]));
@@ -113,12 +140,6 @@ export const useGameSession = ({
                         ...upgrade,
                         purchased: savedUpgradesMap.get(upgrade.id) || false
                     }));
-                }
-                
-                if(saveData.version !== C.CURRENT_SAVE_VERSION) {
-                    console.warn(`Save file version mismatch. Expected ${C.CURRENT_SAVE_VERSION}, got ${saveData.version}. Starting fresh.`);
-                    localStorage.removeItem(C.SAVE_KEY);
-                    return;
                 }
                 
                 if (saveData.lastSaveTimestamp) {
@@ -243,14 +264,15 @@ export const useGameSession = ({
 
             } catch (error) {
                 console.error("Failed to load save data. Starting fresh.", error);
-                localStorage.removeItem(C.SAVE_KEY);
+                resetState();
+                toast.error("Save data corrupted", { description: "Your save file could not be read and has been reset." });
             } finally {
                 setIsLoaded(true);
             }
         };
 
         loadGame();
-    }, [setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setIsLoaded, setOfflineEarnings, setLastSaveTime]); // Dependencies are now just setters
+    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setOfflineEarnings, setLastSaveTime]); // Dependencies are now just setters
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
@@ -285,10 +307,10 @@ export const useGameSession = ({
 
     const resetGame = useCallback(() => {
         if(window.confirm("Are you sure you want to reset all progress? This cannot be undone.")){
-            localStorage.removeItem(C.SAVE_KEY);
-            window.location.reload();
+            resetState();
+            toast.success("Game progress has been reset.");
         }
-    }, []);
+    }, [resetState]);
 
     const exportSave = useCallback(() => {
         try {
@@ -316,22 +338,51 @@ export const useGameSession = ({
         reader.onload = (event) => {
             try {
                 const importedString = event.target?.result as string;
-                // Basic validation before reloading
-                const data = JSON.parse(importedString);
-                if (data.version && data.currencies) {
-                    localStorage.setItem(C.SAVE_KEY, importedString);
-                    toast.success("Save data imported successfully! Reloading game...");
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    throw new Error("Invalid save file format.");
+                const saveData = JSON.parse(importedString) as GameSaveData;
+
+                if (!saveData.version || !saveData.currencies || saveData.version < C.CURRENT_SAVE_VERSION) {
+                    throw new Error("Invalid or outdated save file format.");
                 }
+                if (saveData.version > C.CURRENT_SAVE_VERSION) {
+                    throw new Error("This save file is from a newer version of the game.");
+                }
+
+                // Restore state
+                setCurrencies(saveData.currencies);
+                setItems(saveData.items);
+                setItemUpgrades(saveData.itemUpgrades);
+                
+                let restoredWorkshopUpgrades = getFreshInitialWorkshopUpgrades();
+                if (saveData.workshopUpgrades && saveData.workshopUpgrades.length > 0) {
+                     const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.purchased]));
+                     restoredWorkshopUpgrades = restoredWorkshopUpgrades.map(upgrade => ({
+                        ...upgrade,
+                        purchased: savedUpgradesMap.get(upgrade.id) || false
+                    }));
+                }
+                setWorkshopUpgrades(restoredWorkshopUpgrades);
+
+                setLifetimeMana(saveData.lifetimeMana);
+                setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
+                setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
+                setHasEverClicked(saveData.hasEverClicked);
+                setOfflineEarnings(null);
+                
+                toast.success("Save data imported successfully!");
+                manualSave(); // Immediately save the new state.
+            
             } catch (error) {
                 console.error("Import failed", error);
-                toast.error("Failed to import save data. File may be corrupt or invalid.");
+                toast.error(`Failed to import save data. ${error instanceof Error ? error.message : "File may be corrupt or invalid."}`);
             }
         };
         reader.readAsText(file);
-    }, []);
+    }, [
+        manualSave,
+        setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
+        setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
+        setHasEverClicked, setOfflineEarnings
+    ]);
     
     return {
         saveGame,
