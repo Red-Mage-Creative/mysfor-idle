@@ -22,6 +22,8 @@ import { challenges, challengeMap } from '@/lib/challenges';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Lock, XCircle } from 'lucide-react';
 import { OverclockControls } from '@/components/game/OverclockControls';
+import DimensionalUpgradesList from '@/components/game/DimensionalUpgradesList';
+import { Separator } from '@/components/ui/separator';
 
 const Index = () => {
   const {
@@ -83,6 +85,8 @@ const Index = () => {
     startChallenge,
     abandonChallenge,
     completedChallenges,
+    dimensionalUpgrades,
+    handleBuyDimensionalUpgrade,
     multiPrestigeDetails,
   } = useGame();
 
@@ -265,7 +269,7 @@ const Index = () => {
                       <CardContent className="space-y-4">
                           <div className="border rounded-lg p-4 flex justify-between items-center">
                               <div>
-                                <p className="font-bold">Challenge Tokens: {currencies.challengeTokens || 0}</p>
+                                <p className="font-bold">Challenge Tokens: {formatNumber(currencies.challengeTokens || 0)}</p>
                                 <p className="text-sm text-muted-foreground">
                                     Active Challenge: {activeChallengeId ? challengeMap.get(activeChallengeId)?.name : 'None'}
                                 </p>
@@ -274,6 +278,17 @@ const Index = () => {
                                 <Button variant="destructive" onClick={() => abandonChallenge()}>Abandon Challenge</Button>
                               )}
                           </div>
+
+                          <Separator />
+
+                          <DimensionalUpgradesList
+                            currencies={currencies}
+                            dimensionalUpgradeLevels={dimensionalUpgrades}
+                            onBuyDimensionalUpgrade={handleBuyDimensionalUpgrade}
+                          />
+                          
+                          <Separator />
+                          
                           <div className="space-y-3">
                               {challenges.map(challenge => {
                                   const isUnlocked = prestigeCount >= challenge.unlocksAtPrestige;

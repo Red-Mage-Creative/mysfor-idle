@@ -19,8 +19,10 @@ export const useChallengeActions = (props: GameActionProps) => {
         setOverclockLevel,
         setRunStartTime,
         setCompletedChallenges,
-        dimensionalUpgrades,
+        dimensionalUpgrades: dimensionalUpgradeLevels,
+        setDimensionalUpgrades,
         immediateSave,
+        currencies,
     } = props;
     
     const performChallengeReset = useCallback((startingResources: CurrencyRecord = {}) => {
@@ -76,7 +78,7 @@ export const useChallengeActions = (props: GameActionProps) => {
 
         let reward = challenge.reward;
         const tokenUpgrade = dimensionalUpgradesMap.get('token_gain_i');
-        const tokenUpgradeLevel = dimensionalUpgrades?.['token_gain_i'] || 0;
+        const tokenUpgradeLevel = dimensionalUpgradeLevels?.['token_gain_i'] || 0;
         if (tokenUpgrade && tokenUpgradeLevel > 0) {
             reward *= tokenUpgrade.effect.value(tokenUpgradeLevel);
         }
@@ -100,7 +102,35 @@ export const useChallengeActions = (props: GameActionProps) => {
         });
         immediateSave();
 
-    }, [activeChallengeId, setCurrencies, setCompletedChallenges, setActiveChallengeId, immediateSave, dimensionalUpgrades]);
+    }, [activeChallengeId, setCurrencies, setCompletedChallenges, setActiveChallengeId, immediateSave, dimensionalUpgradeLevels]);
 
-    return { startChallenge, abandonChallenge, handleCompleteChallenge };
+    const handleBuyDimensionalUpgrade = useCallback((upgradeId: string) => {
+        const upgrade = dimensionalUpgradesMap.get(upgradeId);
+        if (!upgrade) return;
+
+        const currentLevel = dimensionalUpgradeLevels[upgrade.id] || 0;
+        if (currentLevel >= upgrade.maxLevel) {
+            toast.error("Max level reached for this upgrade.");
+            return;
+        }
+
+        const cost = upgrade.cost(currentLevel);
+        if (currencies.challengeTokens < cost) {
+            toast.error("Not enough Challenge Tokens.");
+            return;
+        }
+
+        setCurrencies(prev => ({ ...prev, challengeTokens: (prev.challengeTokens || 0) - cost }));
+        setDimensionalUpgrades(prev => ({ ...prev, [upgradeId]: currentLevel + 1 }));
+        immediateSave();
+        toast.success(`Purchased ${upgrade.name} Level ${currentLevel + 1}`);
+    }, [
+        dimensionalUpgradeLevels,
+        currencies.challengeTokens,
+        setCurrencies,
+        setDimensionalUpgrades,
+        immediateSave,
+    ]);
+
+    return { startChallenge, abandonChallenge, handleCompleteChallenge, handleBuyDimensionalUpgrade };
 };
