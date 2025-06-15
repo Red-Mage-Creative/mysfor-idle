@@ -10,12 +10,13 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 const AchievementsPage = () => {
-  const { achievements: achievementProgress } = useGame();
+  const { achievements: achievementProgress, achievementBonus } = useGame();
 
   const categories: AchievementCategory[] = ['First Steps', 'Currency Milestones', 'Prestige Master', 'Cosmic Achievements'];
 
   const unlockedCount = Object.values(achievementProgress || {}).filter(p => p.unlocked).length;
   const totalCount = allAchievements.length;
+  const bonusPercent = achievementBonus ? ((achievementBonus - 1) * 100).toFixed(0) : 0;
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in p-4">
@@ -25,6 +26,11 @@ const AchievementsPage = () => {
             <p className="mt-2 text-lg text-muted-foreground">
             You've unlocked {unlockedCount} of {totalCount} achievements.
             </p>
+            {unlockedCount > 0 && (
+              <p className="mt-1 text-lg text-green-500 font-semibold">
+                Current bonus: +{bonusPercent}% to all gains!
+              </p>
+            )}
         </div>
         <Button asChild>
             <Link to="/"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Game</Link>

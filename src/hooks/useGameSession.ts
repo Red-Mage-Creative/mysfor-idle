@@ -339,14 +339,14 @@ export const useGameSession = ({
                     }
                 }
                 
-                // --- Set all state from save data ---
+                // --- Set all state from save data, including calculated offline earnings and achievements ---
                 setCurrencies(saveData.currencies);
                 setItems(saveData.items);
                 setItemUpgrades(saveData.itemUpgrades);
                 setWorkshopUpgrades(restoredWorkshopUpgrades);
                 setLifetimeMana(saveData.lifetimeMana);
                 setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
-                setAchievements(saveData.achievements || {});
+                setAchievements(finalAchievements);
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
                 setHasEverClicked(saveData.hasEverClicked);
                 setHasEverPrestiged(saveData.hasEverPrestiged);
@@ -408,6 +408,7 @@ export const useGameSession = ({
                     if (cosmicResonator.level >= 100) unlock('cosmic_resonator_100', finalAchievements);
                     if (cosmicResonator.level >= 1000) unlock('cosmic_resonator_1k', finalAchievements);
                 }
+                
                 saveData.achievements = finalAchievements;
                 
             } catch (error) {

@@ -17,7 +17,8 @@ type UseGameCalculationsProps = Pick<ReturnType<typeof useGameState>,
     'hasEverClicked' |
     'hasEverPrestiged' |
     'overclockLevel' |
-    'devMode'
+    'devMode' |
+    'achievements'
 >;
 
 const UPGRADE_THRESHOLDS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
@@ -89,7 +90,14 @@ export const useGameCalculations = ({
     hasEverPrestiged,
     overclockLevel,
     devMode,
+    achievements,
 }: UseGameCalculationsProps) => {
+
+    const achievementBonus = useMemo(() => {
+        if (!achievements) return 1;
+        const unlockedCount = Object.values(achievements).filter(a => a.unlocked).length;
+        return 1 + (unlockedCount * 0.05);
+    }, [achievements]);
 
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
@@ -238,12 +246,18 @@ export const useGameCalculations = ({
             baseGeneration.cogwheelGears = (baseGeneration.cogwheelGears || 0) - overclockInfo.gearDrainPerSecond;
         }
 
+        // Apply achievement bonus
+        for (const key in baseGeneration) {
+            const currency = key as Currency;
+            baseGeneration[currency] = (baseGeneration[currency] || 0) * achievementBonus;
+        }
+
         if (devMode) {
             baseGeneration.mana = (baseGeneration.mana || 0) * C.DEV_MODE_MULTIPLIER;
         }
 
         return baseGeneration;
-    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus]);
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
@@ -264,11 +278,14 @@ export const useGameCalculations = ({
         const scalingFactor = 0.01; // 1% of mana/sec is added to click power multiplier
         totalClick *= (1 + (manaGeneration * scalingFactor));
 
+        // Apply achievement bonus
+        totalClick *= achievementBonus;
+
         if (devMode) {
             totalClick *= C.DEV_MODE_MULTIPLIER;
         }
         return totalClick;
-    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana]);
+    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana, achievementBonus]);
 
     const itemPurchaseDetails = useMemo(() => {
         const detailsMap = new Map<string, PurchaseDetails>();
@@ -487,5 +504,6 @@ export const useGameCalculations = ({
         showWorkshopTab,
         availableItemUpgrades,
         showTutorial,
+        achievementBonus,
     };
 };
