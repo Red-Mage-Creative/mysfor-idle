@@ -47,6 +47,16 @@ const migrateSaveData = (data: any): GameSaveData => {
         migratedData.prestigeCount = 0;
         console.log("Migrated save: Added 'prestigeCount: 0' field.");
     }
+    
+    if (typeof migratedData.hasBeatenGame === 'undefined') {
+        migratedData.hasBeatenGame = false;
+        console.log("Migrated save: Added 'hasBeatenGame: false' field.");
+    }
+    
+    if (typeof migratedData.gameCompletionShown === 'undefined') {
+        migratedData.gameCompletionShown = false;
+        console.log("Migrated save: Added 'gameCompletionShown: false' field.");
+    }
 
     // Future migrations go here, e.g.:
     // if (compareVersions(initialVersion, '1.2.0') < 0) { ... }
@@ -72,7 +82,9 @@ export const useGameSession = ({
     saveStatus, setSaveStatus,
     setBuyQuantity,
     overclockLevel, setOverclockLevel,
-    generationPerSecond
+    generationPerSecond,
+    hasBeatenGame, setHasBeatenGame,
+    gameCompletionShown, setGameCompletionShown,
 }: UseGameSessionProps) => {
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -94,13 +106,15 @@ export const useGameSession = ({
         setSaveStatus('idle');
         setBuyQuantity(1);
         setOverclockLevel(0);
+        setHasBeatenGame(false);
+        setGameCompletionShown(false);
         localStorage.removeItem(C.SAVE_KEY);
         localStorage.removeItem(BUY_QUANTITY_KEY);
     }, [
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
         setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity,
-        setOverclockLevel
+        setOverclockLevel, setHasBeatenGame, setGameCompletionShown
     ]);
 
     const saveGame = useCallback((isAutoSave = false) => {
@@ -119,6 +133,8 @@ export const useGameSession = ({
                 hasEverPrestiged,
                 prestigeCount,
                 overclockLevel,
+                hasBeatenGame,
+                gameCompletionShown,
             };
             localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
             setLastSaveTime(new Date(saveData.lastSaveTimestamp));
@@ -128,7 +144,7 @@ export const useGameSession = ({
             toast.error("Could not save game progress.");
             throw error;
         }
-    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, setLastSaveTime, setSaveStatus]);
+    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, hasBeatenGame, gameCompletionShown, setLastSaveTime, setSaveStatus]);
 
     useEffect(() => {
         if (saveRequest) {
@@ -335,6 +351,8 @@ export const useGameSession = ({
                 setHasEverPrestiged(saveData.hasEverPrestiged);
                 setPrestigeCount(saveData.prestigeCount || 0);
                 setOverclockLevel(saveData.overclockLevel || 0);
+                setHasBeatenGame(saveData.hasBeatenGame || false);
+                setGameCompletionShown(saveData.gameCompletionShown || false);
 
             } catch (error) {
                 console.error("Failed to load save data. Starting fresh.", error);
@@ -346,7 +364,7 @@ export const useGameSession = ({
         };
 
         loadGame();
-    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setOverclockLevel]); // Dependencies are now just setters
+    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setOverclockLevel, setHasBeatenGame, setGameCompletionShown]); // Dependencies are now just setters
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
@@ -464,7 +482,8 @@ export const useGameSession = ({
         manualSave,
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
-        setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings
+        setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings,
+        setHasBeatenGame, setGameCompletionShown
     ]);
     
     return {

@@ -108,6 +108,8 @@ export interface GameSaveData {
     hasEverPrestiged: boolean;
     overclockLevel: number;
     prestigeCount: number;
+    hasBeatenGame?: boolean;
+    gameCompletionShown?: boolean;
 }
 
 export interface OfflineEarnings {

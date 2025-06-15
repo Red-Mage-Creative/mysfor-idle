@@ -9,7 +9,7 @@ import { Currency } from '@/lib/gameTypes';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
-    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings } = gameState;
+    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame } = gameState;
     const repairAttempted = useRef(false);
 
     const calculations = useGameCalculations(gameState);
@@ -130,6 +130,21 @@ export const useGameLogic = () => {
             });
         }
     }, [availableItemUpgrades, items, notifiedUpgrades, setNotifiedUpgrades]);
+
+    // Game completion logic
+    useEffect(() => {
+        if (isLoaded && !hasBeatenGame) {
+            const cosmicResonator = items.find(item => item.id === 'cosmic_resonator');
+            if (cosmicResonator && cosmicResonator.level > 0) {
+                setHasBeatenGame(true);
+                toast.success("Game Complete!", {
+                    description: "You have forged a Cosmic Resonator and transcended the limits of creation!",
+                    duration: 10000,
+                });
+                immediateSave('game-beaten');
+            }
+        }
+    }, [isLoaded, items, hasBeatenGame, setHasBeatenGame, immediateSave]);
 
     return {
         ...gameState,

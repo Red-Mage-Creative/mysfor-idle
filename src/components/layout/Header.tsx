@@ -1,7 +1,6 @@
-
 import React, { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Gamepad2, Info, Settings, Zap } from 'lucide-react';
+import { Gamepad2, Info, Settings, Zap, Trophy } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label';
 
 const Header = () => {
     const game = useGame();
-    const { devMode, toggleDevMode, devGrantResources } = game || {};
+    const { devMode, toggleDevMode, devGrantResources, hasBeatenGame } = game || {};
 
     useEffect(() => {
         // The keyboard shortcut should only be active in development
@@ -73,6 +72,12 @@ const Header = () => {
             <Settings className="h-4 w-4" />
             <span>Settings</span>
           </NavLink>
+          {hasBeatenGame && (
+             <NavLink to="/end-credits" className={navLinkClasses}>
+                <Trophy className="h-4 w-4" />
+                <span>End Credits</span>
+            </NavLink>
+          )}
         </nav>
         {/* A mobile menu could be added here later */}
       </div>
