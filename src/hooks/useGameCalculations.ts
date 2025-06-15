@@ -4,6 +4,7 @@ import { allItemUpgrades } from '@/lib/itemUpgrades';
 import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, PurchaseDetails } from '@/lib/gameTypes';
 import * as C from '@/constants/gameConstants';
 import { useGameState } from './useGameState';
+import { researchNodeMap } from '@/lib/researchTree';
 
 type UseGameCalculationsProps = Pick<ReturnType<typeof useGameState>,
     'currencies' |
@@ -18,7 +19,8 @@ type UseGameCalculationsProps = Pick<ReturnType<typeof useGameState>,
     'hasEverPrestiged' |
     'overclockLevel' |
     'devMode' |
-    'achievements'
+    'achievements' |
+    'unlockedResearchNodes'
 >;
 
 const UPGRADE_THRESHOLDS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
@@ -91,6 +93,7 @@ export const useGameCalculations = ({
     overclockLevel,
     devMode,
     achievements,
+    unlockedResearchNodes,
 }: UseGameCalculationsProps) => {
 
     const achievementBonus = useMemo(() => {
@@ -98,6 +101,47 @@ export const useGameCalculations = ({
         const unlockedCount = Object.values(achievements).filter(a => a.unlocked).length;
         return 1 + (unlockedCount * 0.05);
     }, [achievements]);
+
+    const researchBonuses = useMemo(() => {
+        const bonuses = {
+            mana: 1,
+            allProduction: 1,
+            costReduction: 1,
+            manaPerClick: 1,
+            essenceFlux: 1,
+            specificItem: {} as Record<string, number>,
+        };
+
+        unlockedResearchNodes.forEach(nodeId => {
+            const node = researchNodeMap.get(nodeId);
+            if (!node) return;
+
+            switch (node.effect.type) {
+                case 'manaMultiplier':
+                    bonuses.mana *= node.effect.value;
+                    break;
+                case 'allProductionMultiplier':
+                    bonuses.allProduction *= node.effect.value;
+                    break;
+                case 'costReductionMultiplier':
+                    bonuses.costReduction *= node.effect.value;
+                    break;
+                case 'manaPerClickMultiplier':
+                    bonuses.manaPerClick *= node.effect.value;
+                    break;
+                case 'essenceFluxMultiplier':
+                    bonuses.essenceFlux *= node.effect.value;
+                    break;
+                case 'specificItemMultiplier':
+                    if (node.effect.itemId) {
+                        bonuses.specificItem[node.effect.itemId] = (bonuses.specificItem[node.effect.itemId] || 1) * node.effect.value;
+                    }
+                    break;
+            }
+        });
+
+        return bonuses;
+    }, [unlockedResearchNodes]);
 
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
@@ -211,7 +255,8 @@ export const useGameCalculations = ({
                 for (const currency in item.generation) {
                     const key = currency as Currency;
                     const itemMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
-                    let value = (item.generation[key] || 0) * item.level * itemMultiplier;
+                    const researchMultiplier = researchBonuses.specificItem[item.id] || 1;
+                    let value = (item.generation[key] || 0) * item.level * itemMultiplier * researchMultiplier;
                     
                     acc[key] = (acc[key] || 0) + value;
                 }
@@ -221,15 +266,15 @@ export const useGameCalculations = ({
 
         for (const key in baseGeneration) {
             const currency = key as Currency;
-            baseGeneration[currency] = (baseGeneration[currency] || 0) * prestigeMultipliers.allProduction;
+            baseGeneration[currency] = (baseGeneration[currency] || 0) * prestigeMultipliers.allProduction * researchBonuses.allProduction;
         }
 
         // Apply new workshop multipliers
         if (baseGeneration.mana) {
-            baseGeneration.mana *= workshopUpgradeMultipliers.mana;
+            baseGeneration.mana *= workshopUpgradeMultipliers.mana * researchBonuses.mana;
         }
         if (baseGeneration.essenceFlux) {
-            baseGeneration.essenceFlux *= workshopUpgradeMultipliers.essenceFlux;
+            baseGeneration.essenceFlux *= workshopUpgradeMultipliers.essenceFlux * researchBonuses.essenceFlux;
         }
         if (baseGeneration.researchPoints) {
             baseGeneration.researchPoints *= workshopUpgradeMultipliers.researchPoints;
@@ -257,7 +302,7 @@ export const useGameCalculations = ({
         }
 
         return baseGeneration;
-    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus, researchBonuses]);
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
@@ -268,10 +313,10 @@ export const useGameCalculations = ({
                 return sum + (i.clickBonus || 0) * i.level * itemMultiplier;
             }, 0);
         
-        let totalClick = (baseClick + clickItemBonus) * prestigeMultipliers.manaClick;
+        let totalClick = (baseClick + clickItemBonus) * prestigeMultipliers.manaClick * researchBonuses.manaPerClick;
 
         // Apply new workshop multiplier for mana
-        totalClick *= workshopUpgradeMultipliers.mana;
+        totalClick *= workshopUpgradeMultipliers.mana * researchBonuses.mana;
 
         // Add scaling based on mana generation per second
         const manaGeneration = generationPerSecond.mana || 0;
@@ -285,13 +330,15 @@ export const useGameCalculations = ({
             totalClick *= C.DEV_MODE_MULTIPLIER;
         }
         return totalClick;
-    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana, achievementBonus]);
+    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana, achievementBonus, researchBonuses.manaPerClick]);
 
     const itemPurchaseDetails = useMemo(() => {
         const detailsMap = new Map<string, PurchaseDetails>();
         
+        const totalCostReduction = prestigeMultipliers.costReduction * researchBonuses.costReduction;
+
         for (const item of items) {
-            const maxAffordable = calculateMaxAffordable(item, currencies, prestigeMultipliers.costReduction);
+            const maxAffordable = calculateMaxAffordable(item, currencies, totalCostReduction);
             
             let intendedPurchaseQuantity = 0;
             let purchaseQuantity = 0;
@@ -325,8 +372,8 @@ export const useGameCalculations = ({
             }
             // else, purchaseQuantity remains 0 for bulk buys you can't afford.
             
-            const intendedPurchaseCost = calculateBulkCost(item, intendedPurchaseQuantity, prestigeMultipliers.costReduction);
-            const purchaseCost = calculateBulkCost(item, purchaseQuantity, prestigeMultipliers.costReduction);
+            const intendedPurchaseCost = calculateBulkCost(item, intendedPurchaseQuantity, totalCostReduction);
+            const purchaseCost = calculateBulkCost(item, purchaseQuantity, totalCostReduction);
 
             // Determine display string for the button
             if (nextLevelTarget) {
@@ -348,7 +395,7 @@ export const useGameCalculations = ({
             });
         }
         return detailsMap;
-    }, [items, currencies, buyQuantity, prestigeMultipliers.costReduction]);
+    }, [items, currencies, buyQuantity, prestigeMultipliers.costReduction, researchBonuses.costReduction]);
 
     const prestigeRequirement = useMemo(() => {
         return 1e9 * Math.pow(10, prestigeCount);
@@ -473,6 +520,10 @@ export const useGameCalculations = ({
         return hasGears || hasLeveledWorkshopUpgrade || hasUnlockedAutomaton;
     }, [currencies.cogwheelGears, workshopUpgrades, items]);
 
+    const showResearchTab = useMemo(() => {
+        return currencies.researchPoints > 0 || unlockedResearchNodes.size > 0;
+    }, [currencies.researchPoints, unlockedResearchNodes]);
+
     const availableItemUpgrades = useMemo(() => {
         return itemUpgrades.filter(upgrade => {
             if (upgrade.purchased) return false;
@@ -502,8 +553,10 @@ export const useGameCalculations = ({
         categoryUnlockStatus,
         showUpgradesTab,
         showWorkshopTab,
+        showResearchTab,
         availableItemUpgrades,
         showTutorial,
         achievementBonus,
+        researchBonuses,
     };
 };

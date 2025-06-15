@@ -7,10 +7,11 @@ import { toast } from "@/components/ui/sonner";
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { Currency, Item } from '@/lib/gameTypes';
 import { allAchievements, achievementMap } from '@/lib/achievements';
+import { researchNodeMap } from '@/lib/researchTree';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
-    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame, achievements, setAchievements, lifetimeMana, hasEverPrestiged, prestigeCount, itemUpgrades, prestigeUpgradeLevels } = gameState;
+    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame, achievements, setAchievements, lifetimeMana, hasEverPrestiged, prestigeCount, itemUpgrades, prestigeUpgradeLevels, unlockedResearchNodes, setUnlockedResearchNodes, setCurrencies } = gameState;
     const repairAttempted = useRef(false);
 
     const calculations = useGameCalculations(gameState);
@@ -29,6 +30,44 @@ export const useGameLogic = () => {
     });
 
     const { handleBuyItem, handleBuyItemUpgrade, handleBuyWorkshopUpgrade } = actions;
+
+    const handleBuyResearch = useCallback((nodeId: string) => {
+        const node = researchNodeMap.get(nodeId);
+        if (!node) {
+            console.error(`Research node with id ${nodeId} not found.`);
+            return;
+        }
+
+        if (unlockedResearchNodes.has(nodeId)) {
+            toast.info("Already Researched", { description: "You have already completed this research." });
+            return;
+        }
+
+        if (currencies.researchPoints < node.cost) {
+            toast.error("Not enough Research Points", { description: `You need ${node.cost} to unlock ${node.name}.` });
+            return;
+        }
+
+        const hasAllPrerequisites = node.prerequisites.every(prereqId => unlockedResearchNodes.has(prereqId));
+        if (!hasAllPrerequisites) {
+            toast.warning("Prerequisites not met", { description: `You must unlock previous research nodes first.` });
+            return;
+        }
+
+        setCurrencies(prev => ({
+            ...prev,
+            researchPoints: prev.researchPoints - node.cost,
+        }));
+
+        setUnlockedResearchNodes(prev => {
+            const newSet = new Set(prev);
+            newSet.add(nodeId);
+            return newSet;
+        });
+        
+        toast.success("Research Complete!", { description: `You have unlocked: ${node.name}` });
+        debouncedSave();
+    }, [currencies.researchPoints, unlockedResearchNodes, setCurrencies, setUnlockedResearchNodes, debouncedSave]);
 
     const unlockAchievement = useCallback((achievementId: string) => {
         if (!achievements[achievementId] || achievements[achievementId].unlocked) {
@@ -241,5 +280,6 @@ export const useGameLogic = () => {
         importSave,
         setBuyQuantity: actions.updateBuyQuantity,
         prestigeUpgrades,
+        handleBuyResearch,
     };
 };

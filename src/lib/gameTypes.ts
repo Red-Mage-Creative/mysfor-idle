@@ -59,6 +59,22 @@ export interface ItemUpgrade {
   icon: LucideIcon;
 }
 
+// New type for Research
+export interface ResearchNode {
+  id: string;
+  name: string;
+  description: string;
+  cost: number; // researchPoints
+  position: { x: number; y: number };
+  prerequisites: string[];
+  icon: LucideIcon;
+  effect: {
+    type: 'manaMultiplier' | 'allProductionMultiplier' | 'costReductionMultiplier' | 'specificItemMultiplier' | 'manaPerClickMultiplier' | 'essenceFluxMultiplier';
+    value: number;
+    itemId?: string; // for specificItemMultiplier
+  };
+}
+
 // New type for workshop upgrades - refactored to be level-based
 export interface WorkshopUpgrade {
   id: string;
@@ -123,6 +139,7 @@ export interface GameSaveData {
     notifiedUpgrades: string[];
     hasEverClicked: boolean;
     hasEverPrestiged: boolean;
+    unlockedResearchNodeIds?: string[]; // New field for research
     overclockLevel: number;
     prestigeCount: number;
     hasBeatenGame?: boolean;

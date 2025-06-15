@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import OfflineEarningsModal from '@/components/game/OfflineEarningsModal';
 import SaveStatusDisplay from '@/components/layout/SaveStatus';
 import PrestigeBonusesSummary from '@/components/game/PrestigeBonusesSummary';
+import ResearchTree from '@/components/game/ResearchTree';
 
 const Index = () => {
   const {
@@ -39,6 +40,7 @@ const Index = () => {
     availableItemUpgrades,
     handleBuyItemUpgrade,
     showWorkshopTab,
+    showResearchTab,
     workshopUpgrades,
     handleBuyWorkshopUpgrade,
     showTutorial,
@@ -55,10 +57,12 @@ const Index = () => {
     toggleAutoBuySetting,
     handleBuyAllItemUpgrades,
     handleBuyAllWorkshopUpgrades,
+    unlockedResearchNodes,
+    handleBuyResearch,
   } = useGame();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
-  const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showWorkshopTab ? 1 : 0) + (showPrestigeTab ? 1 : 0);
+  const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showWorkshopTab ? 1 : 0) + (showPrestigeTab ? 1 : 0) + (showResearchTab ? 1 : 0);
 
   if (!isLoaded) {
     return (
@@ -117,11 +121,12 @@ const Index = () => {
               {tabCount > 1 && (
                 <TabsList className={cn(
                   "grid w-full",
-                  { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, "grid-cols-4": tabCount === 4 }
+                  { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, "grid-cols-4": tabCount === 4, "grid-cols-5": tabCount === 5 }
                 )}>
                   <TabsTrigger value="items">Items</TabsTrigger>
                   {showUpgradesTab && <TabsTrigger value="upgrades">Upgrades</TabsTrigger>}
                   {showWorkshopTab && <TabsTrigger value="workshop">Workshop</TabsTrigger>}
+                  {showResearchTab && <TabsTrigger value="research">Research</TabsTrigger>}
                   {showPrestigeTab && <TabsTrigger value="prestige">Prestige</TabsTrigger>}
                 </TabsList>
               )}
@@ -156,6 +161,15 @@ const Index = () => {
                     onBuyAll={handleBuyAllWorkshopUpgrades}
                   />
                 </TabsContent>
+              )}
+              {showResearchTab && (
+                  <TabsContent value="research">
+                      <ResearchTree
+                          researchPoints={currencies.researchPoints}
+                          unlockedNodes={unlockedResearchNodes}
+                          onUnlockNode={handleBuyResearch}
+                      />
+                  </TabsContent>
               )}
               {showPrestigeTab && (
                 <TabsContent value="prestige">

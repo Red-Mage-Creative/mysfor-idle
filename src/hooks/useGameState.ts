@@ -28,6 +28,7 @@ export const useGameState = () => {
     const [overclockLevel, setOverclockLevel] = useState(0);
     const [autoBuySettings, setAutoBuySettings] = useState({ items: false, upgrades: false });
     const [achievements, setAchievements] = useState<Record<string, AchievementProgress>>({});
+    const [unlockedResearchNodes, setUnlockedResearchNodes] = useState<Set<string>>(new Set());
     const [hasBeatenGame, setHasBeatenGame] = useState(false);
     const [gameCompletionShown, setGameCompletionShown] = useState(false);
     const [devMode, _setDevMode] = useState(() => {
@@ -78,5 +79,6 @@ export const useGameState = () => {
         devMode, setDevMode,
         hasBeatenGame, setHasBeatenGame,
         gameCompletionShown, setGameCompletionShown,
+        unlockedResearchNodes, setUnlockedResearchNodes,
     };
 };
