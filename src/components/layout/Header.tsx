@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Gamepad2, Info, Settings, Zap, Trophy, Star, Menu } from 'lucide-react';
+import { Gamepad2, Info, Settings, Zap, Trophy, Star, Menu, Award } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -84,6 +84,10 @@ const Header = () => {
             <Info className="h-4 w-4" />
             <span>About</span>
           </NavLink>
+          <NavLink to="/achievements" className={navLinkClasses}>
+            <Award className="h-4 w-4" />
+            <span>Achievements</span>
+          </NavLink>
           <NavLink to="/settings" className={navLinkClasses}>
             <Settings className="h-4 w-4" />
             <span>Settings</span>
@@ -116,6 +120,12 @@ const Header = () => {
                             <NavLink to="/about" className={mobileNavLinkClasses}>
                                 <Info className="h-5 w-5" />
                                 <span>About</span>
+                            </NavLink>
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <NavLink to="/achievements" className={mobileNavLinkClasses}>
+                                <Award className="h-5 w-5" />
+                                <span>Achievements</span>
                             </NavLink>
                         </SheetClose>
                         <SheetClose asChild>
