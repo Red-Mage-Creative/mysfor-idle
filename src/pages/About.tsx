@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Zap, Gem, BrainCircuit } from 'lucide-react';
+import { Zap, Gem, BrainCircuit, Users, Github, Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AboutPage = () => {
   return (
@@ -57,6 +57,38 @@ const AboutPage = () => {
             <div>
               <h3 className="font-semibold">Prestige for Power</h3>
               <p className="text-muted-foreground">When you've accumulated enough lifetime mana, you can prestige. This resets your progress but grants you Aether Shards, a powerful currency for permanent upgrades.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>About This Project</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="p-2 rounded-md bg-primary/10 text-primary">
+              <Users className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Who Made This?</h3>
+              <p className="text-muted-foreground">This game was created with Lovable, an AI-powered tool that helps you build, edit, and ship web applications by chatting with an AI.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-4">
+            <div className="p-2 rounded-md bg-primary/10 text-primary">
+                <Github className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Star us on GitHub!</h3>
+              <p className="text-muted-foreground">This project is open-source. If you enjoy it, please consider giving us a star on GitHub to show your support for AI-powered development!</p>
+                <Button asChild variant="outline" size="sm" className="mt-2">
+                    <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                        <Star className="mr-2 h-4 w-4" />
+                        Star on GitHub
+                    </a>
+                </Button>
             </div>
           </div>
         </CardContent>

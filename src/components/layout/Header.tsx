@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Gamepad2, Info, Settings, Zap, Trophy } from 'lucide-react';
+import { Gamepad2, Info, Settings, Zap, Trophy, Github } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,12 @@ const Header = () => {
           <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-clip-text text-transparent">Mystic Forge</h1>
         </Link>
         <nav className="hidden md:flex items-center gap-4">
+            <Button asChild variant="ghost" size="icon">
+                <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
+                    <Github className="h-5 w-5" />
+                </a>
+            </Button>
+
             {/* Dev mode controls are only available in development */}
             {import.meta.env.DEV && (
               <>
