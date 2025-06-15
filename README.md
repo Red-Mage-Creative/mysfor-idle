@@ -44,7 +44,11 @@ The primary objective is to progress through the game by generating resources, p
 
 ## Screenshots
 
-*(Coming Soon: Add screenshots of early-game, mid-game, and late-game here for your submission!)*
+![Layout of the Game](https://github.com/user-attachments/assets/99746932-4cd0-47d9-8be1-5d81665d316c)
+
+![Research can go deep!](https://github.com/user-attachments/assets/b24e0b14-3ba1-4c7d-8934-944da7720e68)
+
+![You can break it!](https://cdn.discordapp.com/attachments/237364782657699840/1383913992896123053/nanundefined.png?ex=685085d7&is=684f3457&hm=8018c4fcb3de6e857ca430a299451cc7b89339d113d9596d5ac337935bc7324d&)
 
 ## Tech Stack
 
