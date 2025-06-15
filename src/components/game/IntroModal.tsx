@@ -82,7 +82,7 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
                       This project is open-source. If you enjoy it, please consider giving us a star on GitHub to show your support!
                   </p>
                   <Button asChild variant="outline" size="sm" className="mt-2">
-                      <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                      <a href="https://github.com/Red-Mage-Creative/mysfor-idle" target="_blank" rel="noopener noreferrer" className="flex items-center">
                           <Star className="mr-2 h-4 w-4" />
                           Star on GitHub
                       </a>

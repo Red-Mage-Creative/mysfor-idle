@@ -65,10 +65,10 @@ This project was built with:
 
 ```sh
 # Step 1: Clone the repository
-git clone https://github.com/lovable-dev/mystic-forge-gemini.git
+git clone https://github.com/Red-Mage-Creative/mysfor-idle.git
 
 # Step 2: Navigate to the project directory
-cd mystic-forge-gemini
+cd mysfor-idle
 
 # Step 3: Install dependencies
 npm install
