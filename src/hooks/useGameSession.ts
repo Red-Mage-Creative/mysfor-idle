@@ -1,4 +1,3 @@
-
 import { useEffect, useCallback, useRef } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { useGameState } from './useGameState';
@@ -18,6 +17,8 @@ type UseGameSessionProps = ReturnType<typeof useGameState> & {
     setCompletedChallenges: (challenges: Record<string, number>) => void;
     dimensionalUpgrades: Record<string, number>;
     setDimensionalUpgrades: (upgrades: Record<string, number>) => void;
+    autoBuySettings: any;
+    setAutoBuySettings: (settings: any) => void;
 };
 
 export const useGameSession = (props: UseGameSessionProps) => {
@@ -30,6 +31,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
         setBuyQuantity, overclockLevel, setOverclockLevel, generationPerSecond, achievements,
         setAchievements, hasBeatenGame, setHasBeatenGame, gameCompletionShown, setGameCompletionShown,
         setIsIntroModalOpen, unlockedResearchNodes, setUnlockedResearchNodes, activeGolemIds, setActiveGolemIds,
+        autoBuySettings, setAutoBuySettings,
         ancientKnowledgeNodes, setAncientKnowledgeNodes,
         runStartTime, setRunStartTime,
         activeChallengeId, setActiveChallengeId,
@@ -43,6 +45,8 @@ export const useGameSession = (props: UseGameSessionProps) => {
         if (!isLoaded) return;
         try {
             if (!isAutoSave) setSaveStatus('saving');
+            // Note: We are adding autoBuySettings to the save data object here.
+            // This works around not being able to edit GameSaveData type definition for now.
             const saveData: GameSaveData = {
                 version: C.CURRENT_SAVE_VERSION, lastSaveTimestamp: Date.now(), currencies,
                 items, itemUpgrades, workshopUpgrades: workshopUpgrades.map(({ id, level }) => ({ id, level })),
@@ -51,7 +55,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
                 unlockedResearchNodeIds: Array.from(unlockedResearchNodes),
                 activeGolemIds,
                 hasBeatenGame, gameCompletionShown,
-                autoBuySettings: props.autoBuySettings,
+                autoBuySettings: autoBuySettings, // Persist auto-buy settings
                 ancientKnowledgeNodeIds: Array.from(ancientKnowledgeNodes),
                 runStartTime,
                 activeChallengeId,
@@ -73,7 +77,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
         isLoaded, currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels,
         notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, achievements,
         unlockedResearchNodes, activeGolemIds, hasBeatenGame, gameCompletionShown, setLastSaveTime, setSaveStatus,
-        props.autoBuySettings, ancientKnowledgeNodes, runStartTime,
+        autoBuySettings, ancientKnowledgeNodes, runStartTime,
         activeChallengeId, completedChallenges, dimensionalUpgrades
     ]);
     
@@ -111,6 +115,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
                 setActiveGolemIds(loadedState.activeGolemIds || []);
                 setHasBeatenGame(loadedState.hasBeatenGame || false);
                 setGameCompletionShown(loadedState.gameCompletionShown || false);
+                setAutoBuySettings(loadedState.autoBuySettings || { items: false, upgrades: false }); // Load auto-buy settings
                 setAncientKnowledgeNodes(new Set(loadedState.ancientKnowledgeNodeIds || []));
                 setRunStartTime(loadedState.runStartTime || Date.now());
                 setLastSaveTime(new Date(loadedState.lastSaveTimestamp));
@@ -147,6 +152,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
         setSaveStatus('idle');
         setBuyQuantity(1);
         setOverclockLevel(0);
+        setAutoBuySettings({ items: false, upgrades: false }); // Reset auto-buy settings
         setAchievements({});
         setUnlockedResearchNodes(new Set());
         setActiveGolemIds([]);
@@ -163,7 +169,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
     }, [
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels,
         setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings,
-        setLastSaveTime, setSaveStatus, setBuyQuantity, setOverclockLevel, setAchievements, setUnlockedResearchNodes, setActiveGolemIds, setHasBeatenGame, setGameCompletionShown, setAncientKnowledgeNodes,
+        setLastSaveTime, setSaveStatus, setBuyQuantity, setOverclockLevel, setAutoBuySettings, setAchievements, setUnlockedResearchNodes, setActiveGolemIds, setHasBeatenGame, setGameCompletionShown, setAncientKnowledgeNodes,
         setRunStartTime, setActiveChallengeId, setCompletedChallenges, setDimensionalUpgrades
     ]);
 

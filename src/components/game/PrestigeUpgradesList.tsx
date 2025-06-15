@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PrestigeUpgrade as PrestigeUpgradeType, Currencies, GolemEffects } from '@/lib/gameTypes';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,6 +8,7 @@ import { Gem, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { AutoBuyStatusIndicator, AutoBuyStatus } from './AutoBuyStatusIndicator';
 
 interface PrestigeUpgradesListProps {
   prestigeUpgrades: PrestigeUpgradeType[];
@@ -19,6 +19,7 @@ interface PrestigeUpgradesListProps {
   onToggleAutoBuy: (setting: 'items' | 'upgrades') => void;
   prestigeMultipliers: { autoBuyItemsUnlocked: boolean, autoBuyUpgradesUnlocked: boolean };
   golemEffects: GolemEffects;
+  lastAutoBuy: { item: string | null; upgrade: string | null; };
 }
 
 const PrestigeUpgradeItem = ({ 
@@ -140,12 +141,36 @@ const PrestigeUpgradesList = ({
     onToggleAutoBuy,
     prestigeMultipliers,
     golemEffects,
+    lastAutoBuy
 }: PrestigeUpgradesListProps) => {
+
+  const itemsStatus: AutoBuyStatus = !prestigeMultipliers.autoBuyItemsUnlocked 
+    ? 'locked' 
+    : golemEffects.disabledFeatures.has('autoBuyItems') 
+    ? 'disabled_golem' 
+    : autoBuySettings.items 
+    ? 'active' 
+    : 'inactive';
+    
+  const upgradesStatus: AutoBuyStatus = !prestigeMultipliers.autoBuyUpgradesUnlocked 
+    ? 'locked' 
+    : golemEffects.disabledFeatures.has('autoBuyUpgrades') 
+    ? 'disabled_golem' 
+    : autoBuySettings.upgrades 
+    ? 'active' 
+    : 'inactive';
+
   return (
     <Card className="w-full bg-transparent border-none shadow-none">
       <CardHeader className="p-2">
         <CardTitle>Aetherium Forge</CardTitle>
         <CardDescription>Spend Aether Shards on permanent upgrades.</CardDescription>
+        {(prestigeMultipliers.autoBuyItemsUnlocked || prestigeMultipliers.autoBuyUpgradesUnlocked) && (
+            <div className="flex gap-2 pt-2">
+                <AutoBuyStatusIndicator type="items" status={itemsStatus} lastPurchase={lastAutoBuy.item} />
+                <AutoBuyStatusIndicator type="upgrades" status={upgradesStatus} lastPurchase={lastAutoBuy.upgrade} />
+            </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-3 p-2">
         {prestigeUpgrades.map((upgrade) => {

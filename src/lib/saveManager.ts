@@ -1,4 +1,3 @@
-
 import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade, AchievementProgress, OfflineEarnings } from '@/lib/gameTypes';
 import { getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
@@ -52,6 +51,9 @@ const migrateSaveData = (data: any): GameSaveData => {
     if (typeof migratedData.gameCompletionShown === 'undefined') migratedData.gameCompletionShown = false;
     if (typeof migratedData.ancientKnowledgeNodeIds === 'undefined') migratedData.ancientKnowledgeNodeIds = [];
     if (typeof migratedData.runStartTime === 'undefined') migratedData.runStartTime = Date.now();
+    if (typeof migratedData.autoBuySettings === 'undefined') {
+        migratedData.autoBuySettings = { items: false, upgrades: false };
+    }
 
     // New fields for Dimensional Challenges
     if (typeof migratedData.activeChallengeId === 'undefined') migratedData.activeChallengeId = null;
