@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -65,6 +66,7 @@ const Index = () => {
     setActiveGolemIds,
     allGolems,
     MAX_ACTIVE_GOLEMS,
+    golemEffects,
   } = useGame();
 
   const handleToggleGolem = (id: string) => {
@@ -210,6 +212,7 @@ const Index = () => {
                       autoBuySettings={autoBuySettings}
                       onToggleAutoBuy={toggleAutoBuySetting}
                       prestigeMultipliers={prestigeMultipliers}
+                      golemEffects={golemEffects}
                   />
                 </TabsContent>
               )}

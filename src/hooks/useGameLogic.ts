@@ -17,7 +17,7 @@ export const useGameLogic = () => {
     const repairAttempted = useRef(false);
 
     const calculations = useGameCalculations(gameState);
-    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, prestigeMultipliers, activeGolems, activeSynergies } = calculations;
+    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, prestigeMultipliers, activeGolems, activeSynergies, golemEffects } = calculations;
     
     const { manualSave, debouncedSave, immediateSave, resetGame, exportSave, importSave } = useGameSession({
         ...gameState,
@@ -167,7 +167,7 @@ export const useGameLogic = () => {
     // Auto-buy logic
     useEffect(() => {
         const autoBuyTick = () => {
-            if (!isLoaded) return;
+            if (!isLoaded || golemEffects.autoBuyDisabled) return;
             
             // Auto-buy items
             if (autoBuySettings.items && prestigeMultipliers.autoBuyItemsUnlocked) {
@@ -232,7 +232,8 @@ export const useGameLogic = () => {
         currencies,
         handleBuyItem,
         handleBuyItemUpgrade,
-        handleBuyWorkshopUpgrade
+        handleBuyWorkshopUpgrade,
+        golemEffects // Add golemEffects to dependency array
     ]);
 
     // Auto-downshift for overclock

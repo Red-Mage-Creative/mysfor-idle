@@ -1,10 +1,11 @@
+
 import React from 'react';
-import { PrestigeUpgrade as PrestigeUpgradeType, Currencies } from '@/lib/gameTypes';
+import { PrestigeUpgrade as PrestigeUpgradeType, Currencies, GolemEffects } from '@/lib/gameTypes';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatNumber } from '@/lib/formatters';
-import { Gem } from 'lucide-react';
+import { Gem, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -17,6 +18,7 @@ interface PrestigeUpgradesListProps {
   autoBuySettings: { items: boolean, upgrades: boolean };
   onToggleAutoBuy: (setting: 'items' | 'upgrades') => void;
   prestigeMultipliers: { autoBuyItemsUnlocked: boolean, autoBuyUpgradesUnlocked: boolean };
+  golemEffects: GolemEffects;
 }
 
 const PrestigeUpgradeItem = ({ 
@@ -27,6 +29,7 @@ const PrestigeUpgradeItem = ({
     autoBuySettings,
     onToggleAutoBuy,
     prestigeMultipliers,
+    golemEffects,
 }: { 
     upgrade: PrestigeUpgradeType, 
     level: number, 
@@ -34,7 +37,8 @@ const PrestigeUpgradeItem = ({
     onBuyPrestigeUpgrade: (id: string) => void,
     autoBuySettings: { items: boolean, upgrades: boolean },
     onToggleAutoBuy: (setting: 'items' | 'upgrades') => void,
-    prestigeMultipliers: { autoBuyItemsUnlocked: boolean, autoBuyUpgradesUnlocked: boolean };
+    prestigeMultipliers: { autoBuyItemsUnlocked: boolean, autoBuyUpgradesUnlocked: boolean },
+    golemEffects: GolemEffects;
 }) => {
     const cost = upgrade.cost(level);
     const canAfford = currencies.aetherShards >= cost;
@@ -45,8 +49,25 @@ const PrestigeUpgradeItem = ({
     const isAutoBuyItemsUpgrade = upgrade.effect.type === 'unlockAutoBuyItems';
     const isAutoBuyUpgradesUpgrade = upgrade.effect.type === 'unlockAutoBuyUpgrades';
     const isAutoBuyUpgrade = isAutoBuyItemsUpgrade || isAutoBuyUpgradesUpgrade;
+    const autoBuyDisabledByGolem = !!golemEffects?.autoBuyDisabled;
+    const isLocked = isAutoBuyUpgrade && level === 0;
 
     const showToggle = isAutoBuyUpgrade && level > 0;
+
+    const getTooltipContent = () => {
+        if (isAutoBuyUpgrade) {
+            if (autoBuyDisabledByGolem) {
+                return <p>Auto-buy is disabled by an active golem's effect.</p>;
+            }
+            return <p>{upgrade.description(level)}</p>;
+        }
+        
+        if (!isMaxLevel) {
+            return <p>Next Level: {upgrade.description(level + 1)}</p>;
+        }
+
+        return <p>This upgrade is at its maximum level.</p>;
+    };
 
     return (
         <Tooltip>
@@ -58,7 +79,10 @@ const PrestigeUpgradeItem = ({
                     <div className="flex items-center gap-3 flex-grow min-w-0">
                         <Icon className="w-8 h-8 text-amber-400 flex-shrink-0" />
                         <div className="flex-grow">
-                            <p className="font-semibold">{upgrade.name}</p>
+                            <p className="font-semibold flex items-center gap-2">
+                                {upgrade.name}
+                                {isLocked && <Lock className="w-4 h-4 text-muted-foreground" />}
+                            </p>
                             <p className="text-sm text-muted-foreground">Level {level} / {upgrade.maxLevel}</p>
                             <p className="text-sm font-medium text-primary mt-1">{currentEffect}</p>
                         </div>
@@ -69,8 +93,14 @@ const PrestigeUpgradeItem = ({
                                 id={`autobuy-${upgrade.id}`}
                                 checked={isAutoBuyItemsUpgrade ? autoBuySettings.items : autoBuySettings.upgrades}
                                 onCheckedChange={() => onToggleAutoBuy(isAutoBuyItemsUpgrade ? 'items' : 'upgrades')}
+                                disabled={autoBuyDisabledByGolem}
                             />
-                            <Label htmlFor={`autobuy-${upgrade.id}`}>{isAutoBuyItemsUpgrade ? (autoBuySettings.items ? 'On' : 'Off') : (autoBuySettings.upgrades ? 'On' : 'Off')}</Label>
+                            <Label 
+                                htmlFor={`autobuy-${upgrade.id}`} 
+                                className={cn(autoBuyDisabledByGolem && "cursor-not-allowed opacity-50")}
+                            >
+                                {isAutoBuyItemsUpgrade ? (autoBuySettings.items ? 'On' : 'Off') : (autoBuySettings.upgrades ? 'On' : 'Off')}
+                            </Label>
                         </div>
                     ) : (
                         <Button
@@ -92,11 +122,7 @@ const PrestigeUpgradeItem = ({
                 </div>
             </TooltipTrigger>
             <TooltipContent>
-                {!isMaxLevel ? (
-                    <p>Next Level: {upgrade.description(level + 1)}</p>
-                ) : (
-                    <p>This upgrade is at its maximum level.</p>
-                )}
+                {getTooltipContent()}
             </TooltipContent>
         </Tooltip>
     );
@@ -111,6 +137,7 @@ const PrestigeUpgradesList = ({
     autoBuySettings,
     onToggleAutoBuy,
     prestigeMultipliers,
+    golemEffects,
 }: PrestigeUpgradesListProps) => {
   return (
     <Card className="w-full bg-transparent border-none shadow-none">
@@ -131,6 +158,7 @@ const PrestigeUpgradesList = ({
               autoBuySettings={autoBuySettings}
               onToggleAutoBuy={onToggleAutoBuy}
               prestigeMultipliers={prestigeMultipliers}
+              golemEffects={golemEffects}
             />
           );
         })}
