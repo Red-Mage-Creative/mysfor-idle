@@ -1,6 +1,6 @@
 
 import { DimensionalUpgrade } from './gameTypes';
-import { Gem, Zap, ChevronsUp, Hourglass, Factory, Atom, Repeat, FlaskConical, Puzzle } from 'lucide-react';
+import { Gem, Zap, ChevronsUp, Hourglass, Factory, Atom, Repeat, FlaskConical, Puzzle, Award } from 'lucide-react';
 
 export const dimensionalUpgrades: DimensionalUpgrade[] = [
     // Production
@@ -86,7 +86,7 @@ export const dimensionalUpgrades: DimensionalUpgrade[] = [
         cost: (level) => Math.floor(250 * Math.pow(2.5, level)),
         maxLevel: 10,
         effect: { type: 'challengeTokenGainMultiplier', value: (level) => 1 + level * 0.20 },
-        icon: Repeat,
+        icon: Award,
     },
     {
         id: 'golem_synergy_i',

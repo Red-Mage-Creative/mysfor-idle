@@ -49,6 +49,7 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
                   <li>Use Mana to purchase items that automate production.</li>
                   <li>Buy upgrades to enhance the efficiency of your items.</li>
                   <li>Prestige to reset your progress for powerful permanent bonuses.</li>
+                  <li>Complete challenges and unlock Golems in the expansive post-game.</li>
                   <li>Your ultimate goal: Forge the final item, the Cosmic Resonator!</li>
                 </ul>
               </div>
@@ -59,7 +60,7 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
                <div>
                   <h3 className="font-semibold">About This Game</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                      Mystic Forge is an "incremental" or "idle" game. The joy comes from watching numbers go up, making strategic decisions to optimize your growth, and unlocking new parts of the game over time.
+                      Mystic Forge is a feature-rich "incremental" or "idle" game. The joy comes from watching numbers go up, making strategic decisions, and unlocking new parts of the game over time. It features multiple prestige layers, over 80 achievements, 9 unique challenges, and a deep end-game that will keep you forging for hours.
                   </p>
               </div>
             </div>
