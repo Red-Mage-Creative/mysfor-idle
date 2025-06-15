@@ -1,4 +1,3 @@
-
 import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade, AchievementProgress, OfflineEarnings } from '@/lib/gameTypes';
 import { getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
@@ -48,6 +47,7 @@ const migrateSaveData = (data: any): GameSaveData => {
     if (typeof migratedData.hasBeatenGame === 'undefined') migratedData.hasBeatenGame = false;
     if (typeof migratedData.gameCompletionShown === 'undefined') migratedData.gameCompletionShown = false;
     if (typeof migratedData.ancientKnowledgeNodeIds === 'undefined') migratedData.ancientKnowledgeNodeIds = [];
+    if (typeof migratedData.runStartTime === 'undefined') migratedData.runStartTime = Date.now();
 
     migratedData.version = C.CURRENT_SAVE_VERSION;
     return migratedData as GameSaveData;
@@ -72,7 +72,16 @@ const processAchievementsOnLoad = (saveData: GameSaveData): Record<string, Achie
     if (Object.keys(saveData.prestigeUpgradeLevels).length > 0) unlock('first_prestige_upgrade');
     if (saveData.prestigeCount >= 1) unlock('prestige_1');
     if (saveData.prestigeCount >= 5) unlock('prestige_5');
+    if (saveData.prestigeCount >= 10) unlock('prestige_10');
+    if (saveData.prestigeCount >= 15) unlock('prestige_15');
+    if (saveData.prestigeCount >= 20) unlock('prestige_20');
+    if (saveData.prestigeCount >= 25) unlock('prestige_25');
+    if (saveData.prestigeCount >= 50) unlock('prestige_50');
+    if (saveData.prestigeCount >= 100) unlock('prestige_100');
+
     if (saveData.lifetimeMana >= 1e15) unlock('mana_1qa');
+    if (saveData.lifetimeMana >= 1e18) unlock('mana_1qi');
+    if (saveData.lifetimeMana >= 1e21) unlock('mana_1sx');
 
     // Research achievements
     const unlockedResearchNodes = new Set(saveData.unlockedResearchNodeIds || []);
@@ -96,6 +105,34 @@ const processAchievementsOnLoad = (saveData: GameSaveData): Record<string, Achie
         synergy.golemIds.every(id => activeGolemIds.has(id))
     );
     if (activeSynergies.length > 0) unlock('golem_first_synergy');
+
+    // Workshop Mastery
+    const workshopLevels = (saveData.workshopUpgrades || []).reduce((sum, u) => sum + u.level, 0);
+    if (workshopLevels >= 10) unlock('workshop_10');
+    if (workshopLevels >= 50) unlock('workshop_50');
+    if (workshopLevels >= 100) unlock('workshop_100');
+    if (workshopLevels >= 200) unlock('workshop_200');
+    if (initialWorkshopUpgrades.length > 0) {
+        const savedUpgradesMap = new Map((saveData.workshopUpgrades || []).map(u => [u.id, u.level]));
+        const allUpgradesAt10 = initialWorkshopUpgrades.every(u => (savedUpgradesMap.get(u.id) || 0) >= 10);
+        if (allUpgradesAt10) unlock('workshop_all_10');
+    }
+    
+    // Overclock Engineer
+    if (saveData.overclockLevel >= 1) unlock('overclock_1');
+    if (saveData.overclockLevel >= 5) unlock('overclock_5');
+    if (saveData.overclockLevel >= 10) unlock('overclock_10');
+    if (saveData.overclockLevel >= 15) unlock('overclock_15');
+
+    // Ancient Wisdom
+    const akNodes = new Set(saveData.ancientKnowledgeNodeIds || []);
+    if (akNodes.size >= 1) unlock('ak_1');
+    if (akNodes.size >= 5) unlock('ak_5');
+    if (akNodes.size >= 10) unlock('ak_10');
+    if (akNodes.size >= 20) unlock('ak_20');
+    if (akNodes.size >= 30) unlock('ak_30');
+    // There are 30 AK nodes total.
+    if (akNodes.size >= 30) unlock('ak_all');
 
     return finalAchievements;
 }

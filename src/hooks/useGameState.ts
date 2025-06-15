@@ -33,6 +33,10 @@ export const useGameState = () => {
     const [hasBeatenGame, setHasBeatenGame] = useState(false);
     const [gameCompletionShown, setGameCompletionShown] = useState(false);
     const [ancientKnowledgeNodes, setAncientKnowledgeNodes] = useState<Set<string>>(new Set());
+
+    // New state for achievements
+    const [runStartTime, setRunStartTime] = useState(Date.now());
+
     const [devMode, _setDevMode] = useState(() => {
         // Dev mode is only available in development environments
         if (!import.meta.env.DEV) {
@@ -84,5 +88,7 @@ export const useGameState = () => {
         unlockedResearchNodes, setUnlockedResearchNodes,
         activeGolemIds, setActiveGolemIds,
         ancientKnowledgeNodes, setAncientKnowledgeNodes,
+        // New state
+        runStartTime, setRunStartTime,
     };
 };

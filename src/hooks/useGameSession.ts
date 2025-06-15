@@ -23,7 +23,8 @@ export const useGameSession = (props: UseGameSessionProps) => {
         setBuyQuantity, overclockLevel, setOverclockLevel, generationPerSecond, achievements,
         setAchievements, hasBeatenGame, setHasBeatenGame, gameCompletionShown, setGameCompletionShown,
         setIsIntroModalOpen, unlockedResearchNodes, setUnlockedResearchNodes, activeGolemIds, setActiveGolemIds,
-        ancientKnowledgeNodes, setAncientKnowledgeNodes
+        ancientKnowledgeNodes, setAncientKnowledgeNodes,
+        runStartTime, setRunStartTime
     } = props;
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -42,6 +43,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
                 hasBeatenGame, gameCompletionShown,
                 autoBuySettings: props.autoBuySettings,
                 ancientKnowledgeNodeIds: Array.from(ancientKnowledgeNodes),
+                runStartTime,
             };
             localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
             setLastSaveTime(new Date(saveData.lastSaveTimestamp));
@@ -58,7 +60,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
         isLoaded, currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels,
         notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, achievements,
         unlockedResearchNodes, activeGolemIds, hasBeatenGame, gameCompletionShown, setLastSaveTime, setSaveStatus,
-        props.autoBuySettings, ancientKnowledgeNodes
+        props.autoBuySettings, ancientKnowledgeNodes, runStartTime
     ]);
     
     useGameLoop({ isLoaded, generationPerSecond, setCurrencies, setLifetimeMana });
@@ -96,6 +98,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
                 setHasBeatenGame(loadedState.hasBeatenGame || false);
                 setGameCompletionShown(loadedState.gameCompletionShown || false);
                 setAncientKnowledgeNodes(new Set(loadedState.ancientKnowledgeNodeIds || []));
+                setRunStartTime(loadedState.runStartTime || Date.now());
                 setLastSaveTime(new Date(loadedState.lastSaveTimestamp));
                 if (offlineEarnings) setOfflineEarnings(offlineEarnings);
             }
@@ -130,12 +133,14 @@ export const useGameSession = (props: UseGameSessionProps) => {
         setHasBeatenGame(false);
         setGameCompletionShown(false);
         setAncientKnowledgeNodes(new Set());
+        setRunStartTime(Date.now());
         localStorage.removeItem(C.SAVE_KEY);
         localStorage.removeItem(C.BUY_QUANTITY_KEY);
     }, [
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels,
         setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings,
-        setLastSaveTime, setSaveStatus, setBuyQuantity, setOverclockLevel, setAchievements, setUnlockedResearchNodes, setActiveGolemIds, setHasBeatenGame, setGameCompletionShown, setAncientKnowledgeNodes
+        setLastSaveTime, setSaveStatus, setBuyQuantity, setOverclockLevel, setAchievements, setUnlockedResearchNodes, setActiveGolemIds, setHasBeatenGame, setGameCompletionShown, setAncientKnowledgeNodes,
+        setRunStartTime
     ]);
 
     const resetGame = useCallback(() => {

@@ -134,7 +134,7 @@ export interface GolemSynergy {
     effect: GolemEffect;
 }
 
-export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development' | 'Golem Mastery';
+export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development' | 'Golem Mastery' | 'Workshop Mastery' | 'Overclock Engineer' | 'Efficiency Master' | 'Speed Running' | 'Ancient Wisdom' | 'Hidden & Fun';
 
 export interface Achievement {
   id: string;
@@ -176,6 +176,7 @@ export interface GameSaveData {
     hasBeatenGame?: boolean;
     gameCompletionShown?: boolean;
     ancientKnowledgeNodeIds?: string[];
+    runStartTime?: number;
 }
 
 export interface OfflineEarnings {

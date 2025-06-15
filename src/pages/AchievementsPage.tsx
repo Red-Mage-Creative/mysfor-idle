@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { allAchievements } from '@/lib/achievements';
@@ -12,7 +11,7 @@ import { ArrowLeft } from 'lucide-react';
 const AchievementsPage = () => {
   const { achievements: achievementProgress, achievementBonus } = useGame();
 
-  const categories: AchievementCategory[] = ['First Steps', 'Currency Milestones', 'Prestige Master', 'Cosmic Achievements', 'Research & Development', 'Golem Mastery'];
+  const categories: AchievementCategory[] = ['First Steps', 'Speed Running', 'Currency Milestones', 'Prestige Master', 'Workshop Mastery', 'Overclock Engineer', 'Research & Development', 'Golem Mastery', 'Cosmic Achievements', 'Efficiency Master', 'Ancient Wisdom', 'Hidden & Fun'];
 
   const unlockedCount = Object.values(achievementProgress || {}).filter(p => p.unlocked).length;
   const totalCount = allAchievements.length;
