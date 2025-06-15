@@ -1,73 +1,73 @@
-# Welcome to your Lovable project
 
-## Project info
+# Mystic Forge - An Incremental Adventure
 
-**URL**: https://lovable.dev/projects/270682e0-5ec0-447d-9c71-8fb8489a6941
+[![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-blue?style=for-the-badge&logo=love)](https://lovable.dev)
 
-## How can I edit this code?
+Welcome to Mystic Forge, an incremental game where you harness the power of mana to build a powerful engine of production. Start with a single click and grow your empire to forge the ultimate artifact: the Cosmic Resonator.
 
-There are several ways of editing your application.
+## Goal of the Game
 
-**Use Lovable**
+The primary objective is to progress through the game by generating resources, purchasing items and upgrades, and ultimately crafting the **Cosmic Resonator**, which marks the completion of the main game. After that, you can continue to play, pushing your prestige level ever higher.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/270682e0-5ec0-447d-9c71-8fb8489a6941) and start prompting.
+## Core Features
 
-Changes made via Lovable will be committed automatically to this repo.
+-   **Resource Generation:** Click to generate Mana, then purchase automated items to generate it for you.
+-   **Multi-Currency System:** Manage Mana, Cogwheel Gears, Research Points, and more as you progress.
+-   **Deep Upgrade Tree:** Unlock hundreds of upgrades for your items and global production.
+-   **Workshop & Research:** Invest in your workshop and research new technologies for powerful boosts.
+-   **Prestige System (Dimensional Shift):** Reset your progress to earn Aether Shards, which are used to purchase powerful, permanent upgrades that persist across resets.
+-   **Overclocking:** Push your Cogwheel Gear production to the limit, at a cost!
+-   **Offline Progress:** Your forge continues to work even when you're away.
+-   **Auto-Buyers:** Unlock the ability to automate purchasing items and upgrades.
+-   **Save Management:** Your game is saved automatically. You can also manually export and import your save file.
+-   **Victory Condition:** A clear end-goal with a satisfying conclusion and a final credits screen.
 
-**Use your preferred IDE**
+## How to Play
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1.  **Click the Mana Orb:** Start by generating Mana manually.
+2.  **Buy Items:** Purchase your first `Mana Spring` to start automatic Mana generation.
+3.  **Purchase Upgrades:** As you unlock them, buy upgrades to boost your items' production.
+4.  **Unlock New Tiers:** Reaching certain milestones will unlock new items, currencies, and mechanics like the Workshop and Research.
+5.  **Prestige:** When you've amassed enough power, perform a `Dimensional Shift` to reset for Aether Shards and unlock powerful permanent upgrades.
+6.  **Win!** Build your way up to forging the `Cosmic Resonator`.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Tech Stack
 
-Follow these steps:
+This project was built with:
+
+-   **Framework:** [React](https://reactjs.org/) with [Vite](https://vitejs.dev/)
+-   **Language:** [TypeScript](https://www.typescriptlang.org/)
+-   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+-   **UI Components:** [shadcn/ui](https://ui.shadcn.com/)
+-   **State Management:** React Context API with custom hooks.
+-   **Development:** Built with [Lovable](https://lovable.dev), an AI-powered development environment.
+
+## Getting Started Locally
+
+If you want to run the project on your own machine:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Step 2: Navigate to the project directory
+cd mystic-forge # or your project name
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Step 3: Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Run the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Credits
 
-**Use GitHub Codespaces**
+-   **Development & Design:** @andersthemagi / @magickappa
+-   **Built using:** [Lovable](https://lovable.dev) and Gemini for the AI Showdown Event (14 - 15 Jun)
+-   **Special Thanks:** To all the mana crystals, cogwheel gears, and aether shards that made this journey possible. And of course, you the player!
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/270682e0-5ec0-447d-9c71-8fb8489a6941) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This README was generated with the help of an AI assistant.
