@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, PurchaseDetails, GolemEffect, GolemEffectTarget } from '@/lib/gameTypes';
+import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, PurchaseDetails, GolemEffect, GolemEffectTarget, Golem } from '@/lib/gameTypes';
 import * as C from '@/constants/gameConstants';
 import { useGameState } from './useGameState';
 import { researchNodeMap } from '@/lib/researchTree';
@@ -150,6 +150,12 @@ export const useGameCalculations = ({
 
         return bonuses;
     }, [unlockedResearchNodes]);
+
+    const activeGolems = useMemo(() => {
+        return activeGolemIds
+            .map(id => golemMap.get(id))
+            .filter((g): g is Golem => !!g);
+    }, [activeGolemIds]);
 
     const activeSynergies = useMemo(() => {
         const activeGolemIdSet = new Set(activeGolemIds);
@@ -660,6 +666,7 @@ export const useGameCalculations = ({
         showTutorial,
         achievementBonus,
         researchBonuses,
-        activeSynergies, // Export for UI
+        activeGolems,
+        activeSynergies,
     };
 };

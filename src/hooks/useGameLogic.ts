@@ -17,7 +17,7 @@ export const useGameLogic = () => {
     const repairAttempted = useRef(false);
 
     const calculations = useGameCalculations(gameState);
-    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, prestigeMultipliers, activeGolems } = calculations;
+    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, prestigeMultipliers, activeGolems, activeSynergies } = calculations;
     
     const { manualSave, debouncedSave, immediateSave, resetGame, exportSave, importSave } = useGameSession({
         ...gameState,
@@ -32,14 +32,6 @@ export const useGameLogic = () => {
     });
 
     const { handleBuyItem, handleBuyItemUpgrade, handleBuyWorkshopUpgrade, handleBuyGolem } = actions;
-
-    const activeSynergies = useMemo(() => {
-        if (!activeGolems || activeGolems.length < 2) return [];
-        const activeGolemIdsSet = new Set(activeGolems.map(g => g.id));
-        return allSynergies.filter(synergy =>
-            synergy.golemIds.every(id => activeGolemIdsSet.has(id))
-        );
-    }, [activeGolems]);
 
     const handleBuyResearch = useCallback((nodeId: string) => {
         const node = researchNodeMap.get(nodeId);
