@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { researchNodeMap } from '@/lib/researchTree';
 import type { GameActionProps } from './types';
+import { Currency } from '@/lib/gameTypes';
 
 export const useResearchActions = (props: GameActionProps) => {
     const {
@@ -23,8 +24,12 @@ export const useResearchActions = (props: GameActionProps) => {
             return;
         }
 
-        if (currencies.researchPoints < node.cost) {
-            toast.error("Not enough Research Points", { description: `You need ${node.cost} to unlock ${node.name}.` });
+        const canAfford = Object.entries(node.cost).every(([currency, cost]) => {
+          return currencies[currency as Currency] >= (cost || 0);
+        });
+
+        if (!canAfford) {
+            toast.error("Not enough resources", { description: `You cannot afford to unlock ${node.name}.` });
             return;
         }
 
@@ -34,10 +39,15 @@ export const useResearchActions = (props: GameActionProps) => {
             return;
         }
 
-        setCurrencies(prev => ({
-            ...prev,
-            researchPoints: prev.researchPoints - node.cost,
-        }));
+        setCurrencies(prev => {
+            const newCurrencies = { ...prev };
+            for (const [currency, cost] of Object.entries(node.cost)) {
+                if (newCurrencies[currency as Currency] !== undefined && cost !== undefined) {
+                    newCurrencies[currency as Currency] -= cost;
+                }
+            }
+            return newCurrencies;
+        });
 
         setUnlockedResearchNodes(prev => {
             const newSet = new Set(prev);
@@ -47,7 +57,7 @@ export const useResearchActions = (props: GameActionProps) => {
         
         toast.success("Research Complete!", { description: `You have unlocked: ${node.name}` });
         debouncedSave();
-    }, [currencies.researchPoints, unlockedResearchNodes, setCurrencies, setUnlockedResearchNodes, debouncedSave]);
+    }, [currencies, unlockedResearchNodes, setCurrencies, setUnlockedResearchNodes, debouncedSave]);
 
     return { handleBuyResearch };
 };
