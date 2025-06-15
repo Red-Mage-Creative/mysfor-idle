@@ -572,7 +572,8 @@ export const useGameCalculations = ({
             const initialCostSum = Object.values(item.baseCost).reduce((a, b) => a + (b || 0), 0);
             const manaRequirement = initialCostSum * 0.8;
 
-            if (lifetimeMana < manaRequirement && item.level === 0) continue;
+            // FIX: Bypass the lifetime mana check for antimatter_mana
+            if (item.id !== 'antimatter_mana' && lifetimeMana < manaRequirement && item.level === 0) continue;
 
             // Hide Anti-Matter Mana until a Cosmic Resonator is purchased
             if (item.id === 'antimatter_mana' && !cosmicResonatorOwned && item.level === 0) {
