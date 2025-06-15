@@ -5,6 +5,7 @@ import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorks
 import { challengeMap } from '@/lib/challenges';
 import type { GameActionProps } from './types';
 import { CurrencyRecord } from '@/lib/gameTypes';
+import { dimensionalUpgradesMap } from '@/lib/dimensionalUpgrades';
 
 export const useChallengeActions = (props: GameActionProps) => {
     const {
@@ -18,6 +19,7 @@ export const useChallengeActions = (props: GameActionProps) => {
         setOverclockLevel,
         setRunStartTime,
         setCompletedChallenges,
+        dimensionalUpgrades,
         immediateSave,
     } = props;
     
@@ -71,10 +73,18 @@ export const useChallengeActions = (props: GameActionProps) => {
         if (!activeChallengeId) return; // Should not happen, but for safety
         const challenge = challengeMap.get(challengeId);
         if (!challenge) return;
+
+        let reward = challenge.reward;
+        const tokenUpgrade = dimensionalUpgradesMap.get('token_gain_i');
+        const tokenUpgradeLevel = dimensionalUpgrades?.['token_gain_i'] || 0;
+        if (tokenUpgrade && tokenUpgradeLevel > 0) {
+            reward *= tokenUpgrade.effect.value(tokenUpgradeLevel);
+        }
+        reward = Math.floor(reward);
         
         setCurrencies(prev => ({
             ...prev,
-            challengeTokens: (prev.challengeTokens || 0) + challenge.reward
+            challengeTokens: (prev.challengeTokens || 0) + reward
         }));
 
         setCompletedChallenges(prev => ({
@@ -85,12 +95,12 @@ export const useChallengeActions = (props: GameActionProps) => {
         setActiveChallengeId(null);
 
         toast.success(`Challenge Complete: ${challenge.name}!`, {
-            description: `You have earned ${challenge.reward} Challenge Tokens.`,
+            description: `You have earned ${reward} Challenge Tokens.`,
             duration: 8000
         });
         immediateSave();
 
-    }, [activeChallengeId, setCurrencies, setCompletedChallenges, setActiveChallengeId, immediateSave]);
+    }, [activeChallengeId, setCurrencies, setCompletedChallenges, setActiveChallengeId, immediateSave, dimensionalUpgrades]);
 
     return { startChallenge, abandonChallenge, handleCompleteChallenge };
 };

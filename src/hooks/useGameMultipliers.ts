@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -7,6 +8,8 @@ import { researchNodeMap } from '@/lib/researchTree';
 import { golemMap } from '@/lib/golems';
 import { allSynergies } from '@/lib/golemSynergies';
 import { WorkshopUpgrade } from '@/lib/gameTypes';
+import { challengeMap } from '@/lib/challenges';
+import { ChallengeEffects } from '@/lib/gameTypes';
 
 type UseGameMultipliersProps = Pick<ReturnType<typeof useGameState>,
     'achievements' |
@@ -18,7 +21,8 @@ type UseGameMultipliersProps = Pick<ReturnType<typeof useGameState>,
     'itemUpgrades' |
     'prestigeCount' |
     'currencies' |
-    'ancientKnowledgeNodes'
+    'ancientKnowledgeNodes' |
+    'activeChallengeId' // Add activeChallengeId
 >;
 
 export const useGameMultipliers = ({
@@ -32,7 +36,23 @@ export const useGameMultipliers = ({
     prestigeCount,
     currencies,
     ancientKnowledgeNodes,
+    activeChallengeId,
 }: UseGameMultipliersProps) => {
+    const challengeEffects = useMemo<ChallengeEffects>(() => {
+        const effects: ChallengeEffects = {
+            challengeFailConditions: [],
+            generationMultiplier: {},
+            canBuyItemUpgrades: true,
+            canSpendResearchPoints: true,
+            golemEffectMultiplier: 1,
+        };
+
+        const challenge = activeChallengeId ? challengeMap.get(activeChallengeId) : null;
+        if (!challenge) return effects;
+
+        return challenge.applyRestrictions(effects);
+    }, [activeChallengeId]);
+
     const achievementBonus = useMemo(() => {
         if (!achievements) return 1;
         const unlockedCount = Object.values(achievements).filter(a => a.unlocked).length;
@@ -146,9 +166,21 @@ export const useGameMultipliers = ({
         activeSynergies.forEach(synergy => {
             processEffect(synergy.effect);
         });
+        
+        // Apply challenge multiplier to golem effects
+        Object.keys(effects.generationMultiplier).forEach(key => {
+            const currencyKey = key as keyof typeof effects.generationMultiplier;
+            effects.generationMultiplier[currencyKey]! *= challengeEffects.golemEffectMultiplier;
+        });
+        Object.keys(effects.flatGeneration).forEach(key => {
+            const currencyKey = key as keyof typeof effects.flatGeneration;
+            effects.flatGeneration[currencyKey]! *= challengeEffects.golemEffectMultiplier;
+        });
+        effects.shardGainMultiplier = 1 + (effects.shardGainMultiplier - 1) * challengeEffects.golemEffectMultiplier;
+
 
         return effects;
-    }, [activeGolemIds, activeSynergies]);
+    }, [activeGolemIds, activeSynergies, challengeEffects.golemEffectMultiplier]);
 
     const prestigeLevelBonus = useMemo(() => {
         if (!prestigeCount || prestigeCount < 5) return 1;
@@ -287,5 +319,6 @@ export const useGameMultipliers = ({
         aetherShardBonus,
         ancientKnowledgeBonus,
         synergyBonus,
+        challengeEffects,
     };
 };

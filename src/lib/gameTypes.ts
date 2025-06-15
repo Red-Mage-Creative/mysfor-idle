@@ -170,6 +170,16 @@ export interface AchievementProgress {
 }
 
 // New types for Dimensional Challenges
+export interface ChallengeEffects {
+    manaPerClick?: number;
+    allowedItemCategories?: string[];
+    challengeFailConditions: ((gameState: any) => boolean)[];
+    generationMultiplier: Partial<Record<Currency, number>>;
+    canBuyItemUpgrades: boolean;
+    canSpendResearchPoints: boolean;
+    golemEffectMultiplier: number;
+}
+
 export interface Challenge {
   id: string;
   name: string;
@@ -177,7 +187,7 @@ export interface Challenge {
   goalDescription: string;
   reward: number; // challenge tokens
   isGoalReached: (gameState: any) => boolean;
-  applyRestrictions: (multipliers: any) => any;
+  applyRestrictions: (effects: ChallengeEffects) => ChallengeEffects;
   unlocksAtPrestige: number;
   icon: LucideIcon;
   startingResources?: CurrencyRecord;

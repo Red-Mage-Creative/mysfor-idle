@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
@@ -62,7 +61,7 @@ export const useGameLogic = () => {
         }
 
         // Check for failure
-        const failConditions = challenge.applyRestrictions({ challengeFailConditions: [] }).challengeFailConditions || [];
+        const failConditions = calculations.challengeEffects.challengeFailConditions || [];
         for (const condition of failConditions) {
             if (condition(gameState)) {
                 toast.error(`Challenge Failed: ${challenge.name}`, {
@@ -74,7 +73,7 @@ export const useGameLogic = () => {
             }
         }
 
-    }, [gameState, actions]);
+    }, [gameState, actions, calculations.challengeEffects]);
 
     const showEssenceTab = gameState.hasEverPrestiged;
 

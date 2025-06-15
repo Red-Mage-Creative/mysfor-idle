@@ -8,6 +8,9 @@ import * as C from '@/constants/gameConstants';
 import { allAchievements } from '@/lib/achievements';
 import { researchNodeMap } from '@/lib/researchTree';
 import { allSynergies } from './golemSynergies';
+import { challengeMap } from './challenges';
+import { dimensionalUpgradesMap } from './dimensionalUpgrades';
+
 
 const compareVersions = (v1: string, v2: string): number => {
     const parts1 = (v1 || '0.0.0').split('.').map(Number);
@@ -58,6 +61,25 @@ const migrateSaveData = (data: any): GameSaveData => {
         if (!migratedData.currencies) migratedData.currencies = {};
         migratedData.currencies.challengeTokens = 0;
     }
+    
+    // Validate challenge data
+    if (migratedData.activeChallengeId && !challengeMap.has(migratedData.activeChallengeId)) {
+        console.warn(`Invalid active challenge ID "${migratedData.activeChallengeId}" found in save. Resetting.`);
+        migratedData.activeChallengeId = null;
+    }
+
+    if (migratedData.completedChallenges) {
+        migratedData.completedChallenges = Object.fromEntries(
+            Object.entries(migratedData.completedChallenges).filter(([id]) => challengeMap.has(id))
+        );
+    }
+    
+    if (migratedData.dimensionalUpgrades) {
+        migratedData.dimensionalUpgrades = Object.fromEntries(
+            Object.entries(migratedData.dimensionalUpgrades).filter(([id]) => dimensionalUpgradesMap.has(id))
+        );
+    }
+
 
     migratedData.version = C.CURRENT_SAVE_VERSION;
     return migratedData as GameSaveData;

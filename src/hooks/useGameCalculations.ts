@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { useGameState } from './useGameState';
 import { useGameMultipliers } from './useGameMultipliers';
@@ -18,6 +17,7 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         currencies: props.currencies,
         prestigeCount: props.prestigeCount,
         ancientKnowledgeNodes: props.ancientKnowledgeNodes,
+        activeChallengeId: props.activeChallengeId,
     });
 
     const production = useProduction({
@@ -29,11 +29,19 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         currencies: props.currencies,
     });
 
-    // Override production values based on active challenges
+    // Apply direct challenge effects on production
     let { manaPerClick } = production;
-    if (props.activeChallengeId === 'no_clicks') {
-        manaPerClick = 0;
+    if (multipliers.challengeEffects.manaPerClick !== undefined) {
+        manaPerClick = multipliers.challengeEffects.manaPerClick;
     }
+
+    const { generationPerSecond } = production;
+    Object.entries(multipliers.challengeEffects.generationMultiplier).forEach(([currency, multiplier]) => {
+        const key = currency as keyof typeof generationPerSecond;
+        if (generationPerSecond[key]) {
+            generationPerSecond[key]! *= multiplier;
+        }
+    });
 
     const prestige = usePrestigeManagement({
         lifetimeMana: props.lifetimeMana,
@@ -88,10 +96,11 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         aetherShardBonus: multipliers.aetherShardBonus,
         ancientKnowledgeBonus: multipliers.ancientKnowledgeBonus,
         synergyBonus: multipliers.synergyBonus,
+        challengeEffects: multipliers.challengeEffects,
 
         // From production
         overclockInfo: production.overclockInfo,
-        generationPerSecond: production.generationPerSecond,
+        generationPerSecond: generationPerSecond,
         manaPerClick: manaPerClick,
 
         // From prestige

@@ -154,13 +154,17 @@ export const useGameSession = (props: UseGameSessionProps) => {
         setGameCompletionShown(false);
         setAncientKnowledgeNodes(new Set());
         setRunStartTime(Date.now());
+        // Reset challenge state
+        setActiveChallengeId(null);
+        setCompletedChallenges({});
+        setDimensionalUpgrades({});
         localStorage.removeItem(C.SAVE_KEY);
         localStorage.removeItem(C.BUY_QUANTITY_KEY);
     }, [
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels,
         setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings,
         setLastSaveTime, setSaveStatus, setBuyQuantity, setOverclockLevel, setAchievements, setUnlockedResearchNodes, setActiveGolemIds, setHasBeatenGame, setGameCompletionShown, setAncientKnowledgeNodes,
-        setRunStartTime
+        setRunStartTime, setActiveChallengeId, setCompletedChallenges, setDimensionalUpgrades
     ]);
 
     const resetGame = useCallback(() => {
