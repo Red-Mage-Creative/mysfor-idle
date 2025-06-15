@@ -3,8 +3,9 @@ import React, { useMemo } from 'react';
 import { Currency, Currencies, ResearchNode } from '@/lib/gameTypes';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { Lock } from 'lucide-react';
+import { Lock, CheckCircle, XCircle } from 'lucide-react';
 import { formatNumber } from '@/lib/formatters';
+import { researchNodeMap, researchNodeDependentsMap } from '@/lib/researchTree';
 
 interface ResearchNodeProps {
   node: ResearchNode;
@@ -13,9 +14,10 @@ interface ResearchNodeProps {
   onUnlock: (nodeId: string) => void;
   currencies: Currencies;
   nodeSpacing: number;
+  unlockedNodes: Set<string>;
 }
 
-const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, canUnlock, onUnlock, currencies, nodeSpacing }) => {
+const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, canUnlock, onUnlock, currencies, unlockedNodes, nodeSpacing }) => {
   const Icon = node.icon;
   const status = isUnlocked ? 'unlocked' : canUnlock ? 'available' : 'locked';
   
@@ -25,6 +27,12 @@ const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, 
       return currencies[currency as Currency] >= (cost || 0);
     });
   }, [node.cost, currencies]);
+
+  const dependents = useMemo(() => {
+    return (researchNodeDependentsMap.get(node.id) || [])
+      .map(id => researchNodeMap.get(id))
+      .filter((n): n is ResearchNode => !!n);
+  }, [node.id]);
 
   const handleClick = () => {
     if (status === 'available' && canAfford) {
@@ -60,8 +68,26 @@ const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, 
           <p className="font-bold text-lg">{node.name}</p>
           <p className="text-sm text-muted-foreground mb-2">{node.description}</p>
           {!isUnlocked && (
-            <div className="border-t border-border pt-2">
-              <p className="font-semibold">Cost:</p>
+            <div className="border-t border-border pt-2 space-y-2">
+              {node.prerequisites.length > 0 && (
+                <div>
+                  <p className="font-semibold">Prerequisites:</p>
+                  <ul className="text-left text-xs list-none p-0 space-y-0.5">
+                    {node.prerequisites.map(prereqId => {
+                      const prereqNode = researchNodeMap.get(prereqId);
+                      const isMet = unlockedNodes.has(prereqId);
+                      return (
+                        <li key={prereqId} className={cn('flex items-center space-x-1.5', { 'text-green-400': isMet, 'text-red-400': !isMet })}>
+                          {isMet ? <CheckCircle className="w-3 h-3 flex-shrink-0" /> : <XCircle className="w-3 h-3 flex-shrink-0" />}
+                          <span>{prereqNode?.name || prereqId}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+              <div>
+                <p className="font-semibold">Cost:</p>
                 <ul className="text-left text-xs list-disc list-inside">
                   {Object.entries(node.cost).map(([currency, value]) => (
                       <li key={currency} className={cn({ 'text-red-400': currencies[currency as Currency] < (value || 0) })}>
@@ -69,9 +95,18 @@ const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, 
                       </li>
                   ))}
                 </ul>
+              </div>
             </div>
           )}
-          {isUnlocked && <p className="text-green-400 font-bold">Researched</p>}
+          {dependents.length > 0 && (
+            <div className="border-t border-border pt-2 mt-2">
+              <p className="font-semibold">Unlocks:</p>
+              <ul className="text-left text-xs list-disc list-inside">
+                {dependents.map(dep => <li key={dep.id}>{dep.name}</li>)}
+              </ul>
+            </div>
+          )}
+          {isUnlocked && <p className="text-green-400 font-bold mt-2">Researched</p>}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

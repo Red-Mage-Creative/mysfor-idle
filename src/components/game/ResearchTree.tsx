@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useMemo } from 'react';
-import { researchNodes, researchNodeMap } from '@/lib/researchTree';
+import { researchNodes, researchNodeMap, researchNodeDependentsMap } from '@/lib/researchTree';
 import ResearchNodeComponent from './ResearchNodeComponent';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -93,7 +92,7 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
   };
 
   const getNodePosition = (nodeId: string) => {
-    const node = researchNodes.find(n => n.id === nodeId);
+    const node = researchNodeMap.get(nodeId);
     if (!node) return { x: 0, y: 0 };
     return { x: node.position.x * NODE_SPACING_REM, y: node.position.y * NODE_SPACING_REM };
   };
@@ -141,7 +140,6 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
 
     setView({ x: newX, y: newY, zoom: clampedZoom });
   };
-
 
   return (
     <Card>
@@ -207,17 +205,22 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         <polygon points="0 0, 10 3.5, 0 7" className="fill-green-500" />
                     </marker>
                 </defs>
-                {researchNodes.map(node => (
-                    node.prerequisites.map(prereqId => {
-                        const startPos = getNodePosition(prereqId);
-                        const endPos = getNodePosition(node.id);
-                        const isUnlocked = unlockedNodes.has(node.id) && unlockedNodes.has(prereqId);
+                {researchNodes.map(sourceNode => {
+                    const dependents = researchNodeDependentsMap.get(sourceNode.id) || [];
+                    return dependents.map(dependentId => {
+                        const dependentNode = researchNodeMap.get(dependentId);
+                        if (!dependentNode) return null;
 
-                        const offset = 32; // This is a pixel value, roughly half of a 4rem node (16px/rem * 4rem / 2)
-                        const nodeRadiusRem = NODE_SPACING_REM / 2.0;
+                        const startPos = getNodePosition(sourceNode.id);
+                        const endPos = getNodePosition(dependentId);
+                        const isFullyUnlocked = unlockedNodes.has(sourceNode.id) && unlockedNodes.has(dependentId);
+                        const prereqsMetForDependent = isPrerequisiteMet(dependentNode.prerequisites);
+                        const isAvailable = unlockedNodes.has(sourceNode.id) && prereqsMetForDependent;
 
-                        const x1 = startPos.x * 16 + offset; // in pixels
-                        const y1 = startPos.y * 16 + offset; // in pixels
+                        const offset = 32; // Half of the node size in pixels
+                        
+                        const x1 = startPos.x * 16 + offset;
+                        const y1 = startPos.y * 16 + offset;
                         let x2 = endPos.x * 16 + offset;
                         let y2 = endPos.y * 16 + offset;
 
@@ -226,25 +229,26 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         const distance = Math.sqrt(dx * dx + dy * dy);
 
                         if (distance > 0) {
-                            const ratio = (distance - nodeRadiusRem * 16) / distance;
+                            const nodeRadiusPixels = 32;
+                            const ratio = (distance - nodeRadiusPixels) / distance;
                             x2 = x1 + dx * ratio;
                             y2 = y1 + dy * ratio;
                         }
 
                         return (
                             <line
-                                key={`${prereqId}-${node.id}`}
+                                key={`${sourceNode.id}-${dependentId}`}
                                 x1={x1}
                                 y1={y1}
                                 x2={x2}
                                 y2={y2}
-                                className={isUnlocked ? 'stroke-green-500' : 'stroke-slate-600'}
+                                className={isFullyUnlocked ? 'stroke-green-500' : (isAvailable ? 'stroke-yellow-500' : 'stroke-slate-600')}
                                 strokeWidth="2"
-                                markerEnd={isUnlocked ? 'url(#arrowhead-unlocked)' : 'url(#arrowhead)'}
+                                markerEnd={isFullyUnlocked ? 'url(#arrowhead-unlocked)' : (isAvailable ? 'url(#arrowhead)' : 'url(#arrowhead)')}
                             />
                         )
                     })
-                ))}
+                })}
             </svg>
             <div className="relative">
                 {researchNodes.map(node => (
@@ -256,6 +260,7 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         onUnlock={onUnlockNode}
                         currencies={currencies}
                         nodeSpacing={NODE_SPACING_REM}
+                        unlockedNodes={unlockedNodes}
                     />
                 ))}
             </div>

@@ -1,3 +1,4 @@
+
 import { ResearchNode } from '@/lib/gameTypes';
 import {
   FlaskConical, Zap, Cog, Coins, Flame, Beaker, Droplet, Factory, Landmark, Sparkles, Wand2, Star, Award, Settings, Bot, ToyBrick, Diamond, BookOpen, Target, GitBranch, KeyRound, Clock, Atom, BrainCircuit, Microscope, Shield, GitPullRequest, Link
@@ -610,3 +611,15 @@ export const researchNodes: ResearchNode[] = [
 ];
 
 export const researchNodeMap = new Map(researchNodes.map(node => [node.id, node]));
+
+export const researchNodeDependentsMap = new Map<string, string[]>();
+researchNodes.forEach(node => {
+  if (node.prerequisites) {
+    node.prerequisites.forEach(prereqId => {
+      if (!researchNodeDependentsMap.has(prereqId)) {
+        researchNodeDependentsMap.set(prereqId, []);
+      }
+      researchNodeDependentsMap.get(prereqId)!.push(node.id);
+    });
+  }
+});
