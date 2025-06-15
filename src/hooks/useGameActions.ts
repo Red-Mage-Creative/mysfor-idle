@@ -13,7 +13,7 @@ const WORKSHOP_UPGRADE_COST_GROWTH_RATE = 1.25;
 
 type UseGameActionsProps = ReturnType<typeof useGameState> & ReturnType<typeof useGameCalculations> & {
     debouncedSave: () => void;
-    immediateSave: (reason?: string) => void;
+    immediateSave: () => void;
 };
 
 export const useGameActions = (props: UseGameActionsProps) => {
@@ -126,7 +126,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         toast.success("Item Upgraded!", {
           description: `You have purchased ${upgrade.name}.`,
         });
-        immediateSave('buy-item-upgrade');
+        immediateSave();
     }, [currencies, itemUpgrades, immediateSave, setItemUpgrades, setCurrencies, prestigeMultipliers.costReduction]);
     
     const handleBuyWorkshopUpgrade = useCallback((upgradeId: string) => {
@@ -188,7 +188,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         toast("Dimensional Shift!", {
           description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
         });
-        immediateSave('prestige');
+        immediateSave();
     }, [
         canPrestige, potentialShards, currencies.aetherShards, 
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, 
@@ -214,7 +214,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
 
         setCurrencies(prev => ({ ...prev, aetherShards: prev.aetherShards - cost }));
         setPrestigeUpgradeLevels(prev => ({ ...prev, [upgradeId]: currentLevel + 1 }));
-        immediateSave('buy-prestige-upgrade');
+        immediateSave();
     }, [currencies.aetherShards, prestigeUpgradeLevels, immediateSave, setCurrencies, setPrestigeUpgradeLevels]);
 
     const handleSetOverclockLevel = useCallback((level: number) => {
@@ -262,7 +262,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
             setCurrencies(tempCurrencies);
             setItemUpgrades(tempItemUpgrades);
             toast.success(`Purchased ${purchasedCount} item upgrade(s).`);
-            immediateSave('buy-all-item-upgrades');
+            immediateSave();
         } else {
             toast.info("No affordable upgrades available.");
         }
@@ -303,7 +303,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
             setCurrencies(tempCurrencies);
             setWorkshopUpgrades(tempWorkshopUpgrades);
             toast.success(`Purchased ${purchasedLevels} workshop upgrade level(s).`);
-            immediateSave('buy-all-workshop-upgrades');
+            immediateSave();
         } else {
             toast.info("No affordable workshop upgrades available.");
         }

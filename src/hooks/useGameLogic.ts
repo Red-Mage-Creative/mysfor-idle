@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
@@ -223,7 +222,7 @@ export const useGameLogic = () => {
                     description: "You have forged a Cosmic Resonator and transcended the limits of creation!",
                     duration: 10000,
                 });
-                immediateSave('game-beaten');
+                immediateSave();
             }
         }
     }, [isLoaded, items, hasBeatenGame, setHasBeatenGame, immediateSave]);

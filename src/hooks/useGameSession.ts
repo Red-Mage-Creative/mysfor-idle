@@ -1,8 +1,7 @@
-
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { useGameState } from './useGameState';
-import { GameSaveData, Currencies, AchievementProgress } from '@/lib/gameTypes';
+import { GameSaveData, Currencies } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
 import * as C from '@/constants/gameConstants';
 import { loadDataFromStorage } from '@/lib/saveManager';
@@ -56,7 +55,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
     ]);
     
     useGameLoop({ isLoaded, generationPerSecond, setCurrencies, setLifetimeMana });
-    useAutoSave({ isLoaded, saveGame: () => saveGame(true) });
+    useAutoSave({ isLoaded, saveGame });
 
     const debouncedSave = useCallback(() => {
         if (debounceSaveTimeout.current) clearTimeout(debounceSaveTimeout.current);
@@ -162,5 +161,9 @@ export const useGameSession = (props: UseGameSessionProps) => {
         if (saveStatus !== 'saving') saveGame(false);
     }, [saveGame, saveStatus]);
 
-    return { manualSave, debouncedSave, resetGame, exportSave, importSave, immediateSave: saveGame };
+    const immediateSave = useCallback(() => {
+        saveGame(false);
+    }, [saveGame]);
+
+    return { manualSave, debouncedSave, resetGame, exportSave, importSave, immediateSave };
 };

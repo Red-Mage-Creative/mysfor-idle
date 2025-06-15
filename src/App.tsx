@@ -1,4 +1,3 @@
-
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -30,7 +29,7 @@ const AppContent = () => {
   const handleCloseVictoryModal = () => {
     setShowVictoryModal(false);
     game?.setGameCompletionShown?.(true);
-    game?.immediateSave?.('victory-modal-closed');
+    game?.immediateSave?.();
   };
 
   const handleCloseIntroModal = (dontShowAgain: boolean) => {
