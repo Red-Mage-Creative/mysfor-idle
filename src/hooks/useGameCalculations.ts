@@ -77,6 +77,9 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         activeGolems: multipliers.activeGolems,
         activeSynergies: multipliers.activeSynergies,
         golemEffects: multipliers.golemEffects,
+        prestigeLevelBonus: multipliers.prestigeLevelBonus,
+        aetherShardBonus: multipliers.aetherShardBonus,
+        ancientKnowledgeBonus: multipliers.ancientKnowledgeBonus,
 
         // From production
         overclockInfo: production.overclockInfo,

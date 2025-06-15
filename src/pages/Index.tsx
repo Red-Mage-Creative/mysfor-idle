@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -69,6 +70,9 @@ const Index = () => {
     golemEffects,
     lastAutoBuy,
     ancientKnowledgeNodes,
+    prestigeLevelBonus,
+    aetherShardBonus,
+    ancientKnowledgeBonus,
   } = useGame();
 
   const handleToggleGolem = (id: string) => {
@@ -131,7 +135,15 @@ const Index = () => {
               showTutorial={showTutorial}
               prestigeMultipliers={prestigeMultipliers}
             />
-            {prestigeCount > 0 && <PrestigeBonusesSummary prestigeCount={prestigeCount} prestigeMultipliers={prestigeMultipliers} />}
+            {prestigeCount > 0 && <PrestigeBonusesSummary
+              prestigeCount={prestigeCount}
+              prestigeMultipliers={prestigeMultipliers}
+              prestigeLevelBonus={prestigeLevelBonus}
+              aetherShardBonus={aetherShardBonus}
+              ancientKnowledgeBonus={ancientKnowledgeBonus}
+              aetherShards={currencies.aetherShards}
+              ancientKnowledgeNodesCount={ancientKnowledgeNodes.size}
+            />}
             {showAutoBuyStatus && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <AutoBuyStatusIndicator type="items" status={itemAutoBuyStatus} lastPurchase={lastAutoBuy?.item} />

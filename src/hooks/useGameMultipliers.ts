@@ -275,5 +275,8 @@ export const useGameMultipliers = ({
         prestigeMultipliers,
         workshopUpgradeMultipliers,
         itemUpgradeMultipliers,
+        prestigeLevelBonus,
+        aetherShardBonus,
+        ancientKnowledgeBonus,
     };
 };
