@@ -12,8 +12,8 @@ interface ResearchTreeProps {
   ancientKnowledgePoints: number;
 }
 
-const NODE_SPACING_REM = 5;
-const MIN_ZOOM = 0.5;
+const NODE_SPACING_REM = 4; // Reduced from 5 to make the tree more compact
+const MIN_ZOOM = 0.4; // Adjusted for a wider zoom range
 const MAX_ZOOM = 2;
 
 const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode, researchPoints, ancientKnowledgePoints }) => {
@@ -182,7 +182,7 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                 transition: isDragging ? 'none' : 'transform 0.1s ease-out',
             }}
           >
-            <svg className="absolute top-0 left-0 w-[200rem] h-[100rem]" style={{ pointerEvents: 'none' }}>
+            <svg className="absolute top-0 left-0 w-[300rem] h-[200rem]" style={{ pointerEvents: 'none' }}>
                 <defs>
                     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
                         <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
@@ -197,20 +197,20 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         const endPos = getNodePosition(node.id);
                         const isUnlocked = unlockedNodes.has(node.id) && unlockedNodes.has(prereqId);
 
-                        const offset = 2; // half of node size (4rem / 2)
-                        const nodeRadius = 2;
+                        const offset = 32; // This is a pixel value, roughly half of a 4rem node (16px/rem * 4rem / 2)
+                        const nodeRadiusRem = NODE_SPACING_REM / 2.0;
 
-                        const x1 = startPos.x + offset;
-                        const y1 = startPos.y + offset;
-                        let x2 = endPos.x + offset;
-                        let y2 = endPos.y + offset;
+                        const x1 = startPos.x * 16 + offset; // in pixels
+                        const y1 = startPos.y * 16 + offset; // in pixels
+                        let x2 = endPos.x * 16 + offset;
+                        let y2 = endPos.y * 16 + offset;
 
                         const dx = x2 - x1;
                         const dy = y2 - y1;
                         const distance = Math.sqrt(dx * dx + dy * dy);
 
                         if (distance > 0) {
-                            const ratio = (distance - nodeRadius) / distance;
+                            const ratio = (distance - nodeRadiusRem * 16) / distance;
                             x2 = x1 + dx * ratio;
                             y2 = y1 + dy * ratio;
                         }
@@ -218,10 +218,10 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         return (
                             <line
                                 key={`${prereqId}-${node.id}`}
-                                x1={`${x1}rem`}
-                                y1={`${y1}rem`}
-                                x2={`${x2}rem`}
-                                y2={`${y2}rem`}
+                                x1={x1}
+                                y1={y1}
+                                x2={x2}
+                                y2={y2}
                                 className={isUnlocked ? 'stroke-green-500' : 'stroke-slate-600'}
                                 strokeWidth="2"
                                 markerEnd={isUnlocked ? 'url(#arrowhead-unlocked)' : 'url(#arrowhead)'}
