@@ -296,7 +296,10 @@ export const useGameCalculations = ({
                 intendedPurchaseQuantity = buyQuantity;
             }
 
-            const canAffordIntended = maxAffordable >= intendedPurchaseQuantity;
+            let canAffordIntended = maxAffordable >= intendedPurchaseQuantity;
+            if (buyQuantity === 'max') {
+                canAffordIntended = maxAffordable > 0;
+            }
             
             if (buyQuantity === 'max') {
                 purchaseQuantity = maxAffordable; // For 'max', you always buy what you can afford.
