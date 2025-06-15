@@ -1,9 +1,9 @@
 
-# Mystic Forge - An Incremental Adventure
+# Mystic Forge - An Idle Adventure
 
 [![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-blue?style=for-the-badge&logo=love)](https://lovable.dev)
 
-Welcome to Mystic Forge, an incremental game where you harness the power of mana to build a powerful engine of production. Start with a single click and grow your empire to forge the ultimate artifact: the Cosmic Resonator.
+Welcome to Mystic Forge, an idle game where you harness the power of mana to build a powerful engine of production. Start with a single click and grow your empire to forge the ultimate artifact: the Cosmic Resonator.
 
 ## Goal of the Game
 
