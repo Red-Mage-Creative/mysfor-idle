@@ -4,6 +4,7 @@ import { toast } from '@/components/ui/sonner';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/hooks/useGameState';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import type { GameActionProps } from './types';
+import { formatNumber } from '@/lib/formatters';
 
 export const usePrestigeActions = (props: GameActionProps) => {
     const {
@@ -18,6 +19,7 @@ export const usePrestigeActions = (props: GameActionProps) => {
         potentialShards,
         immediateSave,
         setHasEverPrestiged,
+        prestigeCount,
         setPrestigeCount,
         setOverclockLevel,
         unlockedResearchNodes, setUnlockedResearchNodes,
@@ -25,7 +27,7 @@ export const usePrestigeActions = (props: GameActionProps) => {
         activeChallengeId, setActiveChallengeId,
     } = props;
     
-    const handlePrestige = useCallback(() => {
+    const handlePrestige = useCallback((prestigesToPerform = 1, totalShardsToGain = potentialShards) => {
         if (!canPrestige) return;
 
         if (activeChallengeId) {
@@ -33,7 +35,7 @@ export const usePrestigeActions = (props: GameActionProps) => {
             toast.info("Challenge Abandoned", { description: "You have prestiged, ending your active challenge." });
         }
 
-        const shardsGained = potentialShards;
+        const shardsGained = totalShardsToGain;
         const newlyGainedKnowledge = Array.from(unlockedResearchNodes).filter(nodeId => !ancientKnowledgeNodes.has(nodeId)).length;
         
         setAncientKnowledgeNodes(prev => {
@@ -58,10 +60,11 @@ export const usePrestigeActions = (props: GameActionProps) => {
         setNotifiedUpgrades(new Set());
         setUnlockedResearchNodes(new Set());
         setHasEverPrestiged(true);
-        setPrestigeCount(prev => prev + 1);
+        setPrestigeCount(prev => prev + prestigesToPerform);
         setOverclockLevel(0);
         
-        let toastDescription = `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`;
+        const finalPrestigeLevel = prestigeCount + prestigesToPerform;
+        let toastDescription = `You gained ${formatNumber(shardsGained)} Aether Shards and reached Prestige Level ${finalPrestigeLevel}. The world resets, but you are stronger.`;
         if (newlyGainedKnowledge > 0) {
             toastDescription += ` You also converted ${newlyGainedKnowledge} new discoveries into permanent Ancient Knowledge.`;
         }
@@ -75,7 +78,7 @@ export const usePrestigeActions = (props: GameActionProps) => {
         canPrestige, potentialShards, currencies, 
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, 
         setLifetimeMana, setNotifiedUpgrades, immediateSave, setHasEverPrestiged,
-        setPrestigeCount, setOverclockLevel, unlockedResearchNodes, ancientKnowledgeNodes,
+        prestigeCount, setPrestigeCount, setOverclockLevel, unlockedResearchNodes, ancientKnowledgeNodes,
         setUnlockedResearchNodes, setAncientKnowledgeNodes,
         activeChallengeId, setActiveChallengeId,
     ]);

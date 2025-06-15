@@ -48,10 +48,47 @@ export const usePrestigeManagement = ({
         return Math.floor(baseShards * prestigeCountBonus * prestigeMultipliers.shardGain * golemEffects.shardGainMultiplier);
     }, [lifetimeMana, prestigeRequirement, prestigeCount, prestigeMultipliers.shardGain, golemEffects]);
 
+    const multiPrestigeDetails = useMemo(() => {
+        if (!canPrestige) {
+            return { prestigesToGain: 0, totalShards: 0, nextPrestigeCount: prestigeCount + 1 };
+        }
+
+        let prestigesToGain = 0;
+        let totalShards = 0;
+        let currentPrestigeCheck = prestigeCount;
+
+        const loopCap = 1000; 
+
+        while (prestigesToGain < loopCap) {
+            const requirement = 1e9 * Math.pow(10, currentPrestigeCheck);
+            if (lifetimeMana < requirement) {
+                break;
+            }
+
+            prestigesToGain++;
+            
+            const manaRatio = lifetimeMana / requirement;
+            const baseShards = Math.floor(Math.pow(manaRatio, 0.75) * 10 * (currentPrestigeCheck + 1));
+            const prestigeCountBonus = 1 + currentPrestigeCheck * 0.2;
+            const shardsForThisLevel = Math.floor(baseShards * prestigeCountBonus * prestigeMultipliers.shardGain * golemEffects.shardGainMultiplier);
+            
+            totalShards += shardsForThisLevel;
+
+            currentPrestigeCheck++;
+        }
+
+        return {
+            prestigesToGain,
+            totalShards,
+            nextPrestigeCount: prestigeCount + prestigesToGain,
+        };
+    }, [canPrestige, lifetimeMana, prestigeCount, prestigeMultipliers.shardGain, golemEffects]);
+
     return {
         prestigeRequirement,
         canPrestige,
         prestigeVisibility,
         potentialShards,
+        multiPrestigeDetails,
     };
 };

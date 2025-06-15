@@ -25,13 +25,18 @@ interface PrestigeCardProps {
     lifetimeMana: number;
     canPrestige: boolean;
     potentialShards: number;
-    onPrestige: () => void;
+    onPrestige: (prestigesToPerform: number, totalShardsToGain: number) => void;
     prestigeVisibility: PrestigeVisibility;
     prestigeRequirement: number;
     prestigeCount: number;
+    multiPrestigeDetails: {
+        prestigesToGain: number;
+        totalShards: number;
+        nextPrestigeCount: number;
+    };
 }
 
-const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, onPrestige, prestigeVisibility, prestigeRequirement, prestigeCount }: PrestigeCardProps) => {
+const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, onPrestige, prestigeVisibility, prestigeRequirement, prestigeCount, multiPrestigeDetails }: PrestigeCardProps) => {
     if (prestigeVisibility === 'hidden') {
         return null;
     }
@@ -53,6 +58,8 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
             </Card>
         );
     }
+
+    const maxPrestigesPossible = multiPrestigeDetails?.prestigesToGain || 0;
 
     return (
         <Card className="w-full bg-gradient-to-br from-amber-500/10 via-card/80 to-amber-500/10 backdrop-blur-sm border-2 border-amber-500/40 shadow-lg">
@@ -76,22 +83,38 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
                             <AlertDialogTitle>Initiate Dimensional Shift?</AlertDialogTitle>
                             <AlertDialogDescription>
                                 This will reset your current progress (mana, gears, flux, and their upgrades) in exchange for prestige currency.
-                                <br/><br/>
-                                Your completed research will be converted into permanent <strong className="text-purple-400">Ancient Knowledge</strong>, providing a lasting bonus for all future runs.
-                                <br /><br />
-                                You will gain <strong className="text-amber-400">{formatNumber(potentialShards)} Aether Shards</strong>.
-                                <br /><br />
-                                Aether Shards are used to purchase powerful permanent upgrades. Are you sure you want to proceed?
+                                Your completed research will be converted into permanent <strong className="text-purple-400">Ancient Knowledge</strong>.
+                                
+                                <div className="my-4 p-3 border rounded-lg bg-background/50">
+                                    <h4 className="font-semibold mb-1">Option 1: Shift Once</h4>
+                                    You will gain <strong className="text-amber-400">{formatNumber(potentialShards)} Aether Shards</strong> and advance to Prestige Level <strong className="text-green-400">{prestigeCount + 1}</strong>.
+                                </div>
+
+                                {maxPrestigesPossible > 1 && (
+                                    <div className="my-4 p-3 border rounded-lg bg-background/50">
+                                        <h4 className="font-semibold mb-1">Option 2: Shift Maximum ({maxPrestigesPossible} times)</h4>
+                                        You will gain a total of <strong className="text-amber-400">{formatNumber(multiPrestigeDetails.totalShards)} Aether Shards</strong> and advance to Prestige Level <strong className="text-green-400">{multiPrestigeDetails.nextPrestigeCount}</strong>.
+                                    </div>
+                                )}
+                                Are you sure you want to proceed?
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={onPrestige}>Shift Dimensions</AlertDialogAction>
+                            <AlertDialogAction onClick={() => onPrestige(1, potentialShards)}>Shift Once</AlertDialogAction>
+                             {maxPrestigesPossible > 1 && (
+                                <AlertDialogAction onClick={() => onPrestige(multiPrestigeDetails.prestigesToGain, multiPrestigeDetails.totalShards)}>
+                                    Shift Max (+{multiPrestigeDetails.prestigesToGain})
+                                </AlertDialogAction>
+                            )}
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Shift for Prestige #{prestigeCount + 1}. Requires {formatNumber(prestigeRequirement)} lifetime mana.
+                    {maxPrestigesPossible > 1
+                        ? `Shift for up to +${maxPrestigesPossible} levels. Next level requires ${formatNumber(prestigeRequirement)} lifetime mana.`
+                        : `Shift for Prestige #${prestigeCount + 1}. Requires ${formatNumber(prestigeRequirement)} lifetime mana.`
+                    }
                 </p>
             </CardContent>
         </Card>

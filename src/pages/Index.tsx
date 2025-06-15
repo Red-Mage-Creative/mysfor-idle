@@ -83,6 +83,7 @@ const Index = () => {
     startChallenge,
     abandonChallenge,
     completedChallenges,
+    multiPrestigeDetails,
   } = useGame();
 
   const handleToggleGolem = (id: string) => {
@@ -166,6 +167,7 @@ const Index = () => {
               prestigeVisibility={prestigeVisibility as PrestigeVisibility}
               prestigeRequirement={prestigeRequirement}
               prestigeCount={prestigeCount}
+              multiPrestigeDetails={multiPrestigeDetails}
             />
           </div>
 
