@@ -145,15 +145,7 @@ export interface Golem {
     unlocksAtPrestige?: number;
 }
 
-export interface GolemSynergy {
-    id: string;
-    name: string;
-    description: string;
-    golemIds: string[];
-    effect: GolemEffect;
-}
-
-export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development' | 'Golem Mastery' | 'Workshop Mastery' | 'Overclock Engineer' | 'Efficiency Master' | 'Speed Running' | 'Ancient Wisdom' | 'Hidden & Fun';
+export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development' | 'Golem Mastery' | 'Workshop Mastery' | 'Overclock Engineer' | 'Efficiency Master' | 'Speed Running' | 'Ancient Wisdom' | 'Hidden & Fun' | 'Challenge Conqueror';
 
 export interface Achievement {
   id: string;
@@ -200,7 +192,7 @@ export interface DimensionalUpgrade {
   cost: (level: number) => number; // challenge tokens
   maxLevel: number;
   effect: {
-    type: string;
+    type: 'allProductionMultiplier' | 'essenceFluxMultiplier' | 'offlineProductionMultiplier' | 'costReductionMultiplier' | 'shardGainMultiplier' | 'challengeTokenGainMultiplier' | 'manaClickMultiplier' | 'researchPointsMultiplier' | 'multiPrestigeBonus' | 'golemSynergyMultiplier';
     value: (level: number) => number;
   };
   icon: LucideIcon;
@@ -251,4 +243,12 @@ export type GolemEffects = {
     costMultiplier: number;
     shardGainMultiplier: number;
     disabledFeatures: Set<'autoBuyItems' | 'autoBuyUpgrades'>;
+};
+
+export type GolemSynergy = {
+    id: string;
+    name: string;
+    description: string;
+    golemIds: string[];
+    effect: GolemEffect;
 };

@@ -1,6 +1,9 @@
+
 import React, { useEffect, useCallback, useRef } from 'react';
 import { toast } from "@/components/ui/sonner";
-import { achievementMap } from '@/lib/achievements';
+import { achievementMap, allAchievements } from '@/lib/achievements';
+import { challenges } from '@/lib/challenges';
+import { dimensionalUpgrades as dimensionalUpgradesList, dimensionalUpgradesMap } from '@/lib/dimensionalUpgrades';
 import type { useGameState } from '@/hooks/useGameState';
 import type { useGameCalculations } from '@/hooks/useGameCalculations';
 
@@ -14,7 +17,8 @@ export const useAchievementManager = (props: AchievementManagerProps) => {
         prestigeCount, lifetimeMana, currencies, unlockedResearchNodes, 
         activeGolemIds, activeSynergies, setAchievements, achievements, debouncedSave,
         workshopUpgrades, overclockLevel, runStartTime, setRunStartTime,
-        ancientKnowledgeNodes, devMode, hasEverClicked, generationPerSecond
+        ancientKnowledgeNodes, devMode, hasEverClicked, generationPerSecond,
+        completedChallenges, dimensionalUpgrades
     } = props;
     
     const unlockAchievement = useCallback((achievementId: string) => {
@@ -105,6 +109,31 @@ export const useAchievementManager = (props: AchievementManagerProps) => {
         }
 
         // --- NEW ACHIEVEMENT CHECKS ---
+        if (!dimensionalUpgrades || !completedChallenges) return;
+
+        // Challenge Conqueror
+        if (Object.keys(completedChallenges).length > 0) unlockAchievement('challenge_first_complete');
+        if (currencies.challengeTokens >= 100) unlockAchievement('challenge_tokens_100');
+        if (currencies.challengeTokens >= 1000) unlockAchievement('challenge_tokens_1k');
+        if (currencies.challengeTokens >= 10000) unlockAchievement('challenge_tokens_10k');
+        
+        const allChallengesCompleted = challenges.every(c => (completedChallenges[c.id] || 0) > 0);
+        if (allChallengesCompleted) unlockAchievement('challenge_all_complete');
+
+        if (Object.keys(dimensionalUpgrades).length > 0) unlockAchievement('dimensional_upgrade_first');
+        
+        const hasMaxedUpgrade = Object.entries(dimensionalUpgrades).some(([id, level]) => {
+            const upgrade = dimensionalUpgradesMap.get(id);
+            return upgrade && level >= upgrade.maxLevel;
+        });
+        if(hasMaxedUpgrade) unlockAchievement('dimensional_upgrade_max');
+        
+        const allUpgradesMaxed = dimensionalUpgradesList.every(u => (dimensionalUpgrades[u.id] || 0) >= u.maxLevel);
+        if (allUpgradesMaxed) unlockAchievement('dimensional_upgrade_all_max');
+        
+        const hasVeteranChallenge = Object.values(completedChallenges).some(count => count >= 5);
+        if (hasVeteranChallenge) unlockAchievement('challenge_repeat_5');
+
 
         // Currency Milestones (expanded)
         if (lifetimeMana >= 1e18) unlockAchievement('mana_1qi');
@@ -169,5 +198,5 @@ export const useAchievementManager = (props: AchievementManagerProps) => {
         if(manaCrystal && manaCrystal.level === 42) unlockAchievement('hidden_42');
         if (unlockedResearchNodes.has('trans_5_final') && activeGolemIds.length === 5) unlockAchievement('hidden_endgame_synergy');
 
-    }, [isLoaded, items, itemUpgrades, hasEverPrestiged, prestigeUpgradeLevels, prestigeCount, lifetimeMana, currencies, unlockAchievement, unlockedResearchNodes, activeGolemIds, activeSynergies, workshopUpgrades, overclockLevel, runStartTime, setRunStartTime, ancientKnowledgeNodes, devMode, hasEverClicked, generationPerSecond]);
+    }, [isLoaded, items, itemUpgrades, hasEverPrestiged, prestigeUpgradeLevels, prestigeCount, lifetimeMana, currencies, unlockAchievement, unlockedResearchNodes, activeGolemIds, activeSynergies, workshopUpgrades, overclockLevel, runStartTime, setRunStartTime, ancientKnowledgeNodes, devMode, hasEverClicked, generationPerSecond, completedChallenges, dimensionalUpgrades]);
 };

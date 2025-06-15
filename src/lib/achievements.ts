@@ -1,3 +1,4 @@
+
 import { Award, Star, Trophy, Medal, Gem, Zap, BrainCircuit, Sparkles, Network, FlaskConical, Atom, Bot, Group, Puzzle, Clock, Target, Crown } from 'lucide-react';
 import { Achievement } from './gameTypes';
 
@@ -83,6 +84,17 @@ export const allAchievements: Achievement[] = [
   { id: 'golem_5_active', name: 'Quintessence', description: 'Have 5 Golems active at once.', category: 'Golem Mastery', icon: Group },
   { id: 'golem_first_synergy', name: 'Synchronicity', description: 'Activate a Golem Synergy for the first time.', category: 'Golem Mastery', icon: Puzzle },
   { id: 'golem_chaos', name: 'Agent of Chaos', description: 'Activate the Chaos Golem.', category: 'Golem Mastery', icon: Zap, isSecret: true },
+
+  // New Category: Challenge Conqueror
+  { id: 'challenge_first_complete', name: 'Challenge Conqueror', description: 'Complete your first challenge.', category: 'Challenge Conqueror', icon: Trophy },
+  { id: 'challenge_tokens_100', name: 'Token Collector', description: 'Earn 100 total Challenge Tokens.', category: 'Challenge Conqueror', icon: Gem },
+  { id: 'challenge_tokens_1k', name: 'Token Hoarder', description: 'Earn 1,000 total Challenge Tokens.', category: 'Challenge Conqueror', icon: Gem },
+  { id: 'challenge_tokens_10k', name: 'Token Tycoon', description: 'Earn 10,000 total Challenge Tokens.', category: 'Challenge Conqueror', icon: Crown },
+  { id: 'challenge_all_complete', name: 'Challenge Master', description: 'Complete every available challenge at least once.', category: 'Challenge Conqueror', icon: Crown, isSecret: true },
+  { id: 'dimensional_upgrade_first', name: 'Token Spender', description: 'Purchase your first Dimensional Upgrade.', category: 'Challenge Conqueror', icon: Star },
+  { id: 'dimensional_upgrade_max', name: 'Dimensional Lord', description: 'Max out any Dimensional Upgrade.', category: 'Challenge Conqueror', icon: Medal },
+  { id: 'dimensional_upgrade_all_max', name: 'Reality Shaper', description: 'Max out all Dimensional Upgrades.', category: 'Challenge Conqueror', icon: Sparkles, isSecret: true },
+  { id: 'challenge_repeat_5', name: 'Challenge Veteran', description: 'Complete the same challenge 5 times.', category: 'Challenge Conqueror', icon: Medal },
 
   // New Category: Workshop Mastery
   { id: 'workshop_10', name: 'Novice Artificer', description: 'Reach 10 total Workshop upgrade levels.', category: 'Workshop Mastery', icon: Award },

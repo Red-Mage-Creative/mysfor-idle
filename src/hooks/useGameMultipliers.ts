@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -8,6 +7,7 @@ import { researchNodeMap } from '@/lib/researchTree';
 import { golemMap } from '@/lib/golems';
 import { allSynergies } from '@/lib/golemSynergies';
 import { WorkshopUpgrade } from '@/lib/gameTypes';
+import { dimensionalUpgradesMap } from '@/lib/dimensionalUpgrades';
 import { challengeMap } from '@/lib/challenges';
 import { ChallengeEffects } from '@/lib/gameTypes';
 
@@ -22,7 +22,8 @@ type UseGameMultipliersProps = Pick<ReturnType<typeof useGameState>,
     'prestigeCount' |
     'currencies' |
     'ancientKnowledgeNodes' |
-    'activeChallengeId' // Add activeChallengeId
+    'activeChallengeId' |
+    'dimensionalUpgrades'
 >;
 
 export const useGameMultipliers = ({
@@ -37,7 +38,48 @@ export const useGameMultipliers = ({
     currencies,
     ancientKnowledgeNodes,
     activeChallengeId,
+    dimensionalUpgrades
 }: UseGameMultipliersProps) => {
+    const dimensionalMultipliers = useMemo(() => {
+        const multipliers = {
+            allProduction: 1,
+            essenceFlux: 1,
+            offlineProduction: 1,
+            costReduction: 1,
+            shardGain: 1,
+            challengeTokenGain: 1,
+            manaClick: 1,
+            researchPoints: 1,
+            multiPrestigeBonus: 0,
+            golemSynergy: 1,
+        };
+
+        if (!dimensionalUpgrades) return multipliers;
+
+        for (const upgradeId in dimensionalUpgrades) {
+            const level = dimensionalUpgrades[upgradeId];
+            if (level > 0) {
+                const upgrade = dimensionalUpgradesMap.get(upgradeId);
+                if (upgrade) {
+                    const value = upgrade.effect.value(level);
+                    switch (upgrade.effect.type) {
+                        case 'allProductionMultiplier': multipliers.allProduction *= value; break;
+                        case 'essenceFluxMultiplier': multipliers.essenceFlux *= value; break;
+                        case 'offlineProductionMultiplier': multipliers.offlineProduction *= value; break;
+                        case 'costReductionMultiplier': multipliers.costReduction *= value; break;
+                        case 'shardGainMultiplier': multipliers.shardGain *= value; break;
+                        case 'challengeTokenGainMultiplier': multipliers.challengeTokenGain *= value; break;
+                        case 'manaClickMultiplier': multipliers.manaClick *= value; break;
+                        case 'researchPointsMultiplier': multipliers.researchPoints *= value; break;
+                        case 'multiPrestigeBonus': multipliers.multiPrestigeBonus += value; break;
+                        case 'golemSynergyMultiplier': multipliers.golemSynergy *= value; break;
+                    }
+                }
+            }
+        }
+        return multipliers;
+    }, [dimensionalUpgrades]);
+
     const challengeEffects = useMemo<ChallengeEffects>(() => {
         const effects: ChallengeEffects = {
             challengeFailConditions: [],
@@ -164,7 +206,14 @@ export const useGameMultipliers = ({
         });
 
         activeSynergies.forEach(synergy => {
-            processEffect(synergy.effect);
+            // Apply dimensional synergy multiplier
+            const synergyEffect = JSON.parse(JSON.stringify(synergy.effect)); // Deep copy to avoid mutation
+            if (synergyEffect.type === 'generationMultiplier' || synergyEffect.type === 'flatGeneration') {
+                synergyEffect.value *= dimensionalMultipliers.golemSynergy;
+            } else if (synergyEffect.type === 'shardGainMultiplier') {
+                 synergyEffect.value = 1 + ((synergyEffect.value - 1) * dimensionalMultipliers.golemSynergy);
+            }
+            processEffect(synergyEffect);
         });
         
         // Apply challenge multiplier to golem effects
@@ -180,7 +229,7 @@ export const useGameMultipliers = ({
 
 
         return effects;
-    }, [activeGolemIds, activeSynergies, challengeEffects.golemEffectMultiplier]);
+    }, [activeGolemIds, activeSynergies, challengeEffects.golemEffectMultiplier, dimensionalMultipliers.golemSynergy]);
 
     const prestigeLevelBonus = useMemo(() => {
         if (!prestigeCount || prestigeCount < 5) return 1;
@@ -251,6 +300,13 @@ export const useGameMultipliers = ({
         // Apply new global bonuses to all production, including the new synergy bonus
         multipliers.allProduction *= prestigeLevelBonus * aetherShardBonus * ancientKnowledgeBonus * synergyBonus;
 
+        // Apply dimensional multipliers
+        multipliers.allProduction *= dimensionalMultipliers.allProduction;
+        multipliers.costReduction *= dimensionalMultipliers.costReduction;
+        multipliers.manaClick *= dimensionalMultipliers.manaClick;
+        multipliers.offlineProduction *= dimensionalMultipliers.offlineProduction;
+        multipliers.shardGain *= dimensionalMultipliers.shardGain;
+
         if (golemEffects.disabledFeatures.has('autoBuyItems')) {
             multipliers.autoBuyItemsUnlocked = false;
         }
@@ -259,7 +315,7 @@ export const useGameMultipliers = ({
         }
 
         return multipliers;
-    }, [prestigeUpgradeLevels, golemEffects, prestigeLevelBonus, aetherShardBonus, ancientKnowledgeBonus, synergyBonus]);
+    }, [prestigeUpgradeLevels, golemEffects, prestigeLevelBonus, aetherShardBonus, ancientKnowledgeBonus, synergyBonus, dimensionalMultipliers]);
 
     const workshopUpgradeMultipliers = useMemo(() => {
         const multipliers = {
@@ -320,5 +376,6 @@ export const useGameMultipliers = ({
         ancientKnowledgeBonus,
         synergyBonus,
         challengeEffects,
+        multiPrestigeBonus: dimensionalMultipliers.multiPrestigeBonus,
     };
 };
