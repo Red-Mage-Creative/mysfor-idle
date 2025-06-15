@@ -15,6 +15,9 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         workshopUpgrades: props.workshopUpgrades,
         items: props.items,
         itemUpgrades: props.itemUpgrades,
+        currencies: props.currencies,
+        prestigeCount: props.prestigeCount,
+        ancientKnowledgeNodes: props.ancientKnowledgeNodes,
     });
 
     const production = useProduction({
