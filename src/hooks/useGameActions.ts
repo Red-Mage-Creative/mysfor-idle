@@ -226,38 +226,34 @@ export const useGameActions = (props: UseGameActionsProps) => {
 
     const handleBuyAllItemUpgrades = useCallback(() => {
         let purchasedCount = 0;
-        const tempCurrencies = { ...currencies };
-        let tempItemUpgrades = JSON.parse(JSON.stringify(itemUpgrades)); // Deep copy to modify purchased status in loop
-        
-        while (true) {
-            // Find the next cheapest, available, and affordable upgrade
-            const nextUpgradeToBuy = tempItemUpgrades
-                .filter((u: ItemUpgrade) => !u.purchased)
-                .filter((u: ItemUpgrade) => {
-                    const parentItem = items.find(i => i.id === u.parentItemId);
-                    return parentItem && parentItem.level >= u.unlocksAtLevel;
-                })
-                .filter((u: ItemUpgrade) => {
-                    return Object.entries(u.cost).every(([currency, cost]) => {
-                        const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
-                        return tempCurrencies[currency as Currency] >= actualCost;
-                    });
-                })
-                .sort((a: ItemUpgrade, b: ItemUpgrade) => (a.cost.mana || 0) - (b.cost.mana || 0))
-                [0]; // Get the cheapest one
+        // Use structuredClone for a safe and correct deep copy
+        const tempCurrencies = structuredClone(currencies);
+        const tempItemUpgrades = structuredClone(itemUpgrades);
 
-            if (nextUpgradeToBuy) {
-                // "Buy" it
-                for (const currency in nextUpgradeToBuy.cost) {
-                    const actualCost = Math.ceil((nextUpgradeToBuy.cost[currency as Currency] || 0) * prestigeMultipliers.costReduction);
+        const availableAndSortedUpgrades = tempItemUpgrades
+            .filter((u: ItemUpgrade) => {
+                if (u.purchased) return false;
+                const parentItem = items.find(i => i.id === u.parentItemId);
+                return parentItem && parentItem.level >= u.unlocksAtLevel;
+            })
+            .sort((a: ItemUpgrade, b: ItemUpgrade) => (a.cost.mana || 0) - (b.cost.mana || 0));
+
+        for (const upgrade of availableAndSortedUpgrades) {
+            const canAfford = Object.entries(upgrade.cost).every(([currency, cost]) => {
+                const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+                return tempCurrencies[currency as Currency] >= actualCost;
+            });
+
+            if (canAfford) {
+                for (const currency in upgrade.cost) {
+                    const actualCost = Math.ceil((upgrade.cost[currency as Currency] || 0) * prestigeMultipliers.costReduction);
                     tempCurrencies[currency as Currency] -= actualCost;
                 }
-                const upgradeInArray = tempItemUpgrades.find((u: ItemUpgrade) => u.id === nextUpgradeToBuy.id);
-                if(upgradeInArray) upgradeInArray.purchased = true;
+                const upgradeInList = tempItemUpgrades.find(u => u.id === upgrade.id);
+                if (upgradeInList) {
+                    upgradeInList.purchased = true;
+                }
                 purchasedCount++;
-            } else {
-                // No more affordable upgrades
-                break;
             }
         }
 
@@ -272,14 +268,13 @@ export const useGameActions = (props: UseGameActionsProps) => {
     }, [items, itemUpgrades, currencies, prestigeMultipliers.costReduction, setCurrencies, setItemUpgrades, immediateSave]);
 
     const handleBuyAllWorkshopUpgrades = useCallback(() => {
-        let purchasedCount = 0;
-        const tempCurrencies = { ...currencies };
-        let tempWorkshopUpgrades = JSON.parse(JSON.stringify(workshopUpgrades)); // deep copy
+        let purchasedLevels = 0;
+        const tempCurrencies = structuredClone(currencies);
+        const tempWorkshopUpgrades = structuredClone(workshopUpgrades);
+        const MAX_PURCHASES = 500; // Safety break to prevent accidental infinite loops
 
-        while (true) {
-            let somethingWasBought = false;
-            // sort by cheapest next level
-            const affordableUpgrades = tempWorkshopUpgrades.map((upgrade: WorkshopUpgrade) => {
+        for (let i = 0; i < MAX_PURCHASES; i++) {
+            const affordableUpgrades = tempWorkshopUpgrades.map(upgrade => {
                 const cost = Math.ceil(
                     (upgrade.baseCost.cogwheelGears || 0) *
                     Math.pow(WORKSHOP_UPGRADE_COST_GROWTH_RATE, upgrade.level)
@@ -289,27 +284,24 @@ export const useGameActions = (props: UseGameActionsProps) => {
               .sort((a, b) => a.cost - b.cost);
             
             if (affordableUpgrades.length > 0) {
-                const { upgrade, cost } = affordableUpgrades[0];
-                tempCurrencies.cogwheelGears -= cost;
+                const cheapest = affordableUpgrades[0];
+                tempCurrencies.cogwheelGears -= cheapest.cost;
                 
-                const upgradeInArray = tempWorkshopUpgrades.find((u: WorkshopUpgrade) => u.id === upgrade.id);
+                const upgradeInArray = tempWorkshopUpgrades.find((u: WorkshopUpgrade) => u.id === cheapest.upgrade.id);
                 if (upgradeInArray) {
                     upgradeInArray.level++;
                 }
                 
-                purchasedCount++;
-                somethingWasBought = true;
-            }
-
-            if (!somethingWasBought) {
-                break;
+                purchasedLevels++;
+            } else {
+                break; // No more affordable upgrades
             }
         }
         
-        if (purchasedCount > 0) {
+        if (purchasedLevels > 0) {
             setCurrencies(tempCurrencies);
             setWorkshopUpgrades(tempWorkshopUpgrades);
-            toast.success(`Purchased ${purchasedCount} workshop upgrade level(s).`);
+            toast.success(`Purchased ${purchasedLevels} workshop upgrade level(s).`);
             immediateSave('buy-all-workshop-upgrades');
         } else {
             toast.info("No affordable workshop upgrades available.");

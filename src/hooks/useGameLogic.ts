@@ -27,6 +27,8 @@ export const useGameLogic = () => {
         immediateSave,
     });
 
+    const { handleBuyItem, handleBuyItemUpgrade, handleBuyWorkshopUpgrade } = actions;
+
     // Auto-buy logic
     useEffect(() => {
         const autoBuyTick = () => {
@@ -40,7 +42,7 @@ export const useGameLogic = () => {
                     const details = itemPurchaseDetails.get(item.id);
                     // Check if item is visible/unlocked via itemPurchaseDetails map
                     if (details && details.canAffordPurchase && details.purchaseQuantity > 0) {
-                        actions.handleBuyItem(item.id);
+                        handleBuyItem(item.id);
                         return; // Buy one type of item per tick to avoid draining resources instantly
                     }
                 }
@@ -56,7 +58,7 @@ export const useGameLogic = () => {
                         return currencies[c as Currency] >= actualCost;
                     });
                     if (canAfford) {
-                        actions.handleBuyItemUpgrade(upgrade.id);
+                        handleBuyItemUpgrade(upgrade.id);
                         return;
                     }
                 }
@@ -74,7 +76,7 @@ export const useGameLogic = () => {
                       .sort((a, b) => a.cost - b.cost);
 
                     if (affordableUpgrades.length > 0) {
-                        actions.handleBuyWorkshopUpgrade(affordableUpgrades[0].upgrade.id);
+                        handleBuyWorkshopUpgrade(affordableUpgrades[0].upgrade.id);
                         return;
                     }
                 }
@@ -93,7 +95,9 @@ export const useGameLogic = () => {
         availableItemUpgrades,
         workshopUpgrades,
         currencies,
-        actions
+        handleBuyItem,
+        handleBuyItemUpgrade,
+        handleBuyWorkshopUpgrade
     ]);
 
     // Auto-downshift for overclock
