@@ -49,7 +49,9 @@ const PrestigeUpgradeItem = ({
     const isAutoBuyItemsUpgrade = upgrade.effect.type === 'unlockAutoBuyItems';
     const isAutoBuyUpgradesUpgrade = upgrade.effect.type === 'unlockAutoBuyUpgrades';
     const isAutoBuyUpgrade = isAutoBuyItemsUpgrade || isAutoBuyUpgradesUpgrade;
-    const autoBuyDisabledByGolem = !!golemEffects?.autoBuyDisabled;
+    const autoBuyDisabledByGolem = 
+        (isAutoBuyItemsUpgrade && golemEffects.disabledFeatures.has('autoBuyItems')) ||
+        (isAutoBuyUpgradesUpgrade && golemEffects.disabledFeatures.has('autoBuyUpgrades'));
     const isLocked = isAutoBuyUpgrade && level === 0;
 
     const showToggle = isAutoBuyUpgrade && level > 0;

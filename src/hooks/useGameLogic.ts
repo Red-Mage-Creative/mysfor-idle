@@ -167,7 +167,7 @@ export const useGameLogic = () => {
     // Auto-buy logic
     useEffect(() => {
         const autoBuyTick = () => {
-            if (!isLoaded || golemEffects.autoBuyDisabled) return;
+            if (!isLoaded) return;
             
             // Auto-buy items
             if (autoBuySettings.items && prestigeMultipliers.autoBuyItemsUnlocked) {

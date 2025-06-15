@@ -181,3 +181,11 @@ export interface OfflineEarnings {
     timeAway: number; // in seconds
     earnings: CurrencyRecord;
 }
+
+export type GolemEffects = {
+    generationMultiplier: Partial<Record<Currency, number>>;
+    flatGeneration: Partial<Record<Currency, number>>;
+    costMultiplier: number;
+    shardGainMultiplier: number;
+    disabledFeatures: Set<'autoBuyItems' | 'autoBuyUpgrades'>;
+};

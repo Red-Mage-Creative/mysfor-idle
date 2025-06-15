@@ -668,5 +668,6 @@ export const useGameCalculations = ({
         researchBonuses,
         activeGolems,
         activeSynergies,
+        golemEffects,
     };
 };
