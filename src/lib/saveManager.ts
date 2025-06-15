@@ -1,3 +1,4 @@
+
 import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade, AchievementProgress, OfflineEarnings } from '@/lib/gameTypes';
 import { getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
@@ -5,6 +6,7 @@ import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { toast } from "@/components/ui/sonner";
 import * as C from '@/constants/gameConstants';
 import { allAchievements } from '@/lib/achievements';
+import { researchNodeMap } from '@/lib/researchTree';
 
 const compareVersions = (v1: string, v2: string): number => {
     const parts1 = (v1 || '0.0.0').split('.').map(Number);
@@ -29,6 +31,14 @@ const migrateSaveData = (data: any): GameSaveData => {
             migratedData.overclockLevel = 0;
         }
     }
+    // New migration logic for v1.2.0
+    if (compareVersions(initialVersion, '1.2.0') < 0) {
+        if (Array.isArray(migratedData.unlockedResearchNodeIds)) {
+            const validNodeIds = new Set(researchNodeMap.keys());
+            migratedData.unlockedResearchNodeIds = migratedData.unlockedResearchNodeIds.filter((id: string) => validNodeIds.has(id));
+        }
+    }
+
     if (typeof migratedData.hasEverPrestiged === 'undefined') migratedData.hasEverPrestiged = false;
     if (typeof migratedData.prestigeCount === 'undefined') migratedData.prestigeCount = 0;
     if (typeof migratedData.achievements === 'undefined') migratedData.achievements = {};
@@ -60,6 +70,17 @@ const processAchievementsOnLoad = (saveData: GameSaveData): Record<string, Achie
     if (saveData.prestigeCount >= 1) unlock('prestige_1');
     if (saveData.prestigeCount >= 5) unlock('prestige_5');
     if (saveData.lifetimeMana >= 1e15) unlock('mana_1qa');
+
+    // Research achievements
+    const unlockedResearchNodes = new Set(saveData.unlockedResearchNodeIds || []);
+    if (unlockedResearchNodes.size >= 1) unlock('research_start');
+    if (unlockedResearchNodes.size >= 10) unlock('research_10_nodes');
+    if (unlockedResearchNodes.size >= 25) unlock('research_25_nodes');
+    if (unlockedResearchNodes.size >= 50) unlock('research_50_nodes');
+    if (unlockedResearchNodes.has('magitech_mastery')) unlock('research_path_magitech');
+    if (unlockedResearchNodes.has('mechanical_mastery')) unlock('research_path_mechanical');
+    if (unlockedResearchNodes.has('trans_1_junction_3')) unlock('research_path_mystical');
+    if (unlockedResearchNodes.has('trans_5_final')) unlock('research_complete_tree');
 
     return finalAchievements;
 }

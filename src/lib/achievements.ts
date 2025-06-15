@@ -1,3 +1,4 @@
+
 import { Award, Star, Trophy, Medal, Gem, Zap, BrainCircuit, Sparkles, Network, FlaskConical, Atom } from 'lucide-react';
 import { Achievement } from './gameTypes';
 
@@ -50,6 +51,8 @@ export const allAchievements: Achievement[] = [
   { id: 'research_50_nodes', name: 'Tree of Knowledge', description: 'Unlock 50 research nodes.', category: 'Research & Development', icon: Atom },
   { id: 'research_path_magitech', name: 'Magitech Pioneer', description: 'Complete the core Magitech research path.', category: 'Research & Development', icon: Sparkles },
   { id: 'research_path_mechanical', name: 'Chief Engineer', description: 'Complete the core Mechanical research path.', category: 'Research & Development', icon: FlaskConical },
+  { id: 'research_path_mystical', name: 'Mystical Thinker', description: 'Complete the core Mystical research path.', category: 'Research & Development', icon: Atom },
+  { id: 'research_complete_tree', name: 'Universal Architect', description: 'Complete the entire research tree.', category: 'Research & Development', icon: Sparkles, isSecret: true },
 
   // Cosmic Resonator
   { id: 'cosmic_resonator_1', name: 'Reality Shaper', description: 'Buy your first Cosmic Resonator.', category: 'Cosmic Achievements', icon: Star },
