@@ -152,6 +152,7 @@ export const useGameLogic = () => {
         ...actions,
         // session returns
         manualSave,
+        immediateSave,
         saveStatus: gameState.saveStatus,
         lastSaveTime: gameState.lastSaveTime,
         resetGame,
