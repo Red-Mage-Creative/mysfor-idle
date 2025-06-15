@@ -80,6 +80,7 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         prestigeLevelBonus: multipliers.prestigeLevelBonus,
         aetherShardBonus: multipliers.aetherShardBonus,
         ancientKnowledgeBonus: multipliers.ancientKnowledgeBonus,
+        synergyBonus: multipliers.synergyBonus,
 
         // From production
         overclockInfo: production.overclockInfo,

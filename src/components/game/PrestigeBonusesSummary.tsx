@@ -7,7 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from '@/components/ui/badge';
-import { Star, Zap, Gem, Hourglass, ChevronsUp, Crown, Sparkles, BrainCircuit } from 'lucide-react';
+import { Star, Zap, Gem, Hourglass, ChevronsUp, Crown, Sparkles, BrainCircuit, ShieldHalf } from 'lucide-react';
 import { formatMultiplier, formatNumber } from '@/lib/formatters';
 
 interface PrestigeBonusesSummaryProps {
@@ -21,6 +21,7 @@ interface PrestigeBonusesSummaryProps {
   prestigeLevelBonus?: number;
   aetherShardBonus?: number;
   ancientKnowledgeBonus?: number;
+  synergyBonus?: number;
   aetherShards?: number;
   ancientKnowledgeNodesCount?: number;
 }
@@ -31,6 +32,7 @@ const PrestigeBonusesSummary = ({
     prestigeLevelBonus,
     aetherShardBonus,
     ancientKnowledgeBonus,
+    synergyBonus,
     aetherShards,
     ancientKnowledgeNodesCount,
 }: PrestigeBonusesSummaryProps) => {
@@ -38,7 +40,8 @@ const PrestigeBonusesSummary = ({
 
   const showGlobalBonuses = (prestigeLevelBonus && prestigeLevelBonus > 1) ||
                             (aetherShardBonus && aetherShardBonus > 1) ||
-                            (ancientKnowledgeBonus && ancientKnowledgeBonus > 1);
+                            (ancientKnowledgeBonus && ancientKnowledgeBonus > 1) ||
+                            (synergyBonus && synergyBonus > 1);
 
   return (
     <div className="w-full">
@@ -95,6 +98,12 @@ const PrestigeBonusesSummary = ({
                                 <div className="flex items-center justify-between">
                                     <span className="flex items-center gap-2"><BrainCircuit size={16} /> {ancientKnowledgeNodesCount} Ancient Knowledge:</span>
                                     <span className="font-bold text-green-400">{formatMultiplier(ancientKnowledgeBonus)}</span>
+                                </div>
+                            )}
+                            {synergyBonus && synergyBonus > 1 && (
+                                <div className="flex items-center justify-between">
+                                    <span className="flex items-center gap-2"><ShieldHalf size={16} /> Synergy Bonus:</span>
+                                    <span className="font-bold text-green-400">{formatMultiplier(synergyBonus)}</span>
                                 </div>
                             )}
                         </div>

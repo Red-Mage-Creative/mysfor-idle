@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -72,6 +73,7 @@ const Index = () => {
     prestigeLevelBonus,
     aetherShardBonus,
     ancientKnowledgeBonus,
+    synergyBonus,
   } = useGame();
 
   const handleToggleGolem = (id: string) => {
@@ -140,6 +142,7 @@ const Index = () => {
               prestigeLevelBonus={prestigeLevelBonus}
               aetherShardBonus={aetherShardBonus}
               ancientKnowledgeBonus={ancientKnowledgeBonus}
+              synergyBonus={synergyBonus}
               aetherShards={currencies.aetherShards}
               ancientKnowledgeNodesCount={ancientKnowledgeNodes.size}
             />}

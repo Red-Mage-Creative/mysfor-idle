@@ -151,22 +151,30 @@ export const useGameMultipliers = ({
     }, [activeGolemIds, activeSynergies]);
 
     const prestigeLevelBonus = useMemo(() => {
-        if (!prestigeCount || prestigeCount < 8) return 1;
-        // Exponential bonus starts at prestige 8
-        return Math.pow(1.5, prestigeCount - 7);
+        if (!prestigeCount || prestigeCount < 5) return 1;
+        // Exponential bonus starts at prestige 5, with a higher multiplier
+        return Math.pow(1.8, prestigeCount - 4);
     }, [prestigeCount]);
 
     const aetherShardBonus = useMemo(() => {
         if (!currencies?.aetherShards) return 1;
-        // Logarithmic bonus for holding Aether Shards
-        return 1 + Math.log10(Math.max(1, currencies.aetherShards)) * 0.05;
+        // Power-based bonus for holding Aether Shards for better scaling
+        return 1 + Math.pow(Math.max(1, currencies.aetherShards), 0.35) * 0.1;
     }, [currencies?.aetherShards]);
 
     const ancientKnowledgeBonus = useMemo(() => {
         if (!ancientKnowledgeNodes?.size) return 1;
-        // 2% bonus per unique research node discovered across all prestiges
-        return 1 + ancientKnowledgeNodes.size * 0.02;
+        // Exponential bonus per unique research node discovered
+        return Math.pow(1.025, ancientKnowledgeNodes.size);
     }, [ancientKnowledgeNodes]);
+
+    const synergyBonus = useMemo(() => {
+        let bonus = 1;
+        if (prestigeCount >= 10) bonus *= 1.25;
+        if (currencies.aetherShards >= 5000) bonus *= 1.25;
+        if (ancientKnowledgeNodes.size >= 60) bonus *= 1.25;
+        return bonus;
+    }, [prestigeCount, currencies.aetherShards, ancientKnowledgeNodes.size]);
 
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
@@ -208,8 +216,8 @@ export const useGameMultipliers = ({
             }
         }
 
-        // Apply new global bonuses to all production
-        multipliers.allProduction *= prestigeLevelBonus * aetherShardBonus * ancientKnowledgeBonus;
+        // Apply new global bonuses to all production, including the new synergy bonus
+        multipliers.allProduction *= prestigeLevelBonus * aetherShardBonus * ancientKnowledgeBonus * synergyBonus;
 
         if (golemEffects.disabledFeatures.has('autoBuyItems')) {
             multipliers.autoBuyItemsUnlocked = false;
@@ -219,7 +227,7 @@ export const useGameMultipliers = ({
         }
 
         return multipliers;
-    }, [prestigeUpgradeLevels, golemEffects, prestigeLevelBonus, aetherShardBonus, ancientKnowledgeBonus]);
+    }, [prestigeUpgradeLevels, golemEffects, prestigeLevelBonus, aetherShardBonus, ancientKnowledgeBonus, synergyBonus]);
 
     const workshopUpgradeMultipliers = useMemo(() => {
         const multipliers = {
@@ -278,5 +286,6 @@ export const useGameMultipliers = ({
         prestigeLevelBonus,
         aetherShardBonus,
         ancientKnowledgeBonus,
+        synergyBonus,
     };
 };
