@@ -1,7 +1,6 @@
-
 import { ResearchNode } from '@/lib/gameTypes';
 import {
-  FlaskConical, Zap, Cog, Coins, Flame, Beaker, Droplet, Factory, Landmark, Sparkles, Wand2, Cogs, Star, Award, Settings, Bot, ToyBrick, Diamond, BookOpen, Target, GitBranch, KeyRound, Clock, Atom, BrainCircuit, Microscope, Shield, GitPullRequest, Link
+  FlaskConical, Zap, Cog, Coins, Flame, Beaker, Droplet, Factory, Landmark, Sparkles, Wand2, Star, Award, Settings, Bot, ToyBrick, Diamond, BookOpen, Target, GitBranch, KeyRound, Clock, Atom, BrainCircuit, Microscope, Shield, GitPullRequest, Link
 } from 'lucide-react';
 
 export const researchNodes: ResearchNode[] = [
@@ -290,7 +289,7 @@ export const researchNodes: ResearchNode[] = [
     cost: { researchPoints: 10000000 },
     position: { x: 14, y: 22 },
     prerequisites: ['workshop_gears_boost'],
-    icon: Cogs,
+    icon: Cog,
     category: 'mechanical',
     effect: { type: 'specificItemMultiplier', itemId: 'workshop_gears', value: 2 },
   },
@@ -326,7 +325,7 @@ export const researchNodes: ResearchNode[] = [
     cost: { researchPoints: 100000000 },
     position: { x: 10, y: 22 },
     prerequisites: ['master_mechanic_1'],
-    icon: Cogs,
+    icon: Cog,
     category: 'mechanical',
     effect: { type: 'specificItemMultiplier', itemId: 'workshop_gears', value: 2.5 },
   },
@@ -362,7 +361,7 @@ export const researchNodes: ResearchNode[] = [
     cost: { researchPoints: 1000000000 },
     position: { x: 6, y: 22 },
     prerequisites: ['master_mechanic_2'],
-    icon: Cogs,
+    icon: Cog,
     category: 'mechanical',
     effect: { type: 'specificItemMultiplier', itemId: 'workshop_gears', value: 3 },
   },
