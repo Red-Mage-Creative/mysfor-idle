@@ -564,19 +564,28 @@ export const useGameCalculations = ({
         const cosmicResonatorOwned = (items.find(i => i.id === 'cosmic_resonator')?.level || 0) > 0;
 
         for (const item of items) {
+            let isVisible = true;
+
+            // Condition 1: All required currencies must be unlocked for level 0 items.
             const requiredCurrencies = Object.keys(item.baseCost) as Currency[];
             const allCurrenciesUnlocked = requiredCurrencies.every(c => unlockedCurrencies.has(c));
-            
-            if (!allCurrenciesUnlocked && item.level === 0) continue;
+            if (!allCurrenciesUnlocked && item.level === 0) {
+                isVisible = false;
+            }
 
+            // Condition 2: Must meet lifetime mana requirement, unless it's Anti-Matter Mana.
             const initialCostSum = Object.values(item.baseCost).reduce((a, b) => a + (b || 0), 0);
             const manaRequirement = initialCostSum * 0.8;
+            if (item.id !== 'antimatter_mana' && lifetimeMana < manaRequirement && item.level === 0) {
+                isVisible = false;
+            }
 
-            // FIX: Bypass the lifetime mana check for antimatter_mana
-            if (item.id !== 'antimatter_mana' && lifetimeMana < manaRequirement && item.level === 0) continue;
-
-            // Hide Anti-Matter Mana until a Cosmic Resonator is purchased
+            // Condition 3: Anti-Matter Mana is only visible if a Cosmic Resonator is owned (or if already purchased).
             if (item.id === 'antimatter_mana' && !cosmicResonatorOwned && item.level === 0) {
+                isVisible = false;
+            }
+
+            if (!isVisible) {
                 continue;
             }
 
