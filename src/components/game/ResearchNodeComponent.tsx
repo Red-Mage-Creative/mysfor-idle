@@ -20,7 +20,7 @@ const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, 
   const canAfford = researchPoints >= node.cost;
 
   const handleClick = () => {
-    if (status === 'available') {
+    if (status === 'available' && canAfford) {
       onUnlock(node.id);
     }
   };
@@ -35,8 +35,8 @@ const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, 
               {
                 'bg-slate-700 border-slate-500 text-slate-400': status === 'locked',
                 'bg-green-900 border-green-500 text-white shadow-lg shadow-green-500/50 cursor-pointer hover:scale-110': status === 'unlocked',
-                'bg-slate-800 border-yellow-500 text-yellow-300 cursor-pointer hover:scale-110 animate-pulse': status === 'available' && canAfford,
-                'bg-slate-800 border-red-500 text-red-400 cursor-pointer hover:scale-110': status === 'available' && !canAfford,
+                'bg-slate-800 border-yellow-500 text-yellow-300 cursor-pointer hover:scale-110 shadow-lg shadow-yellow-500/20': status === 'available' && canAfford,
+                'bg-slate-800 border-red-500 text-red-400 cursor-not-allowed': status === 'available' && !canAfford,
               }
             )}
             style={{ left: `${node.position.x * 7}rem`, top: `${node.position.y * 7}rem`, transform: 'translate(-50%, -50%)' }}

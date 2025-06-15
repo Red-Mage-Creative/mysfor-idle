@@ -69,7 +69,7 @@ export interface ResearchNode {
   prerequisites: string[];
   icon: LucideIcon;
   effect: {
-    type: 'manaMultiplier' | 'allProductionMultiplier' | 'costReductionMultiplier' | 'specificItemMultiplier' | 'manaPerClickMultiplier' | 'essenceFluxMultiplier';
+    type: 'manaMultiplier' | 'allProductionMultiplier' | 'costReductionMultiplier' | 'specificItemMultiplier' | 'manaPerClickMultiplier' | 'essenceFluxMultiplier' | 'researchPointsMultiplier';
     value: number;
     itemId?: string; // for specificItemMultiplier
   };
@@ -104,7 +104,7 @@ export interface PrestigeUpgrade {
   icon: LucideIcon;
 }
 
-export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements';
+export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development';
 
 export interface Achievement {
   id: string;

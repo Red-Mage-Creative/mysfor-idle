@@ -1,5 +1,4 @@
-
-import { Award, Star, Trophy, Medal, Gem, Zap, BrainCircuit, Sparkles } from 'lucide-react';
+import { Award, Star, Trophy, Medal, Gem, Zap, BrainCircuit, Sparkles, Network, FlaskConical, Atom } from 'lucide-react';
 import { Achievement } from './gameTypes';
 
 export const allAchievements: Achievement[] = [
@@ -43,6 +42,14 @@ export const allAchievements: Achievement[] = [
   { id: 'research_10', name: 'Student', description: 'Possess 10 Research Points.', category: 'Currency Milestones', icon: Award },
   { id: 'research_1k', name: 'Scholar', description: 'Possess 1,000 Research Points.', category: 'Currency Milestones', icon: Trophy },
   { id: 'research_100k', name: 'Sage', description: 'Possess 100,000 Research Points.', category: 'Currency Milestones', icon: Medal },
+
+  // Research & Development
+  { id: 'research_start', name: 'First Discovery', description: 'Unlock your first research node.', category: 'Research & Development', icon: Zap },
+  { id: 'research_10_nodes', name: 'Dedicated Researcher', description: 'Unlock 10 research nodes.', category: 'Research & Development', icon: BrainCircuit },
+  { id: 'research_25_nodes', name: 'Master Scholar', description: 'Unlock 25 research nodes.', category: 'Research & Development', icon: Network },
+  { id: 'research_50_nodes', name: 'Tree of Knowledge', description: 'Unlock 50 research nodes.', category: 'Research & Development', icon: Atom },
+  { id: 'research_path_magitech', name: 'Magitech Pioneer', description: 'Complete the core Magitech research path.', category: 'Research & Development', icon: Sparkles },
+  { id: 'research_path_mechanical', name: 'Chief Engineer', description: 'Complete the core Mechanical research path.', category: 'Research & Development', icon: FlaskConical },
 
   // Cosmic Resonator
   { id: 'cosmic_resonator_1', name: 'Reality Shaper', description: 'Buy your first Cosmic Resonator.', category: 'Cosmic Achievements', icon: Star },

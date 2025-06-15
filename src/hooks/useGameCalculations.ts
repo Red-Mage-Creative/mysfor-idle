@@ -109,6 +109,7 @@ export const useGameCalculations = ({
             costReduction: 1,
             manaPerClick: 1,
             essenceFlux: 1,
+            researchPoints: 1,
             specificItem: {} as Record<string, number>,
         };
 
@@ -131,6 +132,9 @@ export const useGameCalculations = ({
                     break;
                 case 'essenceFluxMultiplier':
                     bonuses.essenceFlux *= node.effect.value;
+                    break;
+                case 'researchPointsMultiplier':
+                    bonuses.researchPoints *= node.effect.value;
                     break;
                 case 'specificItemMultiplier':
                     if (node.effect.itemId) {
@@ -277,7 +281,7 @@ export const useGameCalculations = ({
             baseGeneration.essenceFlux *= workshopUpgradeMultipliers.essenceFlux * researchBonuses.essenceFlux;
         }
         if (baseGeneration.researchPoints) {
-            baseGeneration.researchPoints *= workshopUpgradeMultipliers.researchPoints;
+            baseGeneration.researchPoints *= workshopUpgradeMultipliers.researchPoints * researchBonuses.researchPoints;
         }
 
         // Apply overclock effects

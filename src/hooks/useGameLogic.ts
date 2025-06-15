@@ -134,6 +134,14 @@ export const useGameLogic = () => {
         if (currencies.researchPoints >= 1_000) unlockAchievement('research_1k');
         if (currencies.researchPoints >= 100_000) unlockAchievement('research_100k');
 
+        // Research
+        if (unlockedResearchNodes.size >= 1) unlockAchievement('research_start');
+        if (unlockedResearchNodes.size >= 10) unlockAchievement('research_10_nodes');
+        if (unlockedResearchNodes.size >= 25) unlockAchievement('research_25_nodes');
+        if (unlockedResearchNodes.size >= 50) unlockAchievement('research_50_nodes');
+        if (unlockedResearchNodes.has('mana_mastery')) unlockAchievement('research_path_magitech');
+        if (unlockedResearchNodes.has('machine_mastery')) unlockAchievement('research_path_mechanical');
+        
         // Cosmic Resonator
         const cosmicResonator = items.find(item => item.id === 'cosmic_resonator');
         if (cosmicResonator && cosmicResonator.level > 0) {
@@ -143,7 +151,7 @@ export const useGameLogic = () => {
             if (cosmicResonator.level >= 1000) unlockAchievement('cosmic_resonator_1k');
         }
 
-    }, [isLoaded, items, itemUpgrades, hasEverPrestiged, prestigeUpgradeLevels, prestigeCount, lifetimeMana, currencies, unlockAchievement]);
+    }, [isLoaded, items, itemUpgrades, hasEverPrestiged, prestigeUpgradeLevels, prestigeCount, lifetimeMana, currencies, unlockAchievement, unlockedResearchNodes]);
 
     // Auto-buy logic
     useEffect(() => {
