@@ -21,8 +21,8 @@ export const usePrestigeManagement = ({
     const { prestigeMultipliers, golemEffects } = multipliers;
 
     const prestigeRequirement = useMemo(() => {
-        // More aggressive scaling: 10x -> 15x per prestige
-        return 1e9 * Math.pow(15, prestigeCount);
+        // More aggressive scaling: 15x -> 50x per prestige
+        return 1e9 * Math.pow(50, prestigeCount);
     }, [prestigeCount]);
 
     const canPrestige = useMemo(() => lifetimeMana >= prestigeRequirement, [lifetimeMana, prestigeRequirement]);
@@ -61,8 +61,8 @@ export const usePrestigeManagement = ({
         const loopCap = 1000; 
 
         while (prestigesToGain < loopCap) {
-            // More aggressive scaling: 10x -> 15x per prestige
-            const requirement = 1e9 * Math.pow(15, currentPrestigeCheck);
+            // More aggressive scaling: 15x -> 50x per prestige
+            const requirement = 1e9 * Math.pow(50, currentPrestigeCheck);
             if (remainingMana < requirement) {
                 break;
             }
