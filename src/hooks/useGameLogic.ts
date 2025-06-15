@@ -8,6 +8,7 @@ import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { Currency, Item } from '@/lib/gameTypes';
 import { allAchievements, achievementMap } from '@/lib/achievements';
 import { researchNodeMap } from '@/lib/researchTree';
+import { allGolems, golemMap, MAX_ACTIVE_GOLEMS } from '@/lib/golems';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
@@ -29,7 +30,7 @@ export const useGameLogic = () => {
         immediateSave,
     });
 
-    const { handleBuyItem, handleBuyItemUpgrade, handleBuyWorkshopUpgrade } = actions;
+    const { handleBuyItem, handleBuyItemUpgrade, handleBuyWorkshopUpgrade, handleBuyGolem } = actions;
 
     const handleBuyResearch = useCallback((nodeId: string) => {
         const node = researchNodeMap.get(nodeId);
@@ -276,6 +277,8 @@ export const useGameLogic = () => {
         }
     }, [isLoaded, items, hasBeatenGame, setHasBeatenGame, immediateSave]);
 
+    const showEssenceTab = hasEverPrestiged;
+
     return {
         ...gameState,
         ...calculations,
@@ -291,5 +294,10 @@ export const useGameLogic = () => {
         setBuyQuantity: actions.updateBuyQuantity,
         prestigeUpgrades,
         handleBuyResearch,
+        handleBuyGolem,
+        showEssenceTab,
+        allGolems,
+        golemMap,
+        MAX_ACTIVE_GOLEMS,
     };
 };

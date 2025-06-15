@@ -104,6 +104,22 @@ export interface PrestigeUpgrade {
   icon: LucideIcon;
 }
 
+export type GolemEffectTarget = Currency | 'itemCost' | 'upgradeCost' | 'workshopCost' | 'researchCost';
+
+export type GolemEffect = {
+    target: GolemEffectTarget;
+    multiplier: number; // e.g., 1.5 for +50%, 0.8 for -20%
+};
+
+export interface Golem {
+    id: string;
+    name: string;
+    description: string;
+    cost: number; // essenceFlux
+    effects: GolemEffect[];
+    icon: LucideIcon;
+}
+
 export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development';
 
 export interface Achievement {
@@ -140,6 +156,7 @@ export interface GameSaveData {
     hasEverClicked: boolean;
     hasEverPrestiged: boolean;
     unlockedResearchNodeIds?: string[]; // New field for research
+    activeGolemIds?: string[];
     overclockLevel: number;
     prestigeCount: number;
     hasBeatenGame?: boolean;

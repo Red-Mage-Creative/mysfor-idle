@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { Currencies, Item, ItemUpgrade, WorkshopUpgrade, OfflineEarnings, AchievementProgress } from '@/lib/gameTypes';
@@ -29,6 +30,7 @@ export const useGameState = () => {
     const [autoBuySettings, setAutoBuySettings] = useState({ items: false, upgrades: false });
     const [achievements, setAchievements] = useState<Record<string, AchievementProgress>>({});
     const [unlockedResearchNodes, setUnlockedResearchNodes] = useState<Set<string>>(new Set());
+    const [activeGolemIds, setActiveGolemIds] = useState<string[]>([]);
     const [hasBeatenGame, setHasBeatenGame] = useState(false);
     const [gameCompletionShown, setGameCompletionShown] = useState(false);
     const [devMode, _setDevMode] = useState(() => {
@@ -80,5 +82,6 @@ export const useGameState = () => {
         hasBeatenGame, setHasBeatenGame,
         gameCompletionShown, setGameCompletionShown,
         unlockedResearchNodes, setUnlockedResearchNodes,
+        activeGolemIds, setActiveGolemIds,
     };
 };

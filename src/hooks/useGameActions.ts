@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { useGameState } from './useGameState';
 import type { BuyQuantity } from './useGameState';
@@ -7,6 +8,7 @@ import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorks
 import * as C from '@/constants/gameConstants';
 import { useGameCalculations } from '@/hooks/useGameCalculations';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
+import { golemMap, MAX_ACTIVE_GOLEMS } from '@/lib/golems';
 
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 const WORKSHOP_UPGRADE_COST_GROWTH_RATE = 1.25;
@@ -29,6 +31,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         setOfflineEarnings,
         setBuyQuantity,
         overclockLevel, setOverclockLevel,
+        activeGolemIds, setActiveGolemIds,
         itemPurchaseDetails,
         potentialShards,
         canPrestige,
@@ -225,6 +228,35 @@ export const useGameActions = (props: UseGameActionsProps) => {
         debouncedSave();
     }, [overclockInfo.maxLevelUnlocked, setOverclockLevel, debouncedSave]);
 
+    const handleBuyGolem = useCallback((golemId: string) => {
+        const golem = golemMap.get(golemId);
+        if (!golem) return;
+
+        if (activeGolemIds.includes(golemId)) {
+            toast.info("Golem already active.");
+            return;
+        }
+
+        if (activeGolemIds.length >= MAX_ACTIVE_GOLEMS) {
+            toast.error("Golem limit reached", { description: `You can only have ${MAX_ACTIVE_GOLEMS} active golems.`});
+            return;
+        }
+
+        if (currencies.essenceFlux < golem.cost) {
+            toast.error("Not enough Essence Flux.");
+            return;
+        }
+
+        setCurrencies(prev => ({...prev, essenceFlux: prev.essenceFlux - golem.cost}));
+        setActiveGolemIds(prev => [...prev, golemId]);
+
+        toast.success("Golem Activated!", {
+            description: `Your new ${golem.name} is now active.`
+        });
+        debouncedSave();
+
+    }, [activeGolemIds, currencies.essenceFlux, setActiveGolemIds, setCurrencies, debouncedSave]);
+
     const handleBuyAllItemUpgrades = useCallback(() => {
         let purchasedCount = 0;
         // Use structuredClone for a safe and correct deep copy
@@ -382,6 +414,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         handlePrestige,
         handleBuyPrestigeUpgrade,
         handleSetOverclockLevel,
+        handleBuyGolem,
         clearOfflineEarnings,
         toggleDevMode,
         devGrantResources,

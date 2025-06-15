@@ -1,4 +1,3 @@
-
 import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade, AchievementProgress, OfflineEarnings } from '@/lib/gameTypes';
 import { getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
@@ -43,6 +42,7 @@ const migrateSaveData = (data: any): GameSaveData => {
     if (typeof migratedData.prestigeCount === 'undefined') migratedData.prestigeCount = 0;
     if (typeof migratedData.achievements === 'undefined') migratedData.achievements = {};
     if (typeof migratedData.unlockedResearchNodeIds === 'undefined') migratedData.unlockedResearchNodeIds = [];
+    if (typeof migratedData.activeGolemIds === 'undefined') migratedData.activeGolemIds = [];
     if (typeof migratedData.hasBeatenGame === 'undefined') migratedData.hasBeatenGame = false;
     if (typeof migratedData.gameCompletionShown === 'undefined') migratedData.gameCompletionShown = false;
 
