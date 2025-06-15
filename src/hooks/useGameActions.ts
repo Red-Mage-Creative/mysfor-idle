@@ -187,6 +187,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         setNotifiedUpgrades(new Set()); // Reset notifications on prestige
         setHasEverPrestiged(true);
         setPrestigeCount(prev => prev + 1);
+        setOverclockLevel(0); // Reset overclock on prestige to prevent downshift spam
         
         toast("Dimensional Shift!", {
           description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
@@ -196,7 +197,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         canPrestige, potentialShards, currencies.aetherShards, 
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, 
         setLifetimeMana, setNotifiedUpgrades, immediateSave, setHasEverPrestiged,
-        setPrestigeCount,
+        setPrestigeCount, setOverclockLevel,
     ]);
 
     const handleBuyPrestigeUpgrade = useCallback((upgradeId: string) => {
