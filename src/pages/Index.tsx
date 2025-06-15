@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -16,7 +15,7 @@ import SaveStatusDisplay from '@/components/layout/SaveStatus';
 import PrestigeBonusesSummary from '@/components/game/PrestigeBonusesSummary';
 import ResearchTree from '@/components/game/ResearchTree';
 import EssenceGolemsList from '@/components/game/EssenceGolemsList';
-import { AutoBuyStatusIndicator, AutoBuyStatus } from '@/components/game/AutoBuyStatusIndicator';
+import type { AutoBuyStatus } from '@/components/game/AutoBuyStatusIndicator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { challenges, challengeMap } from '@/lib/challenges';
@@ -157,12 +156,6 @@ const Index = () => {
               aetherShards={currencies.aetherShards}
               ancientKnowledgeNodesCount={ancientKnowledgeNodes.size}
             />}
-            {showAutoBuyStatus && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <AutoBuyStatusIndicator type="items" status={itemAutoBuyStatus} lastPurchase={lastAutoBuy?.item} />
-                    <AutoBuyStatusIndicator type="upgrades" status={upgradeAutoBuyStatus} lastPurchase={lastAutoBuy?.upgrade} />
-                </div>
-            )}
             <PrestigeCard 
               currencies={currencies}
               lifetimeMana={lifetimeMana}
@@ -207,6 +200,10 @@ const Index = () => {
                   itemPurchaseDetails={itemPurchaseDetails}
                   overclockInfo={overclockInfo}
                   onSetOverclockLevel={handleSetOverclockLevel}
+                  itemAutoBuyStatus={itemAutoBuyStatus}
+                  upgradeAutoBuyStatus={upgradeAutoBuyStatus}
+                  lastAutoBuy={lastAutoBuy}
+                  showAutoBuyStatus={showAutoBuyStatus}
                 />
               </TabsContent>
               {showUpgradesTab && (

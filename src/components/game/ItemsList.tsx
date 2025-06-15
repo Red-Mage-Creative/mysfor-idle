@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Star, ChevronsUp, ChevronsDown, Zap, HelpCircle, Lock } from 'lucide-re
 import { initialItems } from '@/lib/initialItems';
 import { BulkQuantitySelector } from '@/components/game/BulkQuantitySelector';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AutoBuyStatusIndicator, type AutoBuyStatus } from '@/components/game/AutoBuyStatusIndicator';
 
 interface OverclockInfo {
     currentLevel: number;
@@ -25,6 +27,10 @@ interface ItemsListProps {
     itemPurchaseDetails: Map<string, PurchaseDetails>;
     overclockInfo: OverclockInfo;
     onSetOverclockLevel: (level: number) => void;
+    itemAutoBuyStatus: AutoBuyStatus;
+    upgradeAutoBuyStatus: AutoBuyStatus;
+    lastAutoBuy: { item: string | null; upgrade: string | null };
+    showAutoBuyStatus: boolean;
 }
 
 const categoryTierStyles = {
@@ -105,7 +111,7 @@ const OverclockControls = ({ overclockInfo, onSetOverclockLevel }: { overclockIn
 };
 
 
-const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus, itemPurchaseDetails, overclockInfo, onSetOverclockLevel }: ItemsListProps) => {
+const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus, itemPurchaseDetails, overclockInfo, onSetOverclockLevel, itemAutoBuyStatus, upgradeAutoBuyStatus, lastAutoBuy, showAutoBuyStatus }: ItemsListProps) => {
     const hasAnyVisibleItems = Object.values(itemCategories).some(items => items.length > 0);
 
     return (
@@ -113,7 +119,15 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
             <CardHeader>
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <CardTitle className="text-3xl">Items</CardTitle>
-                    <OverclockControls overclockInfo={overclockInfo} onSetOverclockLevel={onSetOverclockLevel} />
+                    <div className="flex flex-col items-center lg:items-end gap-2">
+                        <OverclockControls overclockInfo={overclockInfo} onSetOverclockLevel={onSetOverclockLevel} />
+                        {showAutoBuyStatus && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <AutoBuyStatusIndicator type="items" status={itemAutoBuyStatus} lastPurchase={lastAutoBuy?.item} />
+                                <AutoBuyStatusIndicator type="upgrades" status={upgradeAutoBuyStatus} lastPurchase={lastAutoBuy?.upgrade} />
+                            </div>
+                        )}
+                    </div>
                     <BulkQuantitySelector />
                 </div>
                 {!hasAnyVisibleItems && (
