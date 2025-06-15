@@ -1,10 +1,8 @@
-
 import { useCallback } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { Currency } from '@/lib/gameTypes';
 import type { GameActionProps } from './types';
-
-const WORKSHOP_UPGRADE_COST_GROWTH_RATE = 1.25;
+import { ITEM_COST_GROWTH_RATE, WORKSHOP_UPGRADE_COST_GROWTH_RATE } from '@/constants/gameConstants';
 
 export const usePurchaseActions = (props: GameActionProps) => {
     const {
@@ -46,7 +44,7 @@ export const usePurchaseActions = (props: GameActionProps) => {
             for (const currency in i.baseCost) {
                 const key = currency as Currency;
                 const base = i.baseCost[key] || 0;
-                newCost[key] = Math.ceil(base * Math.pow(1.15, newLevel));
+                newCost[key] = Math.ceil(base * Math.pow(ITEM_COST_GROWTH_RATE, newLevel));
             }
 
             return {

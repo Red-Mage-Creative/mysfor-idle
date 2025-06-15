@@ -230,16 +230,16 @@ export const useGameMultipliers = ({
 
         for (const upgrade of workshopUpgrades) {
             if (upgrade.level > 0) {
-                const bonus = upgrade.effect.value * upgrade.level;
+                const bonus = upgrade.effect.value;
                 switch (upgrade.effect.type) {
                     case 'manaMultiplier':
-                        multipliers.mana += bonus;
+                        multipliers.mana *= Math.pow(1 + bonus, upgrade.level);
                         break;
                     case 'essenceFluxMultiplier':
-                        multipliers.essenceFlux += bonus;
+                        multipliers.essenceFlux *= Math.pow(1 + bonus, upgrade.level);
                         break;
                     case 'researchPointsMultiplier':
-                        multipliers.researchPoints += bonus;
+                        multipliers.researchPoints *= Math.pow(1 + bonus, upgrade.level);
                         break;
                 }
             }

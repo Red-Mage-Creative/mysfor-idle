@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord } from '@/lib/gameTypes';
 import * as C from '@/constants/gameConstants';
@@ -11,6 +10,7 @@ type UseProductionProps = {
     overclockLevel: number;
     devMode: boolean;
     multipliers: ReturnType<typeof useGameMultipliers>;
+    currencies: Currencies;
 }
 
 export const useProduction = ({
@@ -19,6 +19,7 @@ export const useProduction = ({
     overclockLevel,
     devMode,
     multipliers,
+    currencies,
 }: UseProductionProps) => {
     const { 
         achievementBonus, 
@@ -84,7 +85,7 @@ export const useProduction = ({
                 baseGeneration[currency] = (baseGeneration[currency] || 0) * overclockInfo.speedMultiplier;
             }
         }
-        if (overclockInfo.gearDrainPerSecond > 0) {
+        if (overclockInfo.gearDrainPerSecond > 0 && currencies.cogwheelGears > 0) {
             baseGeneration.cogwheelGears = (baseGeneration.cogwheelGears || 0) - overclockInfo.gearDrainPerSecond;
         }
 
@@ -112,7 +113,7 @@ export const useProduction = ({
         }
 
         return baseGeneration;
-    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus, researchBonuses, golemEffects]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus, researchBonuses, golemEffects, currencies.cogwheelGears]);
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;

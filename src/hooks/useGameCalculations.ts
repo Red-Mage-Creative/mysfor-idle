@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { useGameState } from './useGameState';
 import { useGameMultipliers } from './useGameMultipliers';
@@ -26,6 +25,7 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         overclockLevel: props.overclockLevel,
         devMode: props.devMode,
         multipliers,
+        currencies: props.currencies,
     });
 
     const prestige = usePrestigeManagement({

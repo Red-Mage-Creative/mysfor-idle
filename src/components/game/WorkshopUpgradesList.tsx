@@ -1,12 +1,10 @@
-
 import React from 'react';
 import { Currencies, WorkshopUpgrade } from '@/lib/gameTypes';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { currencyName, formatNumber } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-
-const WORKSHOP_UPGRADE_COST_GROWTH_RATE = 1.25;
+import { WORKSHOP_UPGRADE_COST_GROWTH_RATE } from '@/constants/gameConstants';
 
 interface WorkshopUpgradesListProps {
     currencies: Currencies;
