@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -76,11 +75,13 @@ const PrestigeCard = ({ currencies, lifetimeMana, canPrestige, potentialShards, 
                         <AlertDialogHeader>
                             <AlertDialogTitle>Initiate Dimensional Shift?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This will reset your current progress (mana, gears, flux, research, and their upgrades) in exchange for prestige currency.
+                                This will reset your current progress (mana, gears, flux, and their upgrades) in exchange for prestige currency.
+                                <br/><br/>
+                                Your completed research will be converted into permanent <strong className="text-purple-400">Ancient Knowledge</strong>, providing a lasting bonus for all future runs.
                                 <br /><br />
-                                You will gain <strong className="text-amber-400">{potentialShards} Aether Shards</strong>.
+                                You will gain <strong className="text-amber-400">{formatNumber(potentialShards)} Aether Shards</strong>.
                                 <br /><br />
-                                Aether Shards are used to purchase powerful permanent upgrades that persist through all future resets. Are you sure you want to proceed?
+                                Aether Shards are used to purchase powerful permanent upgrades. Are you sure you want to proceed?
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -16,7 +15,10 @@ type UseGameMultipliersProps = Pick<ReturnType<typeof useGameState>,
     'prestigeUpgradeLevels' |
     'workshopUpgrades' |
     'items' |
-    'itemUpgrades'
+    'itemUpgrades' |
+    'prestigeCount' |
+    'currencies' |
+    'ancientKnowledgeNodes'
 >;
 
 export const useGameMultipliers = ({
@@ -27,6 +29,9 @@ export const useGameMultipliers = ({
     workshopUpgrades,
     items,
     itemUpgrades,
+    prestigeCount,
+    currencies,
+    ancientKnowledgeNodes,
 }: UseGameMultipliersProps) => {
     const achievementBonus = useMemo(() => {
         if (!achievements) return 1;
@@ -145,6 +150,24 @@ export const useGameMultipliers = ({
         return effects;
     }, [activeGolemIds, activeSynergies]);
 
+    const prestigeLevelBonus = useMemo(() => {
+        if (!prestigeCount || prestigeCount < 8) return 1;
+        // Exponential bonus starts at prestige 8
+        return Math.pow(1.5, prestigeCount - 7);
+    }, [prestigeCount]);
+
+    const aetherShardBonus = useMemo(() => {
+        if (!currencies?.aetherShards) return 1;
+        // Logarithmic bonus for holding Aether Shards
+        return 1 + Math.log10(Math.max(1, currencies.aetherShards)) * 0.05;
+    }, [currencies?.aetherShards]);
+
+    const ancientKnowledgeBonus = useMemo(() => {
+        if (!ancientKnowledgeNodes?.size) return 1;
+        // 2% bonus per unique research node discovered across all prestiges
+        return 1 + ancientKnowledgeNodes.size * 0.02;
+    }, [ancientKnowledgeNodes]);
+
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
             manaClick: 1,
@@ -185,6 +208,9 @@ export const useGameMultipliers = ({
             }
         }
 
+        // Apply new global bonuses to all production
+        multipliers.allProduction *= prestigeLevelBonus * aetherShardBonus * ancientKnowledgeBonus;
+
         if (golemEffects.disabledFeatures.has('autoBuyItems')) {
             multipliers.autoBuyItemsUnlocked = false;
         }
@@ -193,7 +219,7 @@ export const useGameMultipliers = ({
         }
 
         return multipliers;
-    }, [prestigeUpgradeLevels, golemEffects]);
+    }, [prestigeUpgradeLevels, golemEffects, prestigeLevelBonus, aetherShardBonus, ancientKnowledgeBonus]);
 
     const workshopUpgradeMultipliers = useMemo(() => {
         const multipliers = {

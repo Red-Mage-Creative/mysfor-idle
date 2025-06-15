@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useMemo } from 'react';
 import { researchNodes, researchNodeMap } from '@/lib/researchTree';
 import ResearchNodeComponent from './ResearchNodeComponent';
@@ -10,13 +9,14 @@ interface ResearchTreeProps {
   unlockedNodes: Set<string>;
   onUnlockNode: (nodeId: string) => void;
   researchPoints: number;
+  ancientKnowledgePoints: number;
 }
 
 const NODE_SPACING_REM = 5;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2;
 
-const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode, researchPoints }) => {
+const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode, researchPoints, ancientKnowledgePoints }) => {
   const [view, setView] = useState({ x: 0, y: 0, zoom: 1 });
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -140,6 +140,11 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
         <p className="text-muted-foreground">
           You have <span className="font-bold text-primary">{formatNumber(researchPoints)}</span> Research Points.
         </p>
+        {ancientKnowledgePoints > 0 && (
+            <p className="text-sm text-purple-400">
+                Your <span className="font-bold">{ancientKnowledgePoints}</span> points of Ancient Knowledge provide a <span className="font-bold">+{ancientKnowledgePoints * 2}%</span> bonus to all production.
+            </p>
+        )}
         <Accordion type="single" collapsible className="w-full pt-2">
             <AccordionItem value="bonuses">
                 <AccordionTrigger>Show Current Research Bonuses</AccordionTrigger>

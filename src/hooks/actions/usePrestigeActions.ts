@@ -20,12 +20,21 @@ export const usePrestigeActions = (props: GameActionProps) => {
         setHasEverPrestiged,
         setPrestigeCount,
         setOverclockLevel,
+        unlockedResearchNodes, setUnlockedResearchNodes,
+        ancientKnowledgeNodes, setAncientKnowledgeNodes,
     } = props;
     
     const handlePrestige = useCallback(() => {
         if (!canPrestige) return;
 
         const shardsGained = potentialShards;
+        const newlyGainedKnowledge = Array.from(unlockedResearchNodes).filter(nodeId => !ancientKnowledgeNodes.has(nodeId)).length;
+        
+        setAncientKnowledgeNodes(prev => {
+            const newSet = new Set(prev);
+            unlockedResearchNodes.forEach(nodeId => newSet.add(nodeId));
+            return newSet;
+        });
         
         setCurrencies({
             mana: 0,
@@ -40,19 +49,27 @@ export const usePrestigeActions = (props: GameActionProps) => {
         setWorkshopUpgrades(getFreshInitialWorkshopUpgrades());
         setLifetimeMana(0);
         setNotifiedUpgrades(new Set());
+        setUnlockedResearchNodes(new Set());
         setHasEverPrestiged(true);
         setPrestigeCount(prev => prev + 1);
         setOverclockLevel(0);
         
+        let toastDescription = `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`;
+        if (newlyGainedKnowledge > 0) {
+            toastDescription += ` You also converted ${newlyGainedKnowledge} new discoveries into permanent Ancient Knowledge.`;
+        }
+
         toast("Dimensional Shift!", {
-          description: `You have gained ${shardsGained} Aether Shards. The world resets, but you are stronger.`,
+          description: toastDescription,
+          duration: 8000,
         });
         immediateSave();
     }, [
         canPrestige, potentialShards, currencies.aetherShards, 
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, 
         setLifetimeMana, setNotifiedUpgrades, immediateSave, setHasEverPrestiged,
-        setPrestigeCount, setOverclockLevel,
+        setPrestigeCount, setOverclockLevel, unlockedResearchNodes, ancientKnowledgeNodes,
+        setUnlockedResearchNodes, setAncientKnowledgeNodes,
     ]);
 
     const handleBuyPrestigeUpgrade = useCallback((upgradeId: string) => {

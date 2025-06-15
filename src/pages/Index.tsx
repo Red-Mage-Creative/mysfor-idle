@@ -68,6 +68,7 @@ const Index = () => {
     MAX_ACTIVE_GOLEMS,
     golemEffects,
     lastAutoBuy,
+    ancientKnowledgeNodes,
   } = useGame();
 
   const handleToggleGolem = (id: string) => {
@@ -209,6 +210,7 @@ const Index = () => {
                           researchPoints={currencies.researchPoints}
                           unlockedNodes={unlockedResearchNodes}
                           onUnlockNode={handleBuyResearch}
+                          ancientKnowledgePoints={ancientKnowledgeNodes.size}
                       />
                   </TabsContent>
               )}

@@ -47,6 +47,7 @@ const migrateSaveData = (data: any): GameSaveData => {
     if (typeof migratedData.activeGolemIds === 'undefined') migratedData.activeGolemIds = [];
     if (typeof migratedData.hasBeatenGame === 'undefined') migratedData.hasBeatenGame = false;
     if (typeof migratedData.gameCompletionShown === 'undefined') migratedData.gameCompletionShown = false;
+    if (typeof migratedData.ancientKnowledgeNodeIds === 'undefined') migratedData.ancientKnowledgeNodeIds = [];
 
     migratedData.version = C.CURRENT_SAVE_VERSION;
     return migratedData as GameSaveData;

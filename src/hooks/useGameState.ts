@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { Currencies, Item, ItemUpgrade, WorkshopUpgrade, OfflineEarnings, AchievementProgress } from '@/lib/gameTypes';
@@ -33,6 +32,7 @@ export const useGameState = () => {
     const [activeGolemIds, setActiveGolemIds] = useState<string[]>([]);
     const [hasBeatenGame, setHasBeatenGame] = useState(false);
     const [gameCompletionShown, setGameCompletionShown] = useState(false);
+    const [ancientKnowledgeNodes, setAncientKnowledgeNodes] = useState<Set<string>>(new Set());
     const [devMode, _setDevMode] = useState(() => {
         // Dev mode is only available in development environments
         if (!import.meta.env.DEV) {
@@ -83,5 +83,6 @@ export const useGameState = () => {
         gameCompletionShown, setGameCompletionShown,
         unlockedResearchNodes, setUnlockedResearchNodes,
         activeGolemIds, setActiveGolemIds,
+        ancientKnowledgeNodes, setAncientKnowledgeNodes,
     };
 };

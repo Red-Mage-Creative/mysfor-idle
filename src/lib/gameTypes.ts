@@ -175,6 +175,7 @@ export interface GameSaveData {
     prestigeCount: number;
     hasBeatenGame?: boolean;
     gameCompletionShown?: boolean;
+    ancientKnowledgeNodeIds?: string[];
 }
 
 export interface OfflineEarnings {
