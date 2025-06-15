@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { BookOpen, Sparkles, Users, WandSparkles } from "lucide-react";
+import { BookOpen, Github, Sparkles, Star, Users, WandSparkles } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 interface IntroModalProps {
@@ -69,6 +69,22 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
                 <p className="text-sm text-muted-foreground mt-1">
                     This game was created with Lovable, an AI-powered tool that helps you build, edit, and ship web applications by chatting with an AI.
                 </p>
+             </div>
+          </div>
+
+          <div className="flex items-start space-x-4 rounded-md border p-4">
+             <Github className="mt-1 h-8 w-8 text-neutral-400" />
+             <div>
+                <h3 className="font-semibold">Star us on GitHub!</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                    This project is open-source. If you enjoy it, please consider giving us a star on GitHub to show your support for AI-powered development!
+                </p>
+                <Button asChild variant="outline" size="sm" className="mt-2">
+                    <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                        <Star className="mr-2 h-4 w-4" />
+                        Star on GitHub
+                    </a>
+                </Button>
              </div>
           </div>
         </div>
