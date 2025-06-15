@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Dialog,
@@ -12,7 +13,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { BookOpen, Github, Sparkles, Star, Users, WandSparkles } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface IntroModalProps {
   isOpen: boolean;
@@ -37,8 +37,8 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-grow min-h-0">
-          <div className="grid gap-4 py-4 pr-4">
+        <div className="flex-grow min-h-0 overflow-y-auto">
+          <div className="grid gap-4 py-4 pr-6">
             <div className="flex items-start space-x-4 rounded-md border p-4">
               <BookOpen className="mt-1 h-8 w-8 text-blue-400" />
               <div>
@@ -90,7 +90,7 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
                </div>
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <Separator className="flex-shrink-0" />
 
