@@ -28,6 +28,7 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
             generationMultiplier: {} as Record<string, number>,
             flatGeneration: {} as Record<string, number>,
             costMultiplier: 1,
+            shardGainMultiplier: 1,
         };
 
         activeGolems.forEach(golem => {
@@ -41,6 +42,9 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                         break;
                     case 'costMultiplier':
                         totals.costMultiplier *= effect.value;
+                        break;
+                    case 'shardGainMultiplier':
+                        totals.shardGainMultiplier *= effect.value;
                         break;
                 }
             });
@@ -87,6 +91,11 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                                 {totalEffects.costMultiplier !== 1 && (
                                     <li className={(totalEffects.costMultiplier - 1) > 0 ? 'text-red-600' : 'text-green-600'}>
                                         All Costs: {(totalEffects.costMultiplier - 1) > 0 ? '+' : ''}{((totalEffects.costMultiplier - 1) * 100).toFixed(0)}%
+                                    </li>
+                                )}
+                                {totalEffects.shardGainMultiplier !== 1 && (
+                                    <li className={(totalEffects.shardGainMultiplier - 1) > 0 ? 'text-green-600' : 'text-red-600'}>
+                                        Shard Gain: {(totalEffects.shardGainMultiplier - 1) > 0 ? '+' : ''}{((totalEffects.shardGainMultiplier - 1) * 100).toFixed(0)}%
                                     </li>
                                 )}
                             </ul>

@@ -1,5 +1,5 @@
 
-import { Bot, Cog, BrainCircuit, Droplet, Hammer } from 'lucide-react';
+import { Bot, Cog, BrainCircuit, Droplet, Hammer, Scale, Sparkles } from 'lucide-react';
 import { Golem } from './gameTypes';
 
 export const allGolems: Golem[] = [
@@ -59,6 +59,30 @@ export const allGolems: Golem[] = [
             { type: 'generationMultiplier', target: 'cogwheelGears', value: 0.75 }, // -25% gear gen
         ],
         icon: Hammer,
+    },
+    {
+        id: 'equilibrium_golem',
+        name: 'Equilibrium Golem',
+        description: 'Harmonizes your production, making everything cheaper at the cost of speed.',
+        cost: 1200,
+        effects: [
+            { type: 'generationMultiplier', target: 'mana', value: 0.7 },
+            { type: 'generationMultiplier', target: 'cogwheelGears', value: 0.7 },
+            { type: 'generationMultiplier', target: 'researchPoints', value: 0.7 },
+            { type: 'costMultiplier', target: 'all', value: 0.85 },
+        ],
+        icon: Scale,
+    },
+    {
+        id: 'ascendant_golem',
+        name: 'Ascendant Golem',
+        description: 'A being of pure Aether, it enhances your ability to transcend reality but consumes essence.',
+        cost: 2500,
+        effects: [
+            { type: 'shardGainMultiplier', value: 1.25 }, // +25% shard gain
+            { type: 'generationMultiplier', target: 'essenceFlux', value: 0.5 }, // -50% essence generation
+        ],
+        icon: Sparkles,
     },
 ];
 

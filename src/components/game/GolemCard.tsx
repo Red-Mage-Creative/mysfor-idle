@@ -39,6 +39,13 @@ const formatEffect = (effect: GolemEffect) => {
              const sign = costPercentage > 0 ? '+' : '';
              return <span className={costColor}><CostIcon className="inline w-4 h-4 mr-1" />{sign}{costPercentage.toFixed(0)}% All Costs</span>;
         }
+        case 'shardGainMultiplier': {
+            const percentage = (effect.value - 1) * 100;
+            const sign = percentage >= 0 ? '+' : '';
+            const color = percentage >= 0 ? 'text-green-600' : 'text-red-600';
+            const Icon = percentage >= 0 ? ChevronsUp : ChevronsDown;
+            return <span className={color}><Icon className="inline w-4 h-4 mr-1" />{sign}{percentage.toFixed(0)}% Shard Gain</span>;
+        }
     }
 };
 

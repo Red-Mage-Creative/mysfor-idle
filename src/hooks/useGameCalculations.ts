@@ -261,6 +261,7 @@ export const useGameCalculations = ({
             generationMultiplier: {} as Partial<Record<Currency, number>>,
             flatGeneration: {} as Partial<Record<Currency, number>>,
             costMultiplier: 1,
+            shardGainMultiplier: 1,
         };
 
         activeGolemIds.forEach(golemId => {
@@ -276,6 +277,9 @@ export const useGameCalculations = ({
                             break;
                         case 'costMultiplier':
                             effects.costMultiplier *= effect.value;
+                            break;
+                        case 'shardGainMultiplier':
+                            effects.shardGainMultiplier *= effect.value;
                             break;
                     }
                 });
@@ -481,8 +485,8 @@ export const useGameCalculations = ({
         const baseShards = Math.floor(Math.pow(manaRatio, 0.75) * 10 * (prestigeCount + 1));
         const prestigeCountBonus = 1 + prestigeCount * 0.2;
         
-        return Math.floor(baseShards * prestigeCountBonus * prestigeMultipliers.shardGain);
-    }, [lifetimeMana, prestigeRequirement, prestigeCount, prestigeMultipliers.shardGain]);
+        return Math.floor(baseShards * prestigeCountBonus * prestigeMultipliers.shardGain * golemEffects.shardGainMultiplier);
+    }, [lifetimeMana, prestigeRequirement, prestigeCount, prestigeMultipliers.shardGain, golemEffects]);
     
     const unlockedCurrencies = useMemo(() => {
         const unlocked = new Set<Currency>(['mana']);
