@@ -25,7 +25,7 @@ export const AppContent = () => {
   const handleCloseVictoryModal = () => {
     setShowVictoryModal(false);
     game?.setGameCompletionShown?.(true);
-    game?.immediateSave?.(false);
+    game?.immediateSave?.();
   };
 
   const handleCloseIntroModal = (dontShowAgain: boolean) => {
