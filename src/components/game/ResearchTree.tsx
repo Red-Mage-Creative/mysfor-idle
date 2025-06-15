@@ -1,7 +1,9 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { researchNodes } from '@/lib/researchTree';
+
+import React, { useState, useRef, useMemo } from 'react';
+import { researchNodes, researchNodeMap } from '@/lib/researchTree';
 import ResearchNodeComponent from './ResearchNodeComponent';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { formatNumber } from '@/lib/formatters';
 
 interface ResearchTreeProps {
@@ -19,6 +21,61 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
+
+  const researchBonuses = useMemo(() => {
+    const bonuses = {
+        mana: 1,
+        allProduction: 1,
+        costReduction: 1,
+        manaPerClick: 1,
+        essenceFlux: 1,
+        researchPoints: 1,
+        specificItem: {} as Record<string, number>,
+    };
+
+    unlockedNodes.forEach(nodeId => {
+        const node = researchNodeMap.get(nodeId);
+        if (!node) return;
+
+        switch (node.effect.type) {
+            case 'manaMultiplier':
+                bonuses.mana *= node.effect.value;
+                break;
+            case 'allProductionMultiplier':
+                bonuses.allProduction *= node.effect.value;
+                break;
+            case 'costReductionMultiplier':
+                bonuses.costReduction *= node.effect.value;
+                break;
+            case 'manaPerClickMultiplier':
+                bonuses.manaPerClick *= node.effect.value;
+                break;
+            case 'essenceFluxMultiplier':
+                bonuses.essenceFlux *= node.effect.value;
+                break;
+            case 'researchPointsMultiplier':
+                bonuses.researchPoints *= node.effect.value;
+                break;
+            case 'specificItemMultiplier':
+                if (node.effect.itemId) {
+                    bonuses.specificItem[node.effect.itemId] = (bonuses.specificItem[node.effect.itemId] || 1) * node.effect.value;
+                }
+                break;
+        }
+    });
+
+    return bonuses;
+  }, [unlockedNodes]);
+
+  const formatBonus = (value: number) => {
+      if (value === 1) return null;
+      const sign = value > 1 ? '+' : '';
+      return `${sign}${((value - 1) * 100).toFixed(0)}%`;
+  }
+  
+  const formatItemId = (itemId: string) => {
+      return itemId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  }
 
   const isPrerequisiteMet = (prerequisites: string[]) => {
     if (prerequisites.length === 0) return true;
@@ -83,6 +140,24 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
         <p className="text-muted-foreground">
           You have <span className="font-bold text-primary">{formatNumber(researchPoints)}</span> Research Points.
         </p>
+        <Accordion type="single" collapsible className="w-full pt-2">
+            <AccordionItem value="bonuses">
+                <AccordionTrigger>Show Current Research Bonuses</AccordionTrigger>
+                <AccordionContent>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                        {formatBonus(researchBonuses.allProduction) && <li>All Production: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.allProduction)}</span></li>}
+                        {formatBonus(researchBonuses.mana) && <li>Mana Generation: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.mana)}</span></li>}
+                        {formatBonus(researchBonuses.manaPerClick) && <li>Mana Per Click: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.manaPerClick)}</span></li>}
+                        {formatBonus(researchBonuses.essenceFlux) && <li>Essence Flux Generation: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.essenceFlux)}</span></li>}
+                        {formatBonus(researchBonuses.researchPoints) && <li>Research Point Gain: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.researchPoints)}</span></li>}
+                        {formatBonus(researchBonuses.costReduction) && <li>Cost Reduction: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.costReduction)}</span></li>}
+                        {Object.entries(researchBonuses.specificItem).map(([itemId, value]) => (
+                            formatBonus(value) && <li key={itemId}>{formatItemId(itemId)} Production: <span className="font-semibold text-green-400">{formatBonus(value)}</span></li>
+                        ))}
+                    </ul>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
       </CardHeader>
       <CardContent>
         <div 
@@ -117,16 +192,31 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         const endPos = getNodePosition(node.id);
                         const isUnlocked = unlockedNodes.has(node.id) && unlockedNodes.has(prereqId);
 
-                        // Offset to center of node (w-16 h-16 -> 2rem offset)
-                        const offset = 2;
+                        const offset = 2; // half of node size (4rem / 2)
+                        const nodeRadius = 2;
+
+                        const x1 = startPos.x + offset;
+                        const y1 = startPos.y + offset;
+                        let x2 = endPos.x + offset;
+                        let y2 = endPos.y + offset;
+
+                        const dx = x2 - x1;
+                        const dy = y2 - y1;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance > 0) {
+                            const ratio = (distance - nodeRadius) / distance;
+                            x2 = x1 + dx * ratio;
+                            y2 = y1 + dy * ratio;
+                        }
 
                         return (
                             <line
                                 key={`${prereqId}-${node.id}`}
-                                x1={`${startPos.x + offset}rem`}
-                                y1={`${startPos.y + offset}rem`}
-                                x2={`${endPos.x + offset}rem`}
-                                y2={`${endPos.y + offset}rem`}
+                                x1={`${x1}rem`}
+                                y1={`${y1}rem`}
+                                x2={`${x2}rem`}
+                                y2={`${y2}rem`}
                                 className={isUnlocked ? 'stroke-green-500' : 'stroke-slate-600'}
                                 strokeWidth="2"
                                 markerEnd={isUnlocked ? 'url(#arrowhead-unlocked)' : 'url(#arrowhead)'}

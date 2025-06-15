@@ -1,4 +1,3 @@
-
 import { ResearchNode } from '@/lib/gameTypes';
 import { Beaker, BookOpen, Cpu, Scaling, Sparkles, Wand, Network, FlaskConical, Atom, Factory, Coins, Diamond, Shield, GitBranch, Zap, Anchor, Scale, Landmark, Blocks, Bot, BrainCircuit, Rocket } from 'lucide-react';
 
@@ -73,7 +72,7 @@ export const researchNodes: ResearchNode[] = [
     {
         id: 'mana_3_attunement',
         name: 'Arcane Attunement',
-        description: 'Increase efficiency of mana-based items. Apprentice Wand and Mage Tower produce 25% more mana.',
+        description: 'Increase efficiency of mana-based items. Apprentice Wand production increased by 25%.',
         cost: 1200,
         position: { x: 12, y: -2 },
         prerequisites: ['mana_2'],
@@ -84,8 +83,8 @@ export const researchNodes: ResearchNode[] = [
         id: 'mana_3_attunement_b',
         name: 'Arcane Attunement II',
         description: 'Mage Tower production also increased by 25%. This is a paired research.',
-        cost: 1, 
-        position: { x: 12.5, y: -2.5 },
+        cost: 1200,
+        position: { x: 12.5, y: -3.5 },
         prerequisites: ['mana_3_attunement'],
         icon: Landmark,
         effect: { type: 'specificItemMultiplier', value: 1.25, itemId: 'mage_tower' },
@@ -179,7 +178,7 @@ export const researchNodes: ResearchNode[] = [
     {
         id: 'mechanical_mastery',
         name: 'Mechanical Mastery',
-        description: 'The pinnacle of engineering. All Cogwheel Gear and Essence Flux generation increased by 15%.',
+        description: 'The pinnacle of engineering. Essence Flux generation increased by 15%.',
         cost: 12000,
         position: { x: 14, y: 3 },
         prerequisites: ['machine_3_flux', 'research_2'],
@@ -190,8 +189,8 @@ export const researchNodes: ResearchNode[] = [
         id: 'mechanical_mastery_b',
         name: 'Mechanical Mastery II',
         description: 'Cogwheel Gear generation also increased by 15%. This is a paired research.',
-        cost: 1,
-        position: { x: 14.5, y: 3.5 },
+        cost: 12000,
+        position: { x: 14.5, y: 4.5 },
         prerequisites: ['mechanical_mastery'],
         icon: Blocks,
         effect: { type: 'specificItemMultiplier', value: 1.15, itemId: 'clockwork_automaton' },
@@ -314,4 +313,3 @@ export const researchNodes: ResearchNode[] = [
 ];
 
 export const researchNodeMap = new Map(researchNodes.map(node => [node.id, node]));
-
