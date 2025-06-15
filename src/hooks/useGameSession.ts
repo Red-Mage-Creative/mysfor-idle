@@ -339,22 +339,6 @@ export const useGameSession = ({
                     }
                 }
                 
-                // --- Set all state from save data, including calculated offline earnings and achievements ---
-                setCurrencies(saveData.currencies);
-                setItems(saveData.items);
-                setItemUpgrades(saveData.itemUpgrades);
-                setWorkshopUpgrades(restoredWorkshopUpgrades);
-                setLifetimeMana(saveData.lifetimeMana);
-                setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
-                setAchievements(finalAchievements);
-                setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
-                setHasEverClicked(saveData.hasEverClicked);
-                setHasEverPrestiged(saveData.hasEverPrestiged);
-                setPrestigeCount(saveData.prestigeCount || 0);
-                setOverclockLevel(saveData.overclockLevel || 0);
-                setHasBeatenGame(saveData.hasBeatenGame || false);
-                setGameCompletionShown(saveData.gameCompletionShown || false);
-
                 // Retroactive Achievement Unlocking & Initialization
                 const finalAchievements: Record<string, AchievementProgress> = {};
                 const now = Date.now();
@@ -411,6 +395,22 @@ export const useGameSession = ({
                 
                 saveData.achievements = finalAchievements;
                 
+                // --- Set all state from save data, including calculated offline earnings and achievements ---
+                setCurrencies(saveData.currencies);
+                setItems(saveData.items);
+                setItemUpgrades(saveData.itemUpgrades);
+                setWorkshopUpgrades(restoredWorkshopUpgrades);
+                setLifetimeMana(saveData.lifetimeMana);
+                setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
+                setAchievements(finalAchievements);
+                setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
+                setHasEverClicked(saveData.hasEverClicked);
+                setHasEverPrestiged(saveData.hasEverPrestiged);
+                setPrestigeCount(saveData.prestigeCount || 0);
+                setOverclockLevel(saveData.overclockLevel || 0);
+                setHasBeatenGame(saveData.hasBeatenGame || false);
+                setGameCompletionShown(saveData.gameCompletionShown || false);
+
             } catch (error) {
                 console.error("Failed to load save data. Starting fresh.", error);
                 resetState();
