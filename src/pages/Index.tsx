@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -219,7 +218,7 @@ const Index = () => {
               {showResearchTab && (
                   <TabsContent value="research">
                       <ResearchTree
-                          researchPoints={currencies.researchPoints}
+                          currencies={currencies}
                           unlockedNodes={unlockedResearchNodes}
                           onUnlockNode={handleBuyResearch}
                           ancientKnowledgePoints={ancientKnowledgeNodes.size}

@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { ResearchNode } from '@/lib/gameTypes';
+import React, { useMemo } from 'react';
+import { Currency, Currencies, ResearchNode } from '@/lib/gameTypes';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { Lock } from 'lucide-react';
@@ -11,14 +11,20 @@ interface ResearchNodeProps {
   isUnlocked: boolean;
   canUnlock: boolean;
   onUnlock: (nodeId: string) => void;
-  researchPoints: number;
+  currencies: Currencies;
   nodeSpacing: number;
 }
 
-const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, canUnlock, onUnlock, researchPoints, nodeSpacing }) => {
+const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, canUnlock, onUnlock, currencies, nodeSpacing }) => {
   const Icon = node.icon;
   const status = isUnlocked ? 'unlocked' : canUnlock ? 'available' : 'locked';
-  const canAfford = researchPoints >= node.cost;
+  
+  const canAfford = useMemo(() => {
+    if (!node.cost) return true;
+    return Object.entries(node.cost).every(([currency, cost]) => {
+      return currencies[currency as Currency] >= (cost || 0);
+    });
+  }, [node.cost, currencies]);
 
   const handleClick = () => {
     if (status === 'available' && canAfford) {
@@ -55,7 +61,14 @@ const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, 
           <p className="text-sm text-muted-foreground mb-2">{node.description}</p>
           {!isUnlocked && (
             <div className="border-t border-border pt-2">
-              <p className="font-semibold">Cost: {formatNumber(node.cost)} Research</p>
+              <p className="font-semibold">Cost:</p>
+                <ul className="text-left text-xs list-disc list-inside">
+                  {Object.entries(node.cost).map(([currency, value]) => (
+                      <li key={currency} className={cn({ 'text-red-400': currencies[currency as Currency] < (value || 0) })}>
+                        {formatNumber(value)} {currency.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      </li>
+                  ))}
+                </ul>
             </div>
           )}
           {isUnlocked && <p className="text-green-400 font-bold">Researched</p>}

@@ -1,3 +1,4 @@
+
 import { LucideIcon } from "lucide-react";
 
 export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints' | 'aetherShards';
@@ -60,19 +61,38 @@ export interface ItemUpgrade {
 }
 
 // New type for Research
+export type ResearchEffect =
+  | { type: 'manaMultiplier'; value: number }
+  | { type: 'allProductionMultiplier'; value: number }
+  | { type: 'costReductionMultiplier'; value: number }
+  | { type: 'specificItemMultiplier'; itemId: string; value: number }
+  | { type: 'manaPerClickMultiplier'; value: number }
+  | { type: 'essenceFluxMultiplier'; value: number }
+  | { type: 'researchPointsMultiplier'; value: number }
+  | { type: 'multiEffect'; effects: ResearchEffect[] }
+  | { type: 'prestigeLevelBonusMultiplier'; value: number }
+  | { type: 'offlineProductionMultiplier'; value: number }
+  | { type: 'golemEffectMultiplier'; value: number }
+  | { type: 'additionalActiveGolems'; value: number }
+  | { type: 'aetherShardBonusMultiplier'; value: number }
+  | { type: 'ancientKnowledgeBonusMultiplier'; value: number }
+  | { type: 'prestigeBonusMultiplier'; target: 'aetherShards'; value: number }
+  | { type: 'synergyEffectMultiplier'; value: number }
+  | { type: 'singularityBonus'; value: number }
+  | { type: 'offlineSpeedBoost'; value: number }
+  | { type: 'manaToResearchConversion'; value: number }
+  | { type: 'unlockItemUpgrade'; itemId: string; upgradeId: string };
+  
 export interface ResearchNode {
   id: string;
   name: string;
   description: string;
-  cost: number; // researchPoints
+  cost: CurrencyRecord;
   position: { x: number; y: number };
   prerequisites: string[];
   icon: LucideIcon;
-  effect: {
-    type: 'manaMultiplier' | 'allProductionMultiplier' | 'costReductionMultiplier' | 'specificItemMultiplier' | 'manaPerClickMultiplier' | 'essenceFluxMultiplier' | 'researchPointsMultiplier';
-    value: number;
-    itemId?: string; // for specificItemMultiplier
-  };
+  category: string;
+  effect: ResearchEffect;
 }
 
 // New type for workshop upgrades - refactored to be level-based

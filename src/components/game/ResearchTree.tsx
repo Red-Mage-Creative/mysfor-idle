@@ -1,22 +1,24 @@
+
 import React, { useState, useRef, useMemo } from 'react';
 import { researchNodes, researchNodeMap } from '@/lib/researchTree';
 import ResearchNodeComponent from './ResearchNodeComponent';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { formatNumber } from '@/lib/formatters';
+import { Currencies, ResearchEffect } from '@/lib/gameTypes';
 
 interface ResearchTreeProps {
   unlockedNodes: Set<string>;
   onUnlockNode: (nodeId: string) => void;
-  researchPoints: number;
+  currencies: Currencies;
   ancientKnowledgePoints: number;
 }
 
-const NODE_SPACING_REM = 4; // Reduced from 5 to make the tree more compact
-const MIN_ZOOM = 0.4; // Adjusted for a wider zoom range
+const NODE_SPACING_REM = 4;
+const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 2;
 
-const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode, researchPoints, ancientKnowledgePoints }) => {
+const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode, currencies, ancientKnowledgePoints }) => {
   const [view, setView] = useState({ x: 0, y: 0, zoom: 1 });
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,36 +33,44 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
         essenceFlux: 1,
         researchPoints: 1,
         specificItem: {} as Record<string, number>,
+        prestigeLevelBonus: 1,
+        offlineProduction: 1,
+        golemEffect: 1,
+        aetherShardBonus: 1,
+        ancientKnowledgeBonus: 1,
+        synergyEffect: 1,
+    };
+
+    const processEffect = (effect: ResearchEffect) => {
+        switch (effect.type) {
+            case 'manaMultiplier': bonuses.mana *= effect.value; break;
+            case 'allProductionMultiplier': bonuses.allProduction *= effect.value; break;
+            case 'costReductionMultiplier': bonuses.costReduction *= effect.value; break;
+            case 'manaPerClickMultiplier': bonuses.manaPerClick *= effect.value; break;
+            case 'essenceFluxMultiplier': bonuses.essenceFlux *= effect.value; break;
+            case 'researchPointsMultiplier': bonuses.researchPoints *= effect.value; break;
+            case 'specificItemMultiplier':
+                bonuses.specificItem[effect.itemId] = (bonuses.specificItem[effect.itemId] || 1) * effect.value;
+                break;
+            case 'multiEffect': effect.effects.forEach(processEffect); break;
+            case 'prestigeLevelBonusMultiplier': bonuses.prestigeLevelBonus *= effect.value; break;
+            case 'offlineProductionMultiplier': bonuses.offlineProduction *= effect.value; break;
+            case 'golemEffectMultiplier': bonuses.golemEffect *= effect.value; break;
+            case 'aetherShardBonusMultiplier': bonuses.aetherShardBonus *= effect.value; break;
+            case 'ancientKnowledgeBonusMultiplier': bonuses.ancientKnowledgeBonus *= effect.value; break;
+            case 'prestigeBonusMultiplier': 
+                if (effect.target === 'aetherShards') {
+                    bonuses.aetherShardBonus *= effect.value;
+                }
+                break;
+            case 'synergyEffectMultiplier': bonuses.synergyEffect *= effect.value; break;
+        }
     };
 
     unlockedNodes.forEach(nodeId => {
         const node = researchNodeMap.get(nodeId);
-        if (!node) return;
-
-        switch (node.effect.type) {
-            case 'manaMultiplier':
-                bonuses.mana *= node.effect.value;
-                break;
-            case 'allProductionMultiplier':
-                bonuses.allProduction *= node.effect.value;
-                break;
-            case 'costReductionMultiplier':
-                bonuses.costReduction *= node.effect.value;
-                break;
-            case 'manaPerClickMultiplier':
-                bonuses.manaPerClick *= node.effect.value;
-                break;
-            case 'essenceFluxMultiplier':
-                bonuses.essenceFlux *= node.effect.value;
-                break;
-            case 'researchPointsMultiplier':
-                bonuses.researchPoints *= node.effect.value;
-                break;
-            case 'specificItemMultiplier':
-                if (node.effect.itemId) {
-                    bonuses.specificItem[node.effect.itemId] = (bonuses.specificItem[node.effect.itemId] || 1) * node.effect.value;
-                }
-                break;
+        if (node) {
+            processEffect(node.effect);
         }
     });
 
@@ -138,7 +148,7 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
       <CardHeader>
         <CardTitle>Research Tree</CardTitle>
         <p className="text-muted-foreground">
-          You have <span className="font-bold text-primary">{formatNumber(researchPoints)}</span> Research Points.
+          You have <span className="font-bold text-primary">{formatNumber(currencies.researchPoints)}</span> Research Points.
         </p>
         {ancientKnowledgePoints > 0 && (
             <p className="text-sm text-purple-400">
@@ -156,6 +166,12 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         {formatBonus(researchBonuses.essenceFlux) && <li>Essence Flux Generation: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.essenceFlux)}</span></li>}
                         {formatBonus(researchBonuses.researchPoints) && <li>Research Point Gain: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.researchPoints)}</span></li>}
                         {formatBonus(researchBonuses.costReduction) && <li>Cost Reduction: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.costReduction)}</span></li>}
+                        {formatBonus(researchBonuses.prestigeLevelBonus) && <li>Prestige Level Bonus: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.prestigeLevelBonus)}</span></li>}
+                        {formatBonus(researchBonuses.offlineProduction) && <li>Offline Production: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.offlineProduction)}</span></li>}
+                        {formatBonus(researchBonuses.golemEffect) && <li>Golem Effectiveness: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.golemEffect)}</span></li>}
+                        {formatBonus(researchBonuses.synergyEffect) && <li>Golem Synergy: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.synergyEffect)}</span></li>}
+                        {formatBonus(researchBonuses.aetherShardBonus) && <li>Aether Shard Bonus: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.aetherShardBonus)}</span></li>}
+                        {formatBonus(researchBonuses.ancientKnowledgeBonus) && <li>Ancient Knowledge Bonus: <span className="font-semibold text-green-400">{formatBonus(researchBonuses.ancientKnowledgeBonus)}</span></li>}
                         {Object.entries(researchBonuses.specificItem).map(([itemId, value]) => (
                             formatBonus(value) && <li key={itemId}>{formatItemId(itemId)} Production: <span className="font-semibold text-green-400">{formatBonus(value)}</span></li>
                         ))}
@@ -238,7 +254,7 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         isUnlocked={unlockedNodes.has(node.id)}
                         canUnlock={isPrerequisiteMet(node.prerequisites) && !unlockedNodes.has(node.id)}
                         onUnlock={onUnlockNode}
-                        researchPoints={researchPoints}
+                        currencies={currencies}
                         nodeSpacing={NODE_SPACING_REM}
                     />
                 ))}
