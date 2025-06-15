@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,6 @@ import { Star, ChevronsUp, ChevronsDown, Zap, HelpCircle, Lock } from 'lucide-re
 import { initialItems } from '@/lib/initialItems';
 import { BulkQuantitySelector } from '@/components/game/BulkQuantitySelector';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AutoBuyStatusIndicator, type AutoBuyStatus } from '@/components/game/AutoBuyStatusIndicator';
 
 interface OverclockInfo {
     currentLevel: number;
@@ -25,12 +23,6 @@ interface ItemsListProps {
     itemCategories: Record<string, ItemWithStats[]>;
     categoryUnlockStatus: Record<string, boolean>;
     itemPurchaseDetails: Map<string, PurchaseDetails>;
-    overclockInfo: OverclockInfo;
-    onSetOverclockLevel: (level: number) => void;
-    itemAutoBuyStatus: AutoBuyStatus;
-    upgradeAutoBuyStatus: AutoBuyStatus;
-    lastAutoBuy: { item: string | null; upgrade: string | null };
-    showAutoBuyStatus: boolean;
 }
 
 const categoryTierStyles = {
@@ -41,77 +33,7 @@ const categoryTierStyles = {
 
 const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));
 
-const OverclockControls = ({ overclockInfo, onSetOverclockLevel }: { overclockInfo: OverclockInfo; onSetOverclockLevel: (level: number) => void; }) => {
-    if (!overclockInfo.isUnlocked) {
-        return null;
-    }
-
-    const { currentLevel, maxLevelUnlocked, speedMultiplier, gearDrainPerSecond } = overclockInfo;
-
-    return (
-        <TooltipProvider>
-            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 border-2 border-fuchsia-500/50 rounded-lg p-2 bg-background/50">
-                <div className="flex items-center gap-2">
-                     <Zap className={cn("w-6 h-6", currentLevel > 0 ? "text-yellow-400 animate-pulse" : "text-muted-foreground")} />
-                     <div>
-                        <div className="font-bold text-lg flex items-center gap-1.5">
-                            Overclock
-                             <Tooltip>
-                                <TooltipTrigger asChild><HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" /></TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="max-w-xs">
-                                        Use gears to boost all production. Unlock more levels via Clockwork Automaton upgrades.
-                                        Be careful, as higher levels consume gears much faster!
-                                    </p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Level {currentLevel} / {maxLevelUnlocked}</p>
-                     </div>
-                </div>
-                <div className="text-center">
-                    <p className="font-semibold text-green-400">x{speedMultiplier.toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">Speed</p>
-                </div>
-                <div className="text-center">
-                    <p className="font-semibold text-red-400">-{formatNumber(gearDrainPerSecond)}</p>
-                    <p className="text-xs text-muted-foreground">Gears/s</p>
-                </div>
-                <div className="flex items-center gap-1">
-                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => onSetOverclockLevel(currentLevel - 1)}
-                                disabled={currentLevel === 0}
-                            >
-                                <ChevronsDown className="w-5 h-5" />
-                            </Button>
-                        </TooltipTrigger>
-                         <TooltipContent><p>Shift Down</p></TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                             <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={() => onSetOverclockLevel(currentLevel + 1)}
-                                disabled={currentLevel >= maxLevelUnlocked}
-                            >
-                                <ChevronsUp className="w-5 h-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Shift Up</p></TooltipContent>
-                    </Tooltip>
-                </div>
-            </div>
-        </TooltipProvider>
-    );
-};
-
-
-const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus, itemPurchaseDetails, overclockInfo, onSetOverclockLevel, itemAutoBuyStatus, upgradeAutoBuyStatus, lastAutoBuy, showAutoBuyStatus }: ItemsListProps) => {
+const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus, itemPurchaseDetails }: ItemsListProps) => {
     const hasAnyVisibleItems = Object.values(itemCategories).some(items => items.length > 0);
 
     return (
@@ -120,15 +42,8 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <CardTitle className="text-3xl">Items</CardTitle>
                     <div className="flex flex-col items-center lg:items-end gap-2">
-                        <OverclockControls overclockInfo={overclockInfo} onSetOverclockLevel={onSetOverclockLevel} />
-                        {showAutoBuyStatus && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                <AutoBuyStatusIndicator type="items" status={itemAutoBuyStatus} lastPurchase={lastAutoBuy?.item} />
-                                <AutoBuyStatusIndicator type="upgrades" status={upgradeAutoBuyStatus} lastPurchase={lastAutoBuy?.upgrade} />
-                            </div>
-                        )}
+                        <BulkQuantitySelector />
                     </div>
-                    <BulkQuantitySelector />
                 </div>
                 {!hasAnyVisibleItems && (
                     <p className="text-sm text-muted-foreground italic pt-2">

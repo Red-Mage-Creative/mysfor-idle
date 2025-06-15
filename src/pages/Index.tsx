@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { challenges, challengeMap } from '@/lib/challenges';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Lock, XCircle } from 'lucide-react';
+import { OverclockControls } from '@/components/game/OverclockControls';
 
 const Index = () => {
   const {
@@ -176,6 +177,12 @@ const Index = () => {
                 lastSaveTime={lastSaveTime}
               />
             </div>
+            {overclockInfo.isUnlocked && (
+              <OverclockControls 
+                overclockInfo={overclockInfo} 
+                onSetOverclockLevel={handleSetOverclockLevel} 
+              />
+            )}
             <Tabs defaultValue="items" className="w-full">
               {tabCount > 1 && (
                 <TabsList className={cn(
@@ -198,12 +205,6 @@ const Index = () => {
                   itemCategories={itemCategories}
                   categoryUnlockStatus={categoryUnlockStatus}
                   itemPurchaseDetails={itemPurchaseDetails}
-                  overclockInfo={overclockInfo}
-                  onSetOverclockLevel={handleSetOverclockLevel}
-                  itemAutoBuyStatus={itemAutoBuyStatus}
-                  upgradeAutoBuyStatus={upgradeAutoBuyStatus}
-                  lastAutoBuy={lastAutoBuy}
-                  showAutoBuyStatus={showAutoBuyStatus}
                 />
               </TabsContent>
               {showUpgradesTab && (
