@@ -41,7 +41,7 @@ const Header = () => {
         </Link>
         <nav className="hidden md:flex items-center gap-4">
             <Button asChild variant="outline" size="sm">
-                <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" aria-label="Star us on GitHub">
+                <a href="https://github.com/lovable-dev/mysfor-idle" target="_blank" rel="noopener noreferrer" aria-label="Star us on GitHub">
                     <Star />
                     Star us on GitHub
                 </a>
