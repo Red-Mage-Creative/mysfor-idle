@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { useGameState } from './useGameState';
 import { useGameMultipliers } from './useGameMultipliers';
@@ -56,23 +55,28 @@ export const usePrestigeManagement = ({
         let prestigesToGain = 0;
         let totalShards = 0;
         let currentPrestigeCheck = prestigeCount;
+        let remainingMana = lifetimeMana; // This pool is used for requirements AND rewards
 
         const loopCap = 1000; 
 
         while (prestigesToGain < loopCap) {
             const requirement = 1e9 * Math.pow(10, currentPrestigeCheck);
-            if (lifetimeMana < requirement) {
+            if (remainingMana < requirement) {
                 break;
             }
 
             prestigesToGain++;
             
-            const manaRatio = lifetimeMana / requirement;
+            // Shard calculation now uses the diminishing remainingMana pool
+            const manaRatio = remainingMana / requirement;
             const baseShards = Math.floor(Math.pow(manaRatio, 0.75) * 10 * (currentPrestigeCheck + 1));
             const prestigeCountBonus = 1 + currentPrestigeCheck * 0.2;
             const shardsForThisLevel = Math.floor(baseShards * prestigeCountBonus * prestigeMultipliers.shardGain * golemEffects.shardGainMultiplier);
             
             totalShards += shardsForThisLevel;
+
+            // "Spend" the mana for the next iteration
+            remainingMana -= requirement;
 
             currentPrestigeCheck++;
         }
