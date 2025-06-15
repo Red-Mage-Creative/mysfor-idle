@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -38,8 +37,8 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-grow">
-          <div className="grid gap-4 py-4">
+        <ScrollArea className="flex-grow min-h-0">
+          <div className="grid gap-4 py-4 pr-4">
             <div className="flex items-start space-x-4 rounded-md border p-4">
               <BookOpen className="mt-1 h-8 w-8 text-blue-400" />
               <div>
