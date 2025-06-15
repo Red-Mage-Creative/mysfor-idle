@@ -121,6 +121,17 @@ export interface Golem {
     cost: number; // essenceFlux
     effects: GolemEffect[];
     icon: LucideIcon;
+    tier: number;
+    conflictsWith?: string[];
+    unlocksAtPrestige?: number;
+}
+
+export interface GolemSynergy {
+    id: string;
+    name: string;
+    description: string;
+    golemIds: string[];
+    effect: GolemEffect;
 }
 
 export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development';

@@ -6,6 +6,7 @@ import * as C from '@/constants/gameConstants';
 import { useGameState } from './useGameState';
 import { researchNodeMap } from '@/lib/researchTree';
 import { golemMap } from '@/lib/golems';
+import { allSynergies } from '@/lib/golemSynergies';
 
 type UseGameCalculationsProps = Pick<ReturnType<typeof useGameState>,
     'currencies' |
@@ -150,6 +151,13 @@ export const useGameCalculations = ({
         return bonuses;
     }, [unlockedResearchNodes]);
 
+    const activeSynergies = useMemo(() => {
+        const activeGolemIdSet = new Set(activeGolemIds);
+        return allSynergies.filter(synergy => 
+            synergy.golemIds.every(id => activeGolemIdSet.has(id))
+        );
+    }, [activeGolemIds]);
+
     const golemEffects = useMemo(() => {
         const effects = {
             generationMultiplier: {} as Partial<Record<Currency, number>>,
@@ -196,9 +204,14 @@ export const useGameCalculations = ({
                 });
             }
         });
+        
+        // Also process active synergy effects
+        activeSynergies.forEach(synergy => {
+            processEffect(synergy.effect);
+        });
 
         return effects;
-    }, [activeGolemIds]);
+    }, [activeGolemIds, activeSynergies]);
 
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
@@ -647,5 +660,6 @@ export const useGameCalculations = ({
         showTutorial,
         achievementBonus,
         researchBonuses,
+        activeSynergies, // Export for UI
     };
 };

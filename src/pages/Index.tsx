@@ -196,6 +196,7 @@ const Index = () => {
                         activeGolemIds={activeGolemIds}
                         allGolems={allGolems}
                         maxActiveGolems={MAX_ACTIVE_GOLEMS}
+                        prestigeCount={prestigeCount}
                     />
                 </TabsContent>
               )}

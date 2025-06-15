@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Golem, GolemEffect } from '@/lib/gameTypes';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -13,6 +12,9 @@ interface GolemCardProps {
     isActive: boolean;
     canAfford: boolean;
     isLimitReached: boolean;
+    isLocked: boolean;
+    isConflicting: boolean;
+    lockMessage: string;
 }
 
 const formatEffect = (effect: GolemEffect) => {
@@ -68,8 +70,26 @@ const formatEffect = (effect: GolemEffect) => {
     }
 };
 
-export const GolemCard: React.FC<GolemCardProps> = ({ golem, onToggle, isActive, canAfford, isLimitReached }) => {
+export const GolemCard: React.FC<GolemCardProps> = ({ golem, onToggle, isActive, canAfford, isLimitReached, isLocked, isConflicting, lockMessage }) => {
     const Icon = golem.icon;
+
+    const getButtonState = () => {
+        if (isActive) {
+            return { text: 'Deactivate', variant: 'destructive', disabled: false };
+        }
+        if (isLocked) {
+            return { text: lockMessage, variant: 'secondary', disabled: true };
+        }
+        if (isConflicting) {
+            return { text: 'Conflict', variant: 'secondary', disabled: true };
+        }
+        if (isLimitReached) {
+            return { text: 'Limit Reached', variant: 'secondary', disabled: true };
+        }
+        return { text: 'Activate', variant: 'default', disabled: !canAfford };
+    };
+
+    const buttonState = getButtonState();
 
     return (
         <Card className="flex flex-col">
@@ -79,7 +99,10 @@ export const GolemCard: React.FC<GolemCardProps> = ({ golem, onToggle, isActive,
                         <Icon className="w-6 h-6" />
                         {golem.name}
                     </CardTitle>
-                    {isActive && <Badge>Active</Badge>}
+                    <div className="flex items-center gap-2">
+                         <Badge variant="outline">Tier {golem.tier}</Badge>
+                        {isActive && <Badge>Active</Badge>}
+                    </div>
                 </div>
                 <CardDescription>{golem.description}</CardDescription>
             </CardHeader>
@@ -102,10 +125,10 @@ export const GolemCard: React.FC<GolemCardProps> = ({ golem, onToggle, isActive,
                 </div>
                 <Button
                     onClick={() => onToggle(golem.id)}
-                    disabled={!isActive && (!canAfford || isLimitReached)}
-                    variant={isActive ? 'destructive' : 'default'}
+                    disabled={buttonState.disabled}
+                    variant={buttonState.variant as any}
                 >
-                    {isActive ? 'Deactivate' : (isLimitReached ? 'Limit Reached' : 'Activate')}
+                    {buttonState.text}
                 </Button>
             </CardFooter>
         </Card>

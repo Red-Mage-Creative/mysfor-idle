@@ -1,4 +1,3 @@
-
 import { Bot, Cog, BrainCircuit, Droplet, Hammer, Scale, Sparkles, Shuffle } from 'lucide-react';
 import { Golem } from './gameTypes';
 
@@ -13,6 +12,7 @@ export const allGolems: Golem[] = [
             { type: 'flatGeneration', target: 'cogwheelGears', value: -3 }, // Drains 3 gears/sec
         ],
         icon: Bot,
+        tier: 1,
     },
     {
         id: 'iron_golem',
@@ -24,6 +24,8 @@ export const allGolems: Golem[] = [
             { type: 'costMultiplier', target: 'all', value: 1.2 }, // +20% to all costs
         ],
         icon: Cog,
+        tier: 1,
+        conflictsWith: ['forge_golem'],
     },
     {
         id: 'scholar_golem',
@@ -35,6 +37,7 @@ export const allGolems: Golem[] = [
             { type: 'costMultiplier', target: 'all', value: 1.15 }, // +15% to all costs
         ],
         icon: BrainCircuit,
+        tier: 1,
     },
     {
         id: 'vampire_golem',
@@ -47,6 +50,9 @@ export const allGolems: Golem[] = [
             { type: 'generationMultiplier', target: 'researchPoints', value: 0.1 }, // -90% research
         ],
         icon: Droplet,
+        tier: 2,
+        unlocksAtPrestige: 1,
+        conflictsWith: ['equilibrium_golem'],
     },
     {
         id: 'forge_golem',
@@ -59,6 +65,9 @@ export const allGolems: Golem[] = [
             { type: 'generationMultiplier', target: 'cogwheelGears', value: 0.75 }, // -25% gear gen
         ],
         icon: Hammer,
+        tier: 2,
+        unlocksAtPrestige: 1,
+        conflictsWith: ['iron_golem'],
     },
     {
         id: 'equilibrium_golem',
@@ -72,17 +81,23 @@ export const allGolems: Golem[] = [
             { type: 'costMultiplier', target: 'all', value: 0.85 },
         ],
         icon: Scale,
+        tier: 3,
+        unlocksAtPrestige: 3,
+        conflictsWith: ['vampire_golem'],
     },
     {
-        id: 'ascendant_golem',
-        name: 'Ascendant Golem',
-        description: 'A being of pure Aether, it enhances your ability to transcend reality but consumes essence.',
-        cost: 2500,
+        id: 'gremlin_golem',
+        name: 'Gremlin Golem',
+        description: 'This mischievous creature significantly boosts gear production but disables your auto-buyers.',
+        cost: 1800,
         effects: [
-            { type: 'shardGainMultiplier', value: 1.25 }, // +25% shard gain
-            { type: 'generationMultiplier', target: 'essenceFlux', value: 0.5 }, // -50% essence generation
+            { type: 'generationMultiplier', target: 'cogwheelGears', value: 2.5 }, // +150% gears
+            { type: 'disableFeature', feature: 'autoBuyItems' },
+            { type: 'disableFeature', feature: 'autoBuyUpgrades' },
         ],
-        icon: Sparkles,
+        icon: BrainCircuit, //TODO: Find a better icon
+        tier: 3,
+        unlocksAtPrestige: 3,
     },
     {
         id: 'chaos_golem',
@@ -103,20 +118,23 @@ export const allGolems: Golem[] = [
             }
         ],
         icon: Shuffle,
+        tier: 4,
+        unlocksAtPrestige: 5,
     },
     {
-        id: 'gremlin_golem',
-        name: 'Gremlin Golem',
-        description: 'This mischievous creature significantly boosts gear production but disables your auto-buyers.',
-        cost: 1800,
+        id: 'ascendant_golem',
+        name: 'Ascendant Golem',
+        description: 'A being of pure Aether, it enhances your ability to transcend reality but consumes essence.',
+        cost: 2500,
         effects: [
-            { type: 'generationMultiplier', target: 'cogwheelGears', value: 2.5 }, // +150% gears
-            { type: 'disableFeature', feature: 'autoBuyItems' },
-            { type: 'disableFeature', feature: 'autoBuyUpgrades' },
+            { type: 'shardGainMultiplier', value: 1.25 }, // +25% shard gain
+            { type: 'generationMultiplier', target: 'essenceFlux', value: 0.5 }, // -50% essence generation
         ],
-        icon: BrainCircuit,
+        icon: Sparkles,
+        tier: 4,
+        unlocksAtPrestige: 5,
     },
 ];
 
 export const golemMap = new Map(allGolems.map(g => [g.id, g]));
-export const MAX_ACTIVE_GOLEMS = 3;
+export const MAX_ACTIVE_GOLEMS = 5;
