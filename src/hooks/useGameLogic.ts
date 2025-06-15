@@ -14,6 +14,7 @@ import { allSynergies } from '@/lib/golemSynergies';
 export const useGameLogic = () => {
     const gameState = useGameState();
     const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame, achievements, setAchievements, lifetimeMana, hasEverPrestiged, prestigeCount, itemUpgrades, prestigeUpgradeLevels, unlockedResearchNodes, setUnlockedResearchNodes, setCurrencies, activeGolemIds } = gameState;
+    const [lastAutoBuy, setLastAutoBuy] = React.useState<{ item: string | null; upgrade: string | null }>({ item: null, upgrade: null });
     const repairAttempted = useRef(false);
 
     const calculations = useGameCalculations(gameState);
@@ -169,22 +170,36 @@ export const useGameLogic = () => {
         const autoBuyTick = () => {
             if (!isLoaded) return;
             
+            const itemsUnlocked = prestigeMultipliers.autoBuyItemsUnlocked;
+            const itemsEnabled = autoBuySettings.items;
+            const itemsGolemBlocked = golemEffects.disabledFeatures.has('autoBuyItems');
+
             // Auto-buy items
-            if (autoBuySettings.items && prestigeMultipliers.autoBuyItemsUnlocked) {
+            if (itemsUnlocked && itemsEnabled && !itemsGolemBlocked) {
                 // Iterate backwards to prioritize later-game items
                 for (let i = items.length - 1; i >= 0; i--) {
                     const item = items[i];
                     const details = itemPurchaseDetails.get(item.id);
                     // Check if item is visible/unlocked via itemPurchaseDetails map
                     if (details && details.canAffordPurchase && details.purchaseQuantity > 0) {
+                        console.log(`[Auto-Buy] Purchasing item: ${item.name}`);
                         handleBuyItem(item.id);
+                        setLastAutoBuy(prev => ({ ...prev, item: item.name }));
+                        toast(`Auto-Bought: ${item.name}`, { 
+                            id: 'autobuy-toast-item', 
+                            duration: 2000,
+                        });
                         return; // Buy one type of item per tick to avoid draining resources instantly
                     }
                 }
             }
             
+            const upgradesUnlocked = prestigeMultipliers.autoBuyUpgradesUnlocked;
+            const upgradesEnabled = autoBuySettings.upgrades;
+            const upgradesGolemBlocked = golemEffects.disabledFeatures.has('autoBuyUpgrades');
+
             // Auto-buy upgrades
-            if (autoBuySettings.upgrades && prestigeMultipliers.autoBuyUpgradesUnlocked) {
+            if (upgradesUnlocked && upgradesEnabled && !upgradesGolemBlocked) {
                 // Item Upgrades
                 if (availableItemUpgrades.length > 0) {
                     const upgrade = availableItemUpgrades[0];
@@ -193,7 +208,10 @@ export const useGameLogic = () => {
                         return currencies[c as Currency] >= actualCost;
                     });
                     if (canAfford) {
+                        console.log(`[Auto-Buy] Purchasing item upgrade: ${upgrade.name}`);
                         handleBuyItemUpgrade(upgrade.id);
+                        setLastAutoBuy(prev => ({...prev, upgrade: upgrade.name}));
+                        toast(`Auto-Bought Upgrade: ${upgrade.name}`, { id: 'autobuy-toast-upgrade', duration: 2000 });
                         return;
                     }
                 }
@@ -211,7 +229,11 @@ export const useGameLogic = () => {
                       .sort((a, b) => a.cost - b.cost);
 
                     if (affordableUpgrades.length > 0) {
-                        handleBuyWorkshopUpgrade(affordableUpgrades[0].upgrade.id);
+                        const upgradeToBuy = affordableUpgrades[0].upgrade;
+                        console.log(`[Auto-Buy] Purchasing workshop upgrade: ${upgradeToBuy.name}`);
+                        handleBuyWorkshopUpgrade(upgradeToBuy.id);
+                        setLastAutoBuy(prev => ({...prev, upgrade: upgradeToBuy.name}));
+                        toast(`Auto-Bought Upgrade: ${upgradeToBuy.name}`, { id: 'autobuy-toast-upgrade', duration: 2000 });
                         return;
                     }
                 }
@@ -233,7 +255,7 @@ export const useGameLogic = () => {
         handleBuyItem,
         handleBuyItemUpgrade,
         handleBuyWorkshopUpgrade,
-        golemEffects // Add golemEffects to dependency array
+        golemEffects
     ]);
 
     // Auto-downshift for overclock
@@ -308,5 +330,6 @@ export const useGameLogic = () => {
         allGolems,
         golemMap,
         MAX_ACTIVE_GOLEMS,
+        lastAutoBuy,
     };
 };

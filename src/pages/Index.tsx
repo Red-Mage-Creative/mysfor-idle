@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -16,6 +15,7 @@ import SaveStatusDisplay from '@/components/layout/SaveStatus';
 import PrestigeBonusesSummary from '@/components/game/PrestigeBonusesSummary';
 import ResearchTree from '@/components/game/ResearchTree';
 import EssenceGolemsList from '@/components/game/EssenceGolemsList';
+import { AutoBuyStatusIndicator, AutoBuyStatus } from '@/components/game/AutoBuyStatusIndicator';
 
 const Index = () => {
   const {
@@ -67,6 +67,7 @@ const Index = () => {
     allGolems,
     MAX_ACTIVE_GOLEMS,
     golemEffects,
+    lastAutoBuy,
   } = useGame();
 
   const handleToggleGolem = (id: string) => {
@@ -81,6 +82,21 @@ const Index = () => {
 
   const showPrestigeTab = prestigeVisibility === 'visible';
   const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showWorkshopTab ? 1 : 0) + (showPrestigeTab ? 1 : 0) + (showResearchTab ? 1 : 0) + (showEssenceTab ? 1 : 0);
+
+  const getAutoBuyStatus = (type: 'items' | 'upgrades'): AutoBuyStatus => {
+    const unlocked = type === 'items' ? prestigeMultipliers.autoBuyItemsUnlocked : prestigeMultipliers.autoBuyUpgradesUnlocked;
+    const enabled = type === 'items' ? autoBuySettings.items : autoBuySettings.upgrades;
+    const golemDisabled = golemEffects.disabledFeatures.has(type === 'items' ? 'autoBuyItems' : 'autoBuyUpgrades');
+
+    if (!unlocked) return 'locked';
+    if (golemDisabled) return 'disabled_golem';
+    if (!enabled) return 'inactive';
+    return 'active';
+  }
+
+  const itemAutoBuyStatus = getAutoBuyStatus('items');
+  const upgradeAutoBuyStatus = getAutoBuyStatus('upgrades');
+  const showAutoBuyStatus = prestigeCount > 0;
 
   if (!isLoaded) {
     return (
@@ -115,6 +131,12 @@ const Index = () => {
               prestigeMultipliers={prestigeMultipliers}
             />
             {prestigeCount > 0 && <PrestigeBonusesSummary prestigeCount={prestigeCount} prestigeMultipliers={prestigeMultipliers} />}
+            {showAutoBuyStatus && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <AutoBuyStatusIndicator type="items" status={itemAutoBuyStatus} lastPurchase={lastAutoBuy?.item} />
+                    <AutoBuyStatusIndicator type="upgrades" status={upgradeAutoBuyStatus} lastPurchase={lastAutoBuy?.upgrade} />
+                </div>
+            )}
             <PrestigeCard 
               currencies={currencies}
               lifetimeMana={lifetimeMana}
