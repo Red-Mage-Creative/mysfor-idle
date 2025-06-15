@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import { researchNodes } from '@/lib/researchTree';
 import ResearchNodeComponent from './ResearchNodeComponent';
@@ -61,7 +60,8 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
   const handleWheel = (e: React.WheelEvent) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const (mouseX, mouseY) = (e.clientX - rect.left, e.clientY - rect.top);
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
     const zoomFactor = 1.1;
     const newZoom = e.deltaY < 0 ? view.zoom * zoomFactor : view.zoom / zoomFactor;
