@@ -84,6 +84,18 @@ export const allGolems: Golem[] = [
         ],
         icon: Sparkles,
     },
+    {
+        id: 'gremlin_golem',
+        name: 'Gremlin Golem',
+        description: 'This mischievous creature significantly boosts gear production but disables your auto-buyers.',
+        cost: 1800,
+        effects: [
+            { type: 'generationMultiplier', target: 'cogwheelGears', value: 2.5 }, // +150% gears
+            { type: 'disableFeature', feature: 'autoBuyItems' },
+            { type: 'disableFeature', feature: 'autoBuyUpgrades' },
+        ],
+        icon: BrainCircuit,
+    },
 ];
 
 export const golemMap = new Map(allGolems.map(g => [g.id, g]));

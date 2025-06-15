@@ -29,6 +29,7 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
             flatGeneration: {} as Record<string, number>,
             costMultiplier: 1,
             shardGainMultiplier: 1,
+            disabledFeatures: new Set<'autoBuyItems' | 'autoBuyUpgrades'>(),
         };
 
         activeGolems.forEach(golem => {
@@ -45,6 +46,9 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                         break;
                     case 'shardGainMultiplier':
                         totals.shardGainMultiplier *= effect.value;
+                        break;
+                    case 'disableFeature':
+                        totals.disabledFeatures.add(effect.feature);
                         break;
                 }
             });
@@ -98,6 +102,14 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                                         Shard Gain: {(totalEffects.shardGainMultiplier - 1) > 0 ? '+' : ''}{((totalEffects.shardGainMultiplier - 1) * 100).toFixed(0)}%
                                     </li>
                                 )}
+                                {Array.from(totalEffects.disabledFeatures).map(feature => {
+                                    const featureName = feature === 'autoBuyItems' ? 'Auto-buy Items' : 'Auto-buy Upgrades';
+                                    return (
+                                        <li key={`disable-${feature}`} className="text-orange-500">
+                                            {featureName} Disabled
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         </div>
                     ) : (

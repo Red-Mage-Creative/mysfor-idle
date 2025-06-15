@@ -110,7 +110,8 @@ export type GolemEffect =
     | { type: 'generationMultiplier'; target: Currency; value: number }
     | { type: 'flatGeneration'; target: Currency; value: number } // value can be negative for drain
     | { type: 'costMultiplier'; target: 'all'; value: number }
-    | { type: 'shardGainMultiplier'; value: number };
+    | { type: 'shardGainMultiplier'; value: number }
+    | { type: 'disableFeature'; feature: 'autoBuyItems' | 'autoBuyUpgrades' };
 
 export interface Golem {
     id: string;

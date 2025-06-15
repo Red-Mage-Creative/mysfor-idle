@@ -150,6 +150,43 @@ export const useGameCalculations = ({
         return bonuses;
     }, [unlockedResearchNodes]);
 
+    const golemEffects = useMemo(() => {
+        const effects = {
+            generationMultiplier: {} as Partial<Record<Currency, number>>,
+            flatGeneration: {} as Partial<Record<Currency, number>>,
+            costMultiplier: 1,
+            shardGainMultiplier: 1,
+            disabledFeatures: new Set<'autoBuyItems' | 'autoBuyUpgrades'>(),
+        };
+
+        activeGolemIds.forEach(golemId => {
+            const golem = golemMap.get(golemId);
+            if (golem) {
+                golem.effects.forEach(effect => {
+                    switch (effect.type) {
+                        case 'generationMultiplier':
+                            effects.generationMultiplier[effect.target] = (effects.generationMultiplier[effect.target] || 1) * effect.value;
+                            break;
+                        case 'flatGeneration':
+                            effects.flatGeneration[effect.target] = (effects.flatGeneration[effect.target] || 0) + effect.value;
+                            break;
+                        case 'costMultiplier':
+                            effects.costMultiplier *= effect.value;
+                            break;
+                        case 'shardGainMultiplier':
+                            effects.shardGainMultiplier *= effect.value;
+                            break;
+                        case 'disableFeature':
+                            effects.disabledFeatures.add(effect.feature);
+                            break;
+                    }
+                });
+            }
+        });
+
+        return effects;
+    }, [activeGolemIds]);
+
     const prestigeMultipliers = useMemo(() => {
         const multipliers = {
             manaClick: 1,
@@ -189,8 +226,16 @@ export const useGameCalculations = ({
                 }
             }
         }
+
+        if (golemEffects.disabledFeatures.has('autoBuyItems')) {
+            multipliers.autoBuyItemsUnlocked = false;
+        }
+        if (golemEffects.disabledFeatures.has('autoBuyUpgrades')) {
+            multipliers.autoBuyUpgradesUnlocked = false;
+        }
+
         return multipliers;
-    }, [prestigeUpgradeLevels]);
+    }, [prestigeUpgradeLevels, golemEffects]);
 
     const workshopUpgradeMultipliers = useMemo(() => {
         const multipliers = {
@@ -255,39 +300,6 @@ export const useGameCalculations = ({
             isUnlocked: maxLevelUnlocked > 0,
         };
     }, [itemUpgrades, overclockLevel]);
-
-    const golemEffects = useMemo(() => {
-        const effects = {
-            generationMultiplier: {} as Partial<Record<Currency, number>>,
-            flatGeneration: {} as Partial<Record<Currency, number>>,
-            costMultiplier: 1,
-            shardGainMultiplier: 1,
-        };
-
-        activeGolemIds.forEach(golemId => {
-            const golem = golemMap.get(golemId);
-            if (golem) {
-                golem.effects.forEach(effect => {
-                    switch (effect.type) {
-                        case 'generationMultiplier':
-                            effects.generationMultiplier[effect.target] = (effects.generationMultiplier[effect.target] || 1) * effect.value;
-                            break;
-                        case 'flatGeneration':
-                            effects.flatGeneration[effect.target] = (effects.flatGeneration[effect.target] || 0) + effect.value;
-                            break;
-                        case 'costMultiplier':
-                            effects.costMultiplier *= effect.value;
-                            break;
-                        case 'shardGainMultiplier':
-                            effects.shardGainMultiplier *= effect.value;
-                            break;
-                    }
-                });
-            }
-        });
-
-        return effects;
-    }, [activeGolemIds]);
 
     const generationPerSecond = useMemo(() => {
         const baseGeneration = items.reduce((acc, item) => {

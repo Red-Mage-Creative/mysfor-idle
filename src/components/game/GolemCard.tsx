@@ -46,6 +46,10 @@ const formatEffect = (effect: GolemEffect) => {
             const Icon = percentage >= 0 ? ChevronsUp : ChevronsDown;
             return <span className={color}><Icon className="inline w-4 h-4 mr-1" />{sign}{percentage.toFixed(0)}% Shard Gain</span>;
         }
+        case 'disableFeature': {
+            const featureName = effect.feature === 'autoBuyItems' ? 'Auto-buy Items' : 'Auto-buy Upgrades';
+            return <span className="text-orange-500"><ArrowDown className="inline w-4 h-4 mr-1" />Disables {featureName}</span>;
+        }
     }
 };
 
