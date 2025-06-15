@@ -1,23 +1,26 @@
-
 import { useEffect } from 'react';
 import { toast } from "@/components/ui/sonner";
 import { Currency } from '@/lib/gameTypes';
 import type { useGameState } from '@/hooks/useGameState';
 import type { useGameCalculations } from '@/hooks/useGameCalculations';
 import type { useGameActions } from '@/hooks/useGameActions';
+import { ITEM_COST_GROWTH_RATE } from '@/constants/gameConstants';
 
 type AutoBuyProps = ReturnType<typeof useGameState> & ReturnType<typeof useGameCalculations> & {
-    handleBuyItem: ReturnType<typeof useGameActions>['handleBuyItem'];
     handleBuyItemUpgrade: ReturnType<typeof useGameActions>['handleBuyItemUpgrade'];
     handleBuyWorkshopUpgrade: ReturnType<typeof useGameActions>['handleBuyWorkshopUpgrade'];
     setLastAutoBuy: React.Dispatch<React.SetStateAction<{ item: string | null; upgrade: string | null }>>;
+    setCurrencies: ReturnType<typeof useGameState>['setCurrencies'];
+    setItems: ReturnType<typeof useGameState>['setItems'];
+    debouncedSave: () => void;
 };
 
 export const useAutoBuy = (props: AutoBuyProps) => {
     const {
-        isLoaded, autoBuySettings, prestigeMultipliers, items, itemPurchaseDetails,
-        availableItemUpgrades, workshopUpgrades, currencies, handleBuyItem,
-        handleBuyItemUpgrade, handleBuyWorkshopUpgrade, golemEffects, setLastAutoBuy
+        isLoaded, autoBuySettings, prestigeMultipliers, items,
+        availableItemUpgrades, workshopUpgrades, currencies,
+        handleBuyItemUpgrade, handleBuyWorkshopUpgrade, golemEffects, setLastAutoBuy,
+        setCurrencies, setItems, debouncedSave,
     } = props;
 
     useEffect(() => {
@@ -31,9 +34,43 @@ export const useAutoBuy = (props: AutoBuyProps) => {
             if (itemsUnlocked && itemsEnabled && !itemsGolemBlocked) {
                 for (let i = items.length - 1; i >= 0; i--) {
                     const item = items[i];
-                    const details = itemPurchaseDetails.get(item.id);
-                    if (details && details.canAffordPurchase && details.purchaseQuantity > 0) {
-                        handleBuyItem(item.id);
+                    
+                    const cost = item.cost;
+                    const canAffordSingle = Object.entries(cost).every(([c, val]) => {
+                        return currencies[c as Currency] >= (val || 0);
+                    });
+
+                    if (canAffordSingle) {
+                        setCurrencies(prev => {
+                            const newCurrencies = { ...prev };
+                            for (const currency in cost) {
+                                const key = currency as Currency;
+                                newCurrencies[key] -= cost[key] || 0;
+                            }
+                            return newCurrencies;
+                        });
+                        
+                        setItems(prevItems =>
+                          prevItems.map(pItem => {
+                            if (pItem.id !== item.id) return pItem;
+                
+                            const newLevel = pItem.level + 1;
+                            const newCost = { ...pItem.cost };
+                            for (const currency in pItem.baseCost) {
+                                const key = currency as Currency;
+                                const base = pItem.baseCost[key] || 0;
+                                newCost[key] = Math.ceil(base * Math.pow(ITEM_COST_GROWTH_RATE, newLevel));
+                            }
+                
+                            return {
+                              ...pItem,
+                              level: newLevel,
+                              cost: newCost,
+                            };
+                          })
+                        );
+                        debouncedSave();
+
                         setLastAutoBuy(prev => ({ ...prev, item: item.name }));
                         toast(`Auto-Bought: ${item.name}`, { id: 'autobuy-toast-item', duration: 2000 });
                         return;
@@ -86,8 +123,9 @@ export const useAutoBuy = (props: AutoBuyProps) => {
         
         return () => clearInterval(intervalId);
     }, [
-        isLoaded, autoBuySettings, prestigeMultipliers, items, itemPurchaseDetails,
-        availableItemUpgrades, workshopUpgrades, currencies, handleBuyItem,
-        handleBuyItemUpgrade, handleBuyWorkshopUpgrade, golemEffects, setLastAutoBuy
+        isLoaded, autoBuySettings, prestigeMultipliers, items,
+        availableItemUpgrades, workshopUpgrades, currencies,
+        handleBuyItemUpgrade, handleBuyWorkshopUpgrade, golemEffects, setLastAutoBuy,
+        setCurrencies, setItems, debouncedSave,
     ]);
 };

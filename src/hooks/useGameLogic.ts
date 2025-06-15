@@ -37,10 +37,12 @@ export const useGameLogic = () => {
     useAutoBuy({
         ...gameState, 
         ...calculations,
-        handleBuyItem: actions.handleBuyItem,
         handleBuyItemUpgrade: actions.handleBuyItemUpgrade,
         handleBuyWorkshopUpgrade: actions.handleBuyWorkshopUpgrade,
-        setLastAutoBuy
+        setLastAutoBuy,
+        setCurrencies: gameState.setCurrencies,
+        setItems: gameState.setItems,
+        debouncedSave: debouncedSave,
     });
     useOverclockManager({ ...gameState, ...calculations, handleSetOverclockLevel: actions.handleSetOverclockLevel });
     useUpgradeNotifier({ ...gameState, ...calculations });
