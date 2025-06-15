@@ -163,6 +163,11 @@ export const useGameLogic = () => {
             if (cosmicResonator.level >= 1000) unlockAchievement('cosmic_resonator_1k');
         }
 
+        const antimatterMana = items.find(item => item.id === 'antimatter_mana');
+        if (antimatterMana && antimatterMana.level > 0) {
+            unlockAchievement('antimatter_mana_1');
+        }
+
     }, [isLoaded, items, itemUpgrades, hasEverPrestiged, prestigeUpgradeLevels, prestigeCount, lifetimeMana, currencies, unlockAchievement, unlockedResearchNodes, activeGolemIds, activeSynergies]);
 
     // Auto-buy logic

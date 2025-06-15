@@ -59,6 +59,14 @@ export const allAchievements: Achievement[] = [
   { id: 'cosmic_resonator_10', name: 'Dimension Walker', description: 'Own 10 Cosmic Resonators.', category: 'Cosmic Achievements', icon: Star },
   { id: 'cosmic_resonator_100', name: 'Universe Crafter', description: 'Own 100 Cosmic Resonators.', category: 'Cosmic Achievements', icon: Trophy },
   { id: 'cosmic_resonator_1k', name: 'Cosmic Emperor', description: 'Own 1,000 Cosmic Resonators.', category: 'Cosmic Achievements', icon: Medal, isSecret: true },
+  { 
+    id: 'antimatter_mana_1', 
+    name: 'Master of Reality', 
+    description: 'Forge the legendary Anti-Matter Mana.', 
+    category: 'Cosmic Achievements', 
+    icon: Atom,
+    isSecret: true 
+  },
 
   // Golem Mastery
   { id: 'golem_first', name: 'Golemancer', description: 'Activate your first Golem.', category: 'Golem Mastery', icon: Bot },

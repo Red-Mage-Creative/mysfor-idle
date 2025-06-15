@@ -561,6 +561,8 @@ export const useGameCalculations = ({
             return acc;
         }, {} as Record<string, ItemUpgrade[]>);
 
+        const cosmicResonatorOwned = (items.find(i => i.id === 'cosmic_resonator')?.level || 0) > 0;
+
         for (const item of items) {
             const requiredCurrencies = Object.keys(item.baseCost) as Currency[];
             const allCurrenciesUnlocked = requiredCurrencies.every(c => unlockedCurrencies.has(c));
@@ -571,6 +573,11 @@ export const useGameCalculations = ({
             const manaRequirement = initialCostSum * 0.8;
 
             if (lifetimeMana < manaRequirement && item.level === 0) continue;
+
+            // Hide Anti-Matter Mana until a Cosmic Resonator is purchased
+            if (item.id === 'antimatter_mana' && !cosmicResonatorOwned && item.level === 0) {
+                continue;
+            }
 
             const itemGenMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
             const itemClickMultiplier = itemUpgradeMultipliers[item.id]?.click || 1;

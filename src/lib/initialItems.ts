@@ -1,5 +1,5 @@
 
-import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand, Recycle, Waves, Atom } from 'lucide-react';
+import { Zap, Star, Shield, Settings, Factory, Gem, BookOpen, BrainCircuit, Hand, Recycle, Waves, Atom, Sparkles } from 'lucide-react';
 import { Item } from './gameTypes';
 
 export const initialItems: Item[] = [
@@ -141,6 +141,17 @@ export const initialItems: Item[] = [
     generation: { mana: 1e28 },
     level: 0,
     icon: Atom,
+    category: 'Transcendent Artifacts',
+  },
+  {
+    id: 'antimatter_mana',
+    name: 'Anti-Matter Mana',
+    description: 'The ultimate fusion of matter and energy. It IS reality.',
+    baseCost: { mana: 1e100 }, // 1 Googol
+    cost: { mana: 1e100 },
+    generation: { mana: 1e90 },
+    level: 0,
+    icon: Sparkles,
     category: 'Transcendent Artifacts',
   },
 ];
