@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { Currencies, Item, ItemUpgrade, WorkshopUpgrade, OfflineEarnings, AchievementProgress } from '@/lib/gameTypes';
@@ -12,7 +13,7 @@ export const useGameState = () => {
     const [offlineEarnings, setOfflineEarnings] = useState<OfflineEarnings | null>(null);
     const [isIntroModalOpen, setIsIntroModalOpen] = useState(false);
 
-    const [currencies, setCurrencies] = useState<Currencies>({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0 });
+    const [currencies, setCurrencies] = useState<Currencies>({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0, challengeTokens: 0 });
     const [items, setItems] = useState<Item[]>(getFreshInitialItems);
     const [itemUpgrades, setItemUpgrades] = useState<ItemUpgrade[]>(getFreshInitialItemUpgrades);
     const [workshopUpgrades, setWorkshopUpgrades] = useState<WorkshopUpgrade[]>(getFreshInitialWorkshopUpgrades);
@@ -33,6 +34,11 @@ export const useGameState = () => {
     const [hasBeatenGame, setHasBeatenGame] = useState(false);
     const [gameCompletionShown, setGameCompletionShown] = useState(false);
     const [ancientKnowledgeNodes, setAncientKnowledgeNodes] = useState<Set<string>>(new Set());
+
+    // New state for Dimensional Challenges
+    const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
+    const [completedChallenges, setCompletedChallenges] = useState<Record<string, number>>({});
+    const [dimensionalUpgrades, setDimensionalUpgrades] = useState<Record<string, number>>({});
 
     // New state for achievements
     const [runStartTime, setRunStartTime] = useState(Date.now());
@@ -88,6 +94,10 @@ export const useGameState = () => {
         unlockedResearchNodes, setUnlockedResearchNodes,
         activeGolemIds, setActiveGolemIds,
         ancientKnowledgeNodes, setAncientKnowledgeNodes,
+        // Dimensional Challenges state
+        activeChallengeId, setActiveChallengeId,
+        completedChallenges, setCompletedChallenges,
+        dimensionalUpgrades, setDimensionalUpgrades,
         // New state
         runStartTime, setRunStartTime,
     };

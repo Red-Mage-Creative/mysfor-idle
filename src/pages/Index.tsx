@@ -17,6 +17,7 @@ import PrestigeBonusesSummary from '@/components/game/PrestigeBonusesSummary';
 import ResearchTree from '@/components/game/ResearchTree';
 import EssenceGolemsList from '@/components/game/EssenceGolemsList';
 import { AutoBuyStatusIndicator, AutoBuyStatus } from '@/components/game/AutoBuyStatusIndicator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Index = () => {
   const {
@@ -74,6 +75,7 @@ const Index = () => {
     aetherShardBonus,
     ancientKnowledgeBonus,
     synergyBonus,
+    activeChallengeId,
   } = useGame();
 
   const handleToggleGolem = (id: string) => {
@@ -86,8 +88,9 @@ const Index = () => {
     }
   };
 
+  const showChallengesTab = prestigeCount >= 2;
   const showPrestigeTab = prestigeVisibility === 'visible';
-  const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showWorkshopTab ? 1 : 0) + (showPrestigeTab ? 1 : 0) + (showResearchTab ? 1 : 0) + (showEssenceTab ? 1 : 0);
+  const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showWorkshopTab ? 1 : 0) + (showPrestigeTab ? 1 : 0) + (showResearchTab ? 1 : 0) + (showEssenceTab ? 1 : 0) + (showChallengesTab ? 1 : 0);
 
   const getAutoBuyStatus = (type: 'items' | 'upgrades'): AutoBuyStatus => {
     const unlocked = type === 'items' ? prestigeMultipliers.autoBuyItemsUnlocked : prestigeMultipliers.autoBuyUpgradesUnlocked;
@@ -176,13 +179,14 @@ const Index = () => {
               {tabCount > 1 && (
                 <TabsList className={cn(
                   "grid w-full",
-                  { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, "grid-cols-4": tabCount === 4, "grid-cols-5": tabCount === 5, "grid-cols-6": tabCount === 6 }
+                  { "grid-cols-2": tabCount === 2, "grid-cols-3": tabCount === 3, "grid-cols-4": tabCount === 4, "grid-cols-5": tabCount === 5, "grid-cols-6": tabCount === 6, "grid-cols-7": tabCount === 7 }
                 )}>
                   <TabsTrigger value="items">Items</TabsTrigger>
                   {showUpgradesTab && <TabsTrigger value="upgrades">Upgrades</TabsTrigger>}
                   {showWorkshopTab && <TabsTrigger value="workshop">Workshop</TabsTrigger>}
                   {showResearchTab && <TabsTrigger value="research">Research</TabsTrigger>}
                   {showEssenceTab && <TabsTrigger value="essence">Essence</TabsTrigger>}
+                  {showChallengesTab && <TabsTrigger value="challenges">Challenges</TabsTrigger>}
                   {showPrestigeTab && <TabsTrigger value="prestige">Prestige</TabsTrigger>}
                 </TabsList>
               )}
@@ -238,6 +242,22 @@ const Index = () => {
                         maxActiveGolems={MAX_ACTIVE_GOLEMS}
                         prestigeCount={prestigeCount}
                     />
+                </TabsContent>
+              )}
+              {showChallengesTab && (
+                <TabsContent value="challenges">
+                  <Card>
+                      <CardHeader>
+                          <CardTitle>Dimensional Challenges</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                          <p>A new dimension of gameplay is forming... come back later to test your skills.</p>
+                          <div className='mt-4'>
+                            <p><b>Challenge Tokens:</b> {currencies.challengeTokens || 0}</p>
+                            <p><b>Active Challenge:</b> {activeChallengeId || 'None'}</p>
+                          </div>
+                      </CardContent>
+                  </Card>
                 </TabsContent>
               )}
               {showPrestigeTab && (

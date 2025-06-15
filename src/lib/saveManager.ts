@@ -1,3 +1,4 @@
+
 import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade, AchievementProgress, OfflineEarnings } from '@/lib/gameTypes';
 import { getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
@@ -48,6 +49,15 @@ const migrateSaveData = (data: any): GameSaveData => {
     if (typeof migratedData.gameCompletionShown === 'undefined') migratedData.gameCompletionShown = false;
     if (typeof migratedData.ancientKnowledgeNodeIds === 'undefined') migratedData.ancientKnowledgeNodeIds = [];
     if (typeof migratedData.runStartTime === 'undefined') migratedData.runStartTime = Date.now();
+
+    // New fields for Dimensional Challenges
+    if (typeof migratedData.activeChallengeId === 'undefined') migratedData.activeChallengeId = null;
+    if (typeof migratedData.completedChallenges === 'undefined') migratedData.completedChallenges = {};
+    if (typeof migratedData.dimensionalUpgrades === 'undefined') migratedData.dimensionalUpgrades = {};
+    if (typeof migratedData.currencies?.challengeTokens === 'undefined') {
+        if (!migratedData.currencies) migratedData.currencies = {};
+        migratedData.currencies.challengeTokens = 0;
+    }
 
     migratedData.version = C.CURRENT_SAVE_VERSION;
     return migratedData as GameSaveData;

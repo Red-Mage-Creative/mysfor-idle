@@ -11,6 +11,12 @@ import { useAutoSave } from './useAutoSave';
 type UseGameSessionProps = ReturnType<typeof useGameState> & {
     generationPerSecond: Partial<Currencies>;
     autoBuySettings: any;
+    activeChallengeId: string | null;
+    setActiveChallengeId: (id: string | null) => void;
+    completedChallenges: Record<string, boolean>;
+    setCompletedChallenges: (challenges: Record<string, boolean>) => void;
+    dimensionalUpgrades: Record<string, number>;
+    setDimensionalUpgrades: (upgrades: Record<string, number>) => void;
 };
 
 export const useGameSession = (props: UseGameSessionProps) => {
@@ -24,7 +30,10 @@ export const useGameSession = (props: UseGameSessionProps) => {
         setAchievements, hasBeatenGame, setHasBeatenGame, gameCompletionShown, setGameCompletionShown,
         setIsIntroModalOpen, unlockedResearchNodes, setUnlockedResearchNodes, activeGolemIds, setActiveGolemIds,
         ancientKnowledgeNodes, setAncientKnowledgeNodes,
-        runStartTime, setRunStartTime
+        runStartTime, setRunStartTime,
+        activeChallengeId, setActiveChallengeId,
+        completedChallenges, setCompletedChallenges,
+        dimensionalUpgrades, setDimensionalUpgrades,
     } = props;
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -44,6 +53,9 @@ export const useGameSession = (props: UseGameSessionProps) => {
                 autoBuySettings: props.autoBuySettings,
                 ancientKnowledgeNodeIds: Array.from(ancientKnowledgeNodes),
                 runStartTime,
+                activeChallengeId,
+                completedChallenges,
+                dimensionalUpgrades
             };
             localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
             setLastSaveTime(new Date(saveData.lastSaveTimestamp));
@@ -60,7 +72,8 @@ export const useGameSession = (props: UseGameSessionProps) => {
         isLoaded, currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels,
         notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, achievements,
         unlockedResearchNodes, activeGolemIds, hasBeatenGame, gameCompletionShown, setLastSaveTime, setSaveStatus,
-        props.autoBuySettings, ancientKnowledgeNodes, runStartTime
+        props.autoBuySettings, ancientKnowledgeNodes, runStartTime,
+        activeChallengeId, completedChallenges, dimensionalUpgrades
     ]);
     
     useGameLoop({ isLoaded, generationPerSecond, setCurrencies, setLifetimeMana });
@@ -100,6 +113,12 @@ export const useGameSession = (props: UseGameSessionProps) => {
                 setAncientKnowledgeNodes(new Set(loadedState.ancientKnowledgeNodeIds || []));
                 setRunStartTime(loadedState.runStartTime || Date.now());
                 setLastSaveTime(new Date(loadedState.lastSaveTimestamp));
+
+                // Load challenge data
+                setActiveChallengeId(loadedState.activeChallengeId || null);
+                setCompletedChallenges(loadedState.completedChallenges || {});
+                setDimensionalUpgrades(loadedState.dimensionalUpgrades || {});
+
                 if (offlineEarnings) setOfflineEarnings(offlineEarnings);
             }
         } catch (error) {
@@ -112,7 +131,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
     }, []); // This empty dependency array is crucial for running only once.
 
     const resetState = useCallback(() => {
-        setCurrencies({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0 });
+        setCurrencies({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0, challengeTokens: 0 });
         setItems(getFreshInitialItems());
         setItemUpgrades(getFreshInitialItemUpgrades());
         setWorkshopUpgrades(getFreshInitialWorkshopUpgrades());
@@ -144,7 +163,7 @@ export const useGameSession = (props: UseGameSessionProps) => {
     ]);
 
     const resetGame = useCallback(() => {
-        if (window.confirm("Are you sure you want to reset all progress? This cannot be undone.")) {
+        if (window.confirm("Are you sure you want to reset all progress, including challenges and dimensional upgrades? This cannot be undone.")) {
             resetState();
             toast.success("Game progress has been reset.");
         }

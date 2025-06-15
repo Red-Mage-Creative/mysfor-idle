@@ -1,7 +1,6 @@
-
 import { LucideIcon } from "lucide-react";
 
-export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints' | 'aetherShards';
+export type Currency = 'mana' | 'cogwheelGears' | 'essenceFlux' | 'researchPoints' | 'aetherShards' | 'challengeTokens';
 
 export type Currencies = Record<Currency, number>;
 
@@ -170,6 +169,32 @@ export interface AchievementProgress {
   unlockedAt?: number;
 }
 
+// New types for Dimensional Challenges
+export interface Challenge {
+  id: string;
+  name: string;
+  description: string;
+  goalDescription: string;
+  reward: number; // challenge tokens
+  isGoalReached: (gameState: any) => boolean;
+  applyRestrictions: (multipliers: any) => any;
+  unlocksAtPrestige: number;
+  icon: LucideIcon;
+}
+
+export interface DimensionalUpgrade {
+  id: string;
+  name: string;
+  description: (level: number) => string;
+  cost: (level: number) => number; // challenge tokens
+  maxLevel: number;
+  effect: {
+    type: string;
+    value: (level: number) => number;
+  };
+  icon: LucideIcon;
+}
+
 // New types for save data and offline progress
 export interface GameSaveData {
     version: string;
@@ -197,6 +222,11 @@ export interface GameSaveData {
     gameCompletionShown?: boolean;
     ancientKnowledgeNodeIds?: string[];
     runStartTime?: number;
+
+    // Dimensional Challenges
+    activeChallengeId?: string | null;
+    completedChallenges?: Record<string, number>; // id: completion count
+    dimensionalUpgrades?: Record<string, number>; // id: level
 }
 
 export interface OfflineEarnings {
