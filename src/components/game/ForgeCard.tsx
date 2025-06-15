@@ -132,7 +132,7 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
     return (
         <Card className="w-full text-center bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg overflow-hidden">
             <CardHeader>
-                <CardTitle className="text-4xl font-bold text-primary">{formatNumber(currencies.mana)} Mana</CardTitle>
+                <CardTitle className="text-3xl sm:text-4xl font-bold text-primary">{formatNumber(currencies.mana)} Mana</CardTitle>
                 <CardDescription className="text-muted-foreground flex justify-center items-center gap-2 flex-wrap">
                     <span>{formatNumber(generationPerSecond.mana || 0)}/s</span>
                     <span className="text-xs">|</span>
@@ -140,13 +140,9 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                 </CardDescription>
 
                 {visibleCurrencies.length > 0 && (
-                    <div className={cn("grid gap-2 mt-4 border-t border-border pt-4", {
-                        'grid-cols-1': visibleCurrencies.length === 1,
-                        'grid-cols-2': visibleCurrencies.length === 2,
-                        'grid-cols-3': visibleCurrencies.length >= 3,
-                    })}>
+                    <div className="flex flex-wrap justify-center gap-x-6 gap-y-4 mt-4 border-t border-border pt-4">
                         {visibleCurrencies.map(c => (
-                             <div key={c.key} className="flex flex-col items-center justify-center text-center gap-1">
+                             <div key={c.key} className="flex flex-col items-center justify-center text-center gap-1 min-w-[80px]">
                                 <c.Icon className={cn("w-6 h-6", c.color)} />
                                 <div>
                                     <p className="text-lg font-bold">{formatNumber(currencies[c.key])}</p>
@@ -168,12 +164,12 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                     <Zap 
-                        className="relative w-48 h-48 sm:w-64 sm:h-64 text-primary transition-all duration-100" 
+                        className="relative w-40 h-40 sm:w-64 sm:h-64 text-primary transition-all duration-100" 
                         strokeWidth={1.5}
                     />
                 </button>
                 {showTutorial && (
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-28 sm:mt-36 pointer-events-none">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-24 sm:mt-36 pointer-events-none">
                         <div className="flex flex-col items-center gap-1">
                             <p className="text-xl font-bold text-primary">Click to Forge Mana!</p>
                         </div>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -80,9 +81,9 @@ const Index = () => {
         onClose={clearOfflineEarnings}
         data={offlineEarnings}
       />
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fade-in">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 items-start animate-fade-in">
           
-          <div className="lg:col-span-1 flex flex-col items-stretch space-y-6 lg:sticky lg:top-24">
+          <div className="lg:col-span-1 flex flex-col items-stretch space-y-4 md:space-y-6 lg:sticky lg:top-24">
             <ForgeCard 
               currencies={currencies}
               generationPerSecond={generationPerSecond}

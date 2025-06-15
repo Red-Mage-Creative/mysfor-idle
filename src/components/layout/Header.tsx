@@ -1,11 +1,12 @@
 
 import React, { useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { Gamepad2, Info, Settings, Zap, Trophy, Star } from 'lucide-react';
+import { Gamepad2, Info, Settings, Zap, Trophy, Star, Menu } from 'lucide-react';
 import { useGame } from '@/context/GameContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 
 const Header = () => {
     const game = useGame();
@@ -32,6 +33,13 @@ const Header = () => {
         ? 'bg-primary text-primary-foreground'
         : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
     }`;
+    
+    const mobileNavLinkClasses = ({ isActive }: { isActive: boolean; }) =>
+    `flex items-center gap-3 px-3 py-3 rounded-lg text-lg font-medium transition-colors ${
+      isActive
+        ? 'bg-primary text-primary-foreground'
+        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+    }`;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -41,7 +49,7 @@ const Header = () => {
         </Link>
         <nav className="hidden md:flex items-center gap-4">
             <Button asChild variant="outline" size="sm">
-                <a href="https://github.com/Red-Mage-Creative/mysfor-idle" target="_blank" rel="noopener noreferrer" aria-label="Star us on GitHub">
+                <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" aria-label="Star us on GitHub">
                     <Star />
                     Star us on GitHub
                 </a>
@@ -87,7 +95,76 @@ const Header = () => {
             </NavLink>
           )}
         </nav>
-        {/* A mobile menu could be added here later */}
+        {/* Mobile Menu */}
+        <div className="md:hidden">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Open navigation menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="right">
+                    <nav className="grid gap-6 text-lg font-medium mt-8">
+                        <SheetClose asChild>
+                            <NavLink to="/" className={mobileNavLinkClasses} end>
+                                <Gamepad2 className="h-5 w-5" />
+                                <span>Game</span>
+                            </NavLink>
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <NavLink to="/about" className={mobileNavLinkClasses}>
+                                <Info className="h-5 w-5" />
+                                <span>About</span>
+                            </NavLink>
+                        </SheetClose>
+                        <SheetClose asChild>
+                            <NavLink to="/settings" className={mobileNavLinkClasses}>
+                                <Settings className="h-5 w-5" />
+                                <span>Settings</span>
+                            </NavLink>
+                        </SheetClose>
+                        {hasBeatenGame && (
+                            <SheetClose asChild>
+                                <NavLink to="/end-credits" className={mobileNavLinkClasses}>
+                                    <Trophy className="h-5 w-5" />
+                                    <span>End Credits</span>
+                                </NavLink>
+                            </SheetClose>
+                        )}
+
+                        <div className="border-t pt-6 mt-4 space-y-4">
+                            <Button asChild variant="outline" className="w-full justify-center">
+                                <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" aria-label="Star us on GitHub">
+                                    <Star />
+                                    Star us on GitHub
+                                </a>
+                            </Button>
+
+                            {import.meta.env.DEV && (
+                                <div className="border-t pt-4 space-y-4">
+                                    <div className="flex items-center justify-between gap-2 p-2 border rounded-lg">
+                                        <Label htmlFor="dev-mode-switch-mobile" className="text-base font-medium whitespace-nowrap">Dev Mode</Label>
+                                        <Switch
+                                            id="dev-mode-switch-mobile"
+                                            checked={!!devMode}
+                                            onCheckedChange={toggleDevMode}
+                                            disabled={!toggleDevMode}
+                                        />
+                                    </div>
+                                    {devMode && (
+                                        <Button size="sm" variant="outline" onClick={devGrantResources} className="w-full">
+                                            <Zap className="mr-2 h-4 w-4" />
+                                            Grant Resources
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </nav>
+                </SheetContent>
+            </Sheet>
+        </div>
       </div>
     </header>
   );

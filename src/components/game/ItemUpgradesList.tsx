@@ -54,8 +54,8 @@ const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades,
                     }
 
                     return (
-                        <Card key={upgrade.id} className="flex items-center p-3 transition-colors hover:bg-secondary/50 border-2 border-dashed border-green-500/40">
-                            <div className="relative mr-4 flex-shrink-0">
+                        <Card key={upgrade.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 transition-colors hover:bg-secondary/50 border-2 border-dashed border-green-500/40">
+                             <div className="relative mr-4 flex-shrink-0">
                                 <Icon className="w-10 h-10 text-primary/80" />
                                 <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border-2 border-card">
                                     <ArrowUp className="w-3 h-3 text-white" />
@@ -79,6 +79,7 @@ const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades,
                                 disabled={!canAfford}
                                 size="sm"
                                 variant="secondary"
+                                className="self-stretch sm:self-auto sm:ml-auto"
                             >
                                 Buy
                             </Button>

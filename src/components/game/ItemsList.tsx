@@ -44,7 +44,7 @@ const OverclockControls = ({ overclockInfo, onSetOverclockLevel }: { overclockIn
 
     return (
         <TooltipProvider>
-            <div className="flex items-center gap-4 border-2 border-fuchsia-500/50 rounded-lg p-2 bg-background/50">
+            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 border-2 border-fuchsia-500/50 rounded-lg p-2 bg-background/50">
                 <div className="flex items-center gap-2">
                      <Zap className={cn("w-6 h-6", currentLevel > 0 ? "text-yellow-400 animate-pulse" : "text-muted-foreground")} />
                      <div>
@@ -111,7 +111,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
     return (
         <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-lg">
             <CardHeader>
-                <div className="flex justify-between items-center gap-4">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <CardTitle className="text-3xl">Items</CardTitle>
                     <OverclockControls overclockInfo={overclockInfo} onSetOverclockLevel={onSetOverclockLevel} />
                     <BulkQuantitySelector />
@@ -125,7 +125,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
             <CardContent className="space-y-6 max-h-[60vh] overflow-y-auto">
                 {Object.entries(itemCategories).map(([category, categoryItems]) => {
                     const isUnlocked = categoryUnlockStatus[category as keyof typeof categoryUnlockStatus];
-
+                    
                     if (!isUnlocked) {
                         // Only show the locked 'Transcendent Artifacts' category
                         if (category === 'Transcendent Artifacts') {
@@ -167,126 +167,129 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                     }
                                     
                                     return (
-                                        <Card key={item.id} className={cn("flex items-center p-3 transition-colors duration-300 hover:bg-secondary/80 border-2", categoryTierStyles[category as keyof typeof categoryTierStyles])}>
-                                            <Icon className="w-10 h-10 text-primary/80 mr-4 flex-shrink-0" />
-                                            <div className="flex-grow">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <p className="font-bold text-lg">{item.name}</p>
-                                                        <p className="text-xs text-muted-foreground/80 italic">{item.description}</p>
-                                                        {item.upgradeStats.purchased > 0 && (
-                                                            <div className="flex items-center gap-1 mt-2" aria-label={`${item.upgradeStats.purchased} upgrades purchased`}>
-                                                                {Array.from({ length: item.upgradeStats.purchased }).map((_, i) => (
-                                                                    <Star
-                                                                        key={i}
-                                                                        className={cn(
-                                                                            "w-4 h-4",
-                                                                            isComplete
-                                                                                ? "text-green-400 fill-green-400"
-                                                                                : "text-yellow-400 fill-yellow-400"
+                                        <Card key={item.id} className={cn("p-3 transition-colors duration-300 hover:bg-secondary/80 border-2", categoryTierStyles[category as keyof typeof categoryTierStyles])}>
+                                            <div className="flex flex-col sm:flex-row items-center gap-4">
+                                                <div className="flex items-start w-full gap-4">
+                                                    <Icon className="w-10 h-10 text-primary/80 flex-shrink-0 mt-1" />
+                                                    <div className="flex-grow">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <p className="font-bold text-lg">{item.name}</p>
+                                                                <p className="text-xs text-muted-foreground/80 italic">{item.description}</p>
+                                                                {item.upgradeStats.purchased > 0 && (
+                                                                    <div className="flex items-center gap-1 mt-2" aria-label={`${item.upgradeStats.purchased} upgrades purchased`}>
+                                                                        {Array.from({ length: item.upgradeStats.purchased }).map((_, i) => (
+                                                                            <Star
+                                                                                key={i}
+                                                                                className={cn(
+                                                                                    "w-4 h-4",
+                                                                                    isComplete
+                                                                                        ? "text-green-400 fill-green-400"
+                                                                                        : "text-yellow-400 fill-yellow-400"
+                                                                                )}
+                                                                                strokeWidth={1.5}
+                                                                            />
+                                                                        ))}
+                                                                        {isComplete && (
+                                                                            <span className="text-xs font-bold text-green-400 ml-1">COMPLETE</span>
                                                                         )}
-                                                                        strokeWidth={1.5}
-                                                                    />
-                                                                ))}
-                                                                {isComplete && (
-                                                                    <span className="text-xs font-bold text-green-400 ml-1">COMPLETE</span>
+                                                                    </div>
                                                                 )}
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-right ml-2 flex-shrink-0">
-                                                        <p className="font-semibold text-lg text-muted-foreground">
-                                                            Level <span className="text-xl text-foreground font-bold">{item.level}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="mt-2 space-y-1 text-sm">
-                                                    {Object.keys(item.productionPerLevel).length > 0 && (
-                                                        <div>
-                                                            <span className="text-muted-foreground">Per Lvl: </span>
-                                                            {Object.entries(item.productionPerLevel).map(([curr, val], idx) => (
-                                                                <span key={curr} className="font-semibold text-foreground/90">
-                                                                    {formatNumber(val || 0)} {currencyName(curr as Currency)}/s
-                                                                    {idx < Object.keys(item.productionPerLevel).length - 1 ? ', ' : ''}
-                                                                </span>
-                                                            ))}
-                                                            {item.level > 0 && (
-                                                                <>
-                                                                    <span className="text-muted-foreground mx-2">|</span>
-                                                                    <span className="text-muted-foreground">Generating: </span>
-                                                                    {Object.entries(item.totalProduction).map(([curr, val], idx) => (
+                                                            <div className="text-right ml-2 flex-shrink-0">
+                                                                <p className="font-semibold text-lg text-muted-foreground">
+                                                                    Level <span className="text-xl text-foreground font-bold">{item.level}</span>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="mt-2 space-y-1 text-sm">
+                                                            {Object.keys(item.productionPerLevel).length > 0 && (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Per Lvl: </span>
+                                                                    {Object.entries(item.productionPerLevel).map(([curr, val], idx) => (
                                                                         <span key={curr} className="font-semibold text-foreground/90">
                                                                             {formatNumber(val || 0)} {currencyName(curr as Currency)}/s
-                                                                            {idx < Object.keys(item.totalProduction).length - 1 ? ', ' : ''}
+                                                                            {idx < Object.keys(item.productionPerLevel).length - 1 ? ', ' : ''}
                                                                         </span>
                                                                     ))}
-                                                                </>
+                                                                    {item.level > 0 && (
+                                                                        <>
+                                                                            <span className="text-muted-foreground mx-2">|</span>
+                                                                            <span className="text-muted-foreground">Generating: </span>
+                                                                            {Object.entries(item.totalProduction).map(([curr, val], idx) => (
+                                                                                <span key={curr} className="font-semibold text-foreground/90">
+                                                                                    {formatNumber(val || 0)} {currencyName(curr as Currency)}/s
+                                                                                    {idx < Object.keys(item.totalProduction).length - 1 ? ', ' : ''}
+                                                                                </span>
+                                                                            ))}
+                                                                        </>
+                                                                    )}
+                                                                </div>
                                                             )}
-                                                        </div>
-                                                    )}
-                                                    {item.clickBonus ? (
-                                                        <div>
-                                                            <span className="text-muted-foreground">Per Lvl: </span>
-                                                            <span className="font-semibold text-foreground/90">+{formatNumber(item.clickBonusPerLevel)} Mana / click</span>
-                                                            {item.level > 0 && (
-                                                                <>
-                                                                    <span className="text-muted-foreground mx-2">|</span>
-                                                                    <span className="text-muted-foreground">Total Bonus: </span>
-                                                                    <span className="font-semibold text-foreground/90">+{formatNumber(item.totalClickBonus)} Mana / click</span>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    ) : null}
-                                                    <div className="flex items-baseline flex-wrap gap-x-1.5">
-                                                        {isBulkPurchase && details ? (
-                                                            <>
-                                                                <span className="text-muted-foreground">Cost (Each):</span>
-                                                                {Object.entries(item.cost).map(([curr, val], index, arr) => (
-                                                                    <span key={curr} className="font-semibold text-foreground/90">
-                                                                        {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
-                                                                    </span>
-                                                                ))}
-                                                                <span className="text-muted-foreground mx-1">|</span>
-                                                                <span className="text-muted-foreground">Total Cost:</span>
-                                                                {Object.entries(details.intendedPurchaseCost).map(([curr, val], index, arr) => (
-                                                                    <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-red-400/80")}>
-                                                                        {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
-                                                                    </span>
-                                                                ))}
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <span className="text-muted-foreground">Cost:</span>
-                                                                {details && Object.entries(details.intendedPurchaseCost).length > 0 ? (
-                                                                    Object.entries(details.intendedPurchaseCost).map(([curr, val], index, arr) => (
-                                                                        <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-muted-foreground/50")}>
-                                                                            {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
-                                                                        </span>
-                                                                    ))
+                                                            {item.clickBonus ? (
+                                                                <div>
+                                                                    <span className="text-muted-foreground">Per Lvl: </span>
+                                                                    <span className="font-semibold text-foreground/90">+{formatNumber(item.clickBonusPerLevel)} Mana / click</span>
+                                                                    {item.level > 0 && (
+                                                                        <>
+                                                                            <span className="text-muted-foreground mx-2">|</span>
+                                                                            <span className="text-muted-foreground">Total Bonus: </span>
+                                                                            <span className="font-semibold text-foreground/90">+{formatNumber(item.totalClickBonus)} Mana / click</span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            ) : null}
+                                                            <div className="flex items-baseline flex-wrap gap-x-1.5">
+                                                                {isBulkPurchase && details ? (
+                                                                    <>
+                                                                        <span className="text-muted-foreground">Cost (Each):</span>
+                                                                        {Object.entries(item.cost).map(([curr, val], index, arr) => (
+                                                                            <span key={curr} className="font-semibold text-foreground/90">
+                                                                                {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
+                                                                            </span>
+                                                                        ))}
+                                                                        <span className="text-muted-foreground mx-1">|</span>
+                                                                        <span className="text-muted-foreground">Total Cost:</span>
+                                                                        {Object.entries(details.intendedPurchaseCost).map(([curr, val], index, arr) => (
+                                                                            <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-red-400/80")}>
+                                                                                {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
+                                                                            </span>
+                                                                        ))}
+                                                                    </>
                                                                 ) : (
-                                                                     Object.entries(item.cost).map(([curr, val], index, arr) => (
-                                                                        <span key={curr} className="font-semibold text-muted-foreground/50">
-                                                                            {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
-                                                                        </span>
-                                                                    ))
+                                                                    <>
+                                                                        <span className="text-muted-foreground">Cost:</span>
+                                                                        {details && Object.entries(details.intendedPurchaseCost).length > 0 ? (
+                                                                            Object.entries(details.intendedPurchaseCost).map(([curr, val], index, arr) => (
+                                                                                <span key={curr} className={cn("font-semibold", canAfford ? "text-foreground/90" : "text-muted-foreground/50")}>
+                                                                                    {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
+                                                                                </span>
+                                                                            ))
+                                                                        ) : (
+                                                                             Object.entries(item.cost).map(([curr, val], index, arr) => (
+                                                                                <span key={curr} className="font-semibold text-muted-foreground/50">
+                                                                                    {formatNumber(val || 0)} {currencyName(curr as Currency)}{index < arr.length - 1 ? ',' : ''}
+                                                                                </span>
+                                                                            ))
+                                                                        )}
+                                                                    </>
                                                                 )}
-                                                            </>
-                                                        )}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                                <Button
+                                                    onClick={() => onBuyItem(item.id)}
+                                                    disabled={!canAfford}
+                                                    size="lg"
+                                                    className={cn("self-stretch sm:self-center min-w-[140px] text-center transition-all",
+                                                    canAfford && "bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-[length:200%_auto] animate-background-shine text-primary-foreground hover:saturate-150"
+                                                    )}
+                                                >
+                                                    {canAfford && details ? `Buy ${details.displayQuantity}` : 'Cannot Afford'}
+                                                </Button>
                                             </div>
-                                            
-                                            <Button
-                                                onClick={() => onBuyItem(item.id)}
-                                                disabled={!canAfford}
-                                                size="lg"
-                                                className={cn("self-center ml-4 min-w-[140px] text-center transition-all",
-                                                   canAfford && "bg-gradient-to-r from-primary via-fuchsia-500 to-primary bg-[length:200%_auto] animate-background-shine text-primary-foreground hover:saturate-150"
-                                                )}
-                                            >
-                                                {canAfford && details ? `Buy ${details.displayQuantity}` : 'Cannot Afford'}
-                                            </Button>
                                         </Card>
                                     )
                                 })}
