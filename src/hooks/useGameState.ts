@@ -1,9 +1,8 @@
-
 import { useState, useCallback } from 'react';
 import { initialItems } from '@/lib/initialItems';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
-import { Currencies, Item, ItemUpgrade, WorkshopUpgrade, OfflineEarnings } from '@/lib/gameTypes';
+import { Currencies, Item, ItemUpgrade, WorkshopUpgrade, OfflineEarnings, AchievementProgress } from '@/lib/gameTypes';
 import { DEV_MODE_KEY } from '@/constants/gameConstants';
 
 export type BuyQuantity = 1 | 5 | 10 | 'next' | 'max';
@@ -38,6 +37,7 @@ export const useGameState = () => {
     const [buyQuantity, setBuyQuantity] = useState<BuyQuantity>(1);
     const [overclockLevel, setOverclockLevel] = useState(0);
     const [autoBuySettings, setAutoBuySettings] = useState({ items: false, upgrades: false });
+    const [achievements, setAchievements] = useState<Record<string, AchievementProgress>>({});
     const [hasBeatenGame, setHasBeatenGame] = useState(false);
     const [gameCompletionShown, setGameCompletionShown] = useState(false);
     const [devMode, _setDevMode] = useState(() => {
@@ -84,6 +84,7 @@ export const useGameState = () => {
         buyQuantity, setBuyQuantity,
         overclockLevel, setOverclockLevel,
         autoBuySettings, setAutoBuySettings,
+        achievements, setAchievements,
         devMode, setDevMode,
         hasBeatenGame, setHasBeatenGame,
         gameCompletionShown, setGameCompletionShown,

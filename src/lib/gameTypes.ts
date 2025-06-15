@@ -88,6 +88,22 @@ export interface PrestigeUpgrade {
   icon: LucideIcon;
 }
 
+export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements';
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+  category: AchievementCategory;
+  isSecret?: boolean;
+}
+
+export interface AchievementProgress {
+  unlocked: boolean;
+  unlockedAt?: number;
+}
+
 // New types for save data and offline progress
 export interface GameSaveData {
     version: string;
@@ -103,6 +119,7 @@ export interface GameSaveData {
         items: boolean;
         upgrades: boolean;
     };
+    achievements?: Record<string, AchievementProgress>;
     notifiedUpgrades: string[];
     hasEverClicked: boolean;
     hasEverPrestiged: boolean;

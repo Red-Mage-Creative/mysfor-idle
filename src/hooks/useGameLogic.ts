@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
@@ -5,11 +6,12 @@ import { useGameSession } from './useGameSession';
 import { useGameActions } from './useGameActions';
 import { toast } from "@/components/ui/sonner";
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
-import { Currency } from '@/lib/gameTypes';
+import { Currency, Item } from '@/lib/gameTypes';
+import { allAchievements, achievementMap } from '@/lib/achievements';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
-    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame } = gameState;
+    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame, achievements, setAchievements, lifetimeMana, hasEverPrestiged, prestigeCount, itemUpgrades, prestigeUpgradeLevels } = gameState;
     const repairAttempted = useRef(false);
 
     const calculations = useGameCalculations(gameState);
@@ -28,6 +30,82 @@ export const useGameLogic = () => {
     });
 
     const { handleBuyItem, handleBuyItemUpgrade, handleBuyWorkshopUpgrade } = actions;
+
+    const unlockAchievement = useCallback((achievementId: string) => {
+        if (!achievements[achievementId] || achievements[achievementId].unlocked) {
+            return;
+        }
+
+        const achievement = achievementMap.get(achievementId);
+        if (!achievement) return;
+
+        setAchievements(prev => ({
+            ...prev,
+            [achievementId]: { unlocked: true, unlockedAt: Date.now() }
+        }));
+
+        toast.success("Achievement Unlocked!", {
+            description: achievement.name,
+            icon: <achievement.icon className="w-5 h-5" />,
+        });
+        debouncedSave();
+    }, [achievements, setAchievements, debouncedSave]);
+
+    // Achievement checking logic
+    useEffect(() => {
+        if (!isLoaded) return;
+
+        // First Steps
+        if (items.some(i => i.level > 0)) unlockAchievement('first_item');
+        if (itemUpgrades.some(u => u.purchased)) unlockAchievement('first_upgrade');
+        if (hasEverPrestiged) unlockAchievement('first_prestige');
+        if (Object.keys(prestigeUpgradeLevels).length > 0) unlockAchievement('first_prestige_upgrade');
+
+        // Prestige
+        if (prestigeCount >= 1) unlockAchievement('prestige_1');
+        if (prestigeCount >= 2) unlockAchievement('prestige_2');
+        if (prestigeCount >= 3) unlockAchievement('prestige_3');
+        if (prestigeCount >= 4) unlockAchievement('prestige_4');
+        if (prestigeCount >= 5) unlockAchievement('prestige_5');
+
+        // Currency - Mana (lifetime)
+        if (lifetimeMana >= 1e3) unlockAchievement('mana_1k');
+        if (lifetimeMana >= 1e6) unlockAchievement('mana_1m');
+        if (lifetimeMana >= 1e9) unlockAchievement('mana_1b');
+        if (lifetimeMana >= 1e12) unlockAchievement('mana_1t');
+        if (lifetimeMana >= 1e15) unlockAchievement('mana_1qa');
+
+        // Currency - Gears
+        if (currencies.cogwheelGears >= 100) unlockAchievement('gears_100');
+        if (currencies.cogwheelGears >= 10_000) unlockAchievement('gears_10k');
+        if (currencies.cogwheelGears >= 1_000_000) unlockAchievement('gears_1m');
+
+        // Currency - Shards
+        if (currencies.aetherShards >= 10) unlockAchievement('shards_10');
+        if (currencies.aetherShards >= 100) unlockAchievement('shards_100');
+        if (currencies.aetherShards >= 1_000) unlockAchievement('shards_1k');
+        if (currencies.aetherShards >= 10_000) unlockAchievement('shards_10k');
+
+        // Currency - Essence
+        if (currencies.essenceFlux >= 1) unlockAchievement('essence_1');
+        if (currencies.essenceFlux >= 100) unlockAchievement('essence_100');
+        if (currencies.essenceFlux >= 10_000) unlockAchievement('essence_10k');
+        
+        // Currency - Research
+        if (currencies.researchPoints >= 10) unlockAchievement('research_10');
+        if (currencies.researchPoints >= 1_000) unlockAchievement('research_1k');
+        if (currencies.researchPoints >= 100_000) unlockAchievement('research_100k');
+
+        // Cosmic Resonator
+        const cosmicResonator = items.find(item => item.id === 'cosmic_resonator');
+        if (cosmicResonator && cosmicResonator.level > 0) {
+            unlockAchievement('cosmic_resonator_1');
+            if (cosmicResonator.level >= 10) unlockAchievement('cosmic_resonator_10');
+            if (cosmicResonator.level >= 100) unlockAchievement('cosmic_resonator_100');
+            if (cosmicResonator.level >= 1000) unlockAchievement('cosmic_resonator_1k');
+        }
+
+    }, [isLoaded, items, itemUpgrades, hasEverPrestiged, prestigeUpgradeLevels, prestigeCount, lifetimeMana, currencies, unlockAchievement]);
 
     // Auto-buy logic
     useEffect(() => {

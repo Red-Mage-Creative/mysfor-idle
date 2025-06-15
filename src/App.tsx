@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { VictoryModal } from "./components/game/VictoryModal";
 import EndCreditsPage from "./pages/EndCredits";
 import { IntroModal } from "./components/game/IntroModal";
+import AchievementsPage from "./pages/AchievementsPage";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const AppContent = () => {
           <Route index element={<Index />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="achievements" element={<AchievementsPage />} />
           <Route path="end-credits" element={<EndCreditsPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>

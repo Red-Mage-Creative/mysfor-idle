@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Zap, Gem, BrainCircuit, Users, Github, Star } from 'lucide-react';
+import { Zap, Gem, BrainCircuit, Users, Github, Star, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const AboutPage = () => {
   return (
@@ -63,6 +65,21 @@ const AboutPage = () => {
       </Card>
 
       <Card>
+          <CardHeader>
+              <CardTitle>Achievements</CardTitle>
+          </CardHeader>
+          <CardContent>
+              <p className="text-muted-foreground">Track your progress and accomplishments through your journey!</p>
+              <Button asChild variant="outline" size="sm" className="mt-2">
+                  <Link to="/achievements" className="flex items-center">
+                      <Trophy className="mr-2 h-4 w-4" />
+                      View Achievements
+                  </Link>
+              </Button>
+          </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader>
           <CardTitle>About This Project</CardTitle>
         </CardHeader>
@@ -84,7 +101,7 @@ const AboutPage = () => {
               <h3 className="font-semibold">Star us on GitHub!</h3>
               <p className="text-muted-foreground">This project is open-source. If you enjoy it, please consider giving us a star on GitHub!</p>
                 <Button asChild variant="outline" size="sm" className="mt-2">
-                    <a href="https://github.com/Red-Mage-Creative/mysfor-idle" target="_blank" rel="noopener noreferrer" className="flex items-center">
+                    <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" className="flex items-center">
                         <Star className="mr-2 h-4 w-4" />
                         Star on GitHub
                     </a>

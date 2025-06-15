@@ -1,16 +1,15 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, useGameState } from './useGameState';
-import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade } from '@/lib/gameTypes';
+import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade, AchievementProgress } from '@/lib/gameTypes';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { toast } from "@/components/ui/sonner";
 import * as C from '@/constants/gameConstants';
+import { allAchievements } from '@/lib/achievements';
 
 type UseGameSessionProps = ReturnType<typeof useGameState> & {
     generationPerSecond: Partial<Currencies>;
 };
-
-const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 
 // Returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2
 const compareVersions = (v1: string, v2: string): number => {
@@ -48,6 +47,11 @@ const migrateSaveData = (data: any): GameSaveData => {
         console.log("Migrated save: Added 'prestigeCount: 0' field.");
     }
     
+    if (typeof migratedData.achievements === 'undefined') {
+        migratedData.achievements = {};
+        console.log("Migrated save: Added 'achievements: {}' field.");
+    }
+    
     if (typeof migratedData.hasBeatenGame === 'undefined') {
         migratedData.hasBeatenGame = false;
         console.log("Migrated save: Added 'hasBeatenGame: false' field.");
@@ -83,6 +87,7 @@ export const useGameSession = ({
     setBuyQuantity,
     overclockLevel, setOverclockLevel,
     generationPerSecond,
+    achievements, setAchievements,
     hasBeatenGame, setHasBeatenGame,
     gameCompletionShown, setGameCompletionShown,
     setIsIntroModalOpen,
@@ -107,6 +112,7 @@ export const useGameSession = ({
         setSaveStatus('idle');
         setBuyQuantity(1);
         setOverclockLevel(0);
+        setAchievements({});
         setHasBeatenGame(false);
         setGameCompletionShown(false);
         localStorage.removeItem(C.SAVE_KEY);
@@ -115,7 +121,7 @@ export const useGameSession = ({
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
         setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity,
-        setOverclockLevel, setHasBeatenGame, setGameCompletionShown
+        setOverclockLevel, setAchievements, setHasBeatenGame, setGameCompletionShown
     ]);
 
     const saveGame = useCallback((isAutoSave = false) => {
@@ -134,6 +140,7 @@ export const useGameSession = ({
                 hasEverPrestiged,
                 prestigeCount,
                 overclockLevel,
+                achievements,
                 hasBeatenGame,
                 gameCompletionShown,
             };
@@ -145,7 +152,7 @@ export const useGameSession = ({
             toast.error("Could not save game progress.");
             throw error;
         }
-    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, hasBeatenGame, gameCompletionShown, setLastSaveTime, setSaveStatus]);
+    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, achievements, hasBeatenGame, gameCompletionShown, setLastSaveTime, setSaveStatus]);
 
     useEffect(() => {
         if (saveRequest) {
@@ -339,6 +346,7 @@ export const useGameSession = ({
                 setWorkshopUpgrades(restoredWorkshopUpgrades);
                 setLifetimeMana(saveData.lifetimeMana);
                 setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
+                setAchievements(saveData.achievements || {});
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
                 setHasEverClicked(saveData.hasEverClicked);
                 setHasEverPrestiged(saveData.hasEverPrestiged);
@@ -347,6 +355,61 @@ export const useGameSession = ({
                 setHasBeatenGame(saveData.hasBeatenGame || false);
                 setGameCompletionShown(saveData.gameCompletionShown || false);
 
+                // Retroactive Achievement Unlocking & Initialization
+                const finalAchievements: Record<string, AchievementProgress> = {};
+                const now = Date.now();
+
+                const unlock = (id: string, existingProgress: Record<string, AchievementProgress>) => {
+                    if (!existingProgress[id]?.unlocked) {
+                        existingProgress[id] = { unlocked: true, unlockedAt: now };
+                    }
+                };
+                
+                const savedAchievements = saveData.achievements || {};
+
+                // Initialize all achievements from the master list
+                allAchievements.forEach(ach => {
+                    finalAchievements[ach.id] = savedAchievements[ach.id] || { unlocked: false };
+                });
+
+                // Check for retroactive unlocks
+                if (saveData.items.some(i => i.level > 0)) unlock('first_item', finalAchievements);
+                if (saveData.itemUpgrades.some(u => u.purchased)) unlock('first_upgrade', finalAchievements);
+                if (saveData.hasEverPrestiged) unlock('first_prestige', finalAchievements);
+                if (Object.keys(saveData.prestigeUpgradeLevels).length > 0) unlock('first_prestige_upgrade', finalAchievements);
+                if (saveData.prestigeCount >= 1) unlock('prestige_1', finalAchievements);
+                if (saveData.prestigeCount >= 2) unlock('prestige_2', finalAchievements);
+                if (saveData.prestigeCount >= 3) unlock('prestige_3', finalAchievements);
+                if (saveData.prestigeCount >= 4) unlock('prestige_4', finalAchievements);
+                if (saveData.prestigeCount >= 5) unlock('prestige_5', finalAchievements);
+                if (saveData.lifetimeMana >= 1e3) unlock('mana_1k', finalAchievements);
+                if (saveData.lifetimeMana >= 1e6) unlock('mana_1m', finalAchievements);
+                if (saveData.lifetimeMana >= 1e9) unlock('mana_1b', finalAchievements);
+                if (saveData.lifetimeMana >= 1e12) unlock('mana_1t', finalAchievements);
+                if (saveData.lifetimeMana >= 1e15) unlock('mana_1qa', finalAchievements);
+                if (saveData.currencies.cogwheelGears >= 100) unlock('gears_100', finalAchievements);
+                if (saveData.currencies.cogwheelGears >= 10_000) unlock('gears_10k', finalAchievements);
+                if (saveData.currencies.cogwheelGears >= 1_000_000) unlock('gears_1m', finalAchievements);
+                if (saveData.currencies.aetherShards >= 10) unlock('shards_10', finalAchievements);
+                if (saveData.currencies.aetherShards >= 100) unlock('shards_100', finalAchievements);
+                if (saveData.currencies.aetherShards >= 1_000) unlock('shards_1k', finalAchievements);
+                if (saveData.currencies.aetherShards >= 10_000) unlock('shards_10k', finalAchievements);
+                if (saveData.currencies.essenceFlux >= 1) unlock('essence_1', finalAchievements);
+                if (saveData.currencies.essenceFlux >= 100) unlock('essence_100', finalAchievements);
+                if (saveData.currencies.essenceFlux >= 10_000) unlock('essence_10k', finalAchievements);
+                if (saveData.currencies.researchPoints >= 10) unlock('research_10', finalAchievements);
+                if (saveData.currencies.researchPoints >= 1_000) unlock('research_1k', finalAchievements);
+                if (saveData.currencies.researchPoints >= 100_000) unlock('research_100k', finalAchievements);
+
+                const cosmicResonator = saveData.items.find(item => item.id === 'cosmic_resonator');
+                if (cosmicResonator && cosmicResonator.level > 0) {
+                    unlock('cosmic_resonator_1', finalAchievements);
+                    if (cosmicResonator.level >= 10) unlock('cosmic_resonator_10', finalAchievements);
+                    if (cosmicResonator.level >= 100) unlock('cosmic_resonator_100', finalAchievements);
+                    if (cosmicResonator.level >= 1000) unlock('cosmic_resonator_1k', finalAchievements);
+                }
+                saveData.achievements = finalAchievements;
+                
             } catch (error) {
                 console.error("Failed to load save data. Starting fresh.", error);
                 resetState();
@@ -357,7 +420,7 @@ export const useGameSession = ({
         };
 
         loadGame();
-    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setOverclockLevel, setHasBeatenGame, setGameCompletionShown, setIsIntroModalOpen]); // Dependencies are now just setters
+    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setAchievements, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setOverclockLevel, setHasBeatenGame, setGameCompletionShown, setIsIntroModalOpen]); // Dependencies are now just setters
 
     useEffect(() => {
         const gameLoop = setInterval(() => {
@@ -453,6 +516,7 @@ export const useGameSession = ({
 
                 setLifetimeMana(saveData.lifetimeMana);
                 setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
+                setAchievements(saveData.achievements || {});
                 setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
                 setHasEverClicked(saveData.hasEverClicked);
                 setHasEverPrestiged(saveData.hasEverPrestiged);
@@ -474,7 +538,7 @@ export const useGameSession = ({
     }, [
         manualSave,
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
-        setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
+        setLifetimeMana, setPrestigeUpgradeLevels, setAchievements, setNotifiedUpgrades,
         setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings,
         setHasBeatenGame, setGameCompletionShown
     ]);
@@ -488,3 +552,5 @@ export const useGameSession = ({
         importSave,
     };
 };
+
+// Note: This file is getting very long and complex. You might consider asking me to refactor `useGameSession.ts` into smaller, more focused hooks in the future to improve maintainability.
