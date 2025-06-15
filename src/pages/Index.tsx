@@ -319,6 +319,7 @@ const Index = () => {
                       onToggleAutoBuy={toggleAutoBuySetting}
                       prestigeMultipliers={prestigeMultipliers}
                       golemEffects={golemEffects}
+                      lastAutoBuy={lastAutoBuy}
                   />
                 </TabsContent>
               )}

@@ -10,7 +10,6 @@ import { useAutoSave } from './useAutoSave';
 
 type UseGameSessionProps = ReturnType<typeof useGameState> & {
     generationPerSecond: Partial<Currencies>;
-    autoBuySettings: any;
     activeChallengeId: string | null;
     setActiveChallengeId: (id: string | null) => void;
     completedChallenges: Record<string, number>;
