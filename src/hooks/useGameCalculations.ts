@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -257,19 +256,33 @@ export const useGameCalculations = ({
         };
     }, [itemUpgrades, overclockLevel]);
 
-    const golemMultipliers = useMemo(() => {
-        const multipliers: Partial<Record<GolemEffectTarget, number>> = {};
+    const golemEffects = useMemo(() => {
+        const effects = {
+            generationMultiplier: {} as Partial<Record<Currency, number>>,
+            flatGeneration: {} as Partial<Record<Currency, number>>,
+            costMultiplier: 1,
+        };
 
         activeGolemIds.forEach(golemId => {
             const golem = golemMap.get(golemId);
             if (golem) {
                 golem.effects.forEach(effect => {
-                    multipliers[effect.target] = (multipliers[effect.target] || 1) * effect.multiplier;
+                    switch (effect.type) {
+                        case 'generationMultiplier':
+                            effects.generationMultiplier[effect.target] = (effects.generationMultiplier[effect.target] || 1) * effect.value;
+                            break;
+                        case 'flatGeneration':
+                            effects.flatGeneration[effect.target] = (effects.flatGeneration[effect.target] || 0) + effect.value;
+                            break;
+                        case 'costMultiplier':
+                            effects.costMultiplier *= effect.value;
+                            break;
+                    }
                 });
             }
         });
 
-        return multipliers;
+        return effects;
     }, [activeGolemIds]);
 
     const generationPerSecond = useMemo(() => {
@@ -324,17 +337,24 @@ export const useGameCalculations = ({
             baseGeneration.mana = (baseGeneration.mana || 0) * C.DEV_MODE_MULTIPLIER;
         }
 
-        // Apply golem multipliers LAST
+        // Apply golem multipliers
         for (const key in baseGeneration) {
             const currency = key as Currency;
-            const golemMultiplier = golemMultipliers[currency];
+            const golemMultiplier = golemEffects.generationMultiplier[currency];
             if (golemMultiplier) {
                 baseGeneration[currency] = (baseGeneration[currency] || 0) * golemMultiplier;
             }
         }
+        
+        // Apply golem flat generation/drain
+        for (const key in golemEffects.flatGeneration) {
+            const currency = key as Currency;
+            const flatValue = golemEffects.flatGeneration[currency] || 0;
+            baseGeneration[currency] = (baseGeneration[currency] || 0) + flatValue;
+        }
 
         return baseGeneration;
-    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus, researchBonuses, golemMultipliers]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus, researchBonuses, golemEffects]);
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
@@ -362,21 +382,23 @@ export const useGameCalculations = ({
             totalClick *= C.DEV_MODE_MULTIPLIER;
         }
 
-        // Apply golem multipliers LAST
-        if (golemMultipliers.mana) {
-            totalClick *= golemMultipliers.mana;
+        // Apply golem multipliers
+        const golemManaMultiplier = golemEffects.generationMultiplier.mana;
+        if (golemManaMultiplier) {
+            totalClick *= golemManaMultiplier;
         }
 
         return totalClick;
-    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana, achievementBonus, researchBonuses.manaPerClick, golemMultipliers]);
+    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana, achievementBonus, researchBonuses.manaPerClick, golemEffects]);
 
     const itemPurchaseDetails = useMemo(() => {
         const detailsMap = new Map<string, PurchaseDetails>();
         
         const totalCostReduction = prestigeMultipliers.costReduction * researchBonuses.costReduction;
+        const finalCostMultiplier = golemEffects.costMultiplier;
 
         for (const item of items) {
-            const maxAffordable = calculateMaxAffordable(item, currencies, totalCostReduction);
+            const maxAffordable = calculateMaxAffordable(item, currencies, totalCostReduction * finalCostMultiplier);
             
             let intendedPurchaseQuantity = 0;
             let purchaseQuantity = 0;
@@ -410,8 +432,8 @@ export const useGameCalculations = ({
             }
             // else, purchaseQuantity remains 0 for bulk buys you can't afford.
             
-            const intendedPurchaseCost = calculateBulkCost(item, intendedPurchaseQuantity, totalCostReduction);
-            const purchaseCost = calculateBulkCost(item, purchaseQuantity, totalCostReduction);
+            const intendedPurchaseCost = calculateBulkCost(item, intendedPurchaseQuantity, totalCostReduction * finalCostMultiplier);
+            const purchaseCost = calculateBulkCost(item, purchaseQuantity, totalCostReduction * finalCostMultiplier);
 
             // Determine display string for the button
             if (nextLevelTarget) {
@@ -433,7 +455,7 @@ export const useGameCalculations = ({
             });
         }
         return detailsMap;
-    }, [items, currencies, buyQuantity, prestigeMultipliers.costReduction, researchBonuses.costReduction]);
+    }, [items, currencies, buyQuantity, prestigeMultipliers.costReduction, researchBonuses.costReduction, golemEffects.costMultiplier]);
 
     const prestigeRequirement = useMemo(() => {
         return 1e9 * Math.pow(10, prestigeCount);

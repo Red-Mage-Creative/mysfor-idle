@@ -4,10 +4,11 @@ import { Golem, Currencies, GolemEffect } from '@/lib/gameTypes';
 import { GolemCard } from './GolemCard';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { golemMap } from '@/lib/golems';
+import { formatNumber } from '@/lib/formatters';
 
 interface EssenceGolemsListProps {
     currencies: Currencies;
-    onBuyGolem: (id: string) => void;
+    onToggleGolem: (id: string) => void;
     activeGolemIds: string[];
     allGolems: Golem[];
     maxActiveGolems: number;
@@ -15,29 +16,37 @@ interface EssenceGolemsListProps {
 
 const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
     currencies,
-    onBuyGolem,
+    onToggleGolem,
     activeGolemIds,
     allGolems,
     maxActiveGolems,
 }) => {
     const activeGolems = activeGolemIds.map(id => golemMap.get(id)).filter(Boolean) as Golem[];
 
-    const formatTarget = (target: GolemEffect['target']) => {
-        switch (target) {
-            case 'mana': return 'Mana Gen';
-            case 'cogwheelGears': return 'Gear Gen';
-            case 'essenceFlux': return 'Essence Gen';
-            case 'researchPoints': return 'Research Gen';
-            default: return 'Unknown';
-        }
-    };
+    const totalEffects = React.useMemo(() => {
+        const totals = {
+            generationMultiplier: {} as Record<string, number>,
+            flatGeneration: {} as Record<string, number>,
+            costMultiplier: 1,
+        };
 
-    const totalEffects: Partial<Record<GolemEffect['target'], number>> = {};
-    activeGolems.forEach(golem => {
-        golem.effects.forEach(effect => {
-            totalEffects[effect.target] = (totalEffects[effect.target] || 1) * effect.multiplier;
+        activeGolems.forEach(golem => {
+            golem.effects.forEach(effect => {
+                switch (effect.type) {
+                    case 'generationMultiplier':
+                        totals.generationMultiplier[effect.target] = (totals.generationMultiplier[effect.target] || 1) * effect.value;
+                        break;
+                    case 'flatGeneration':
+                        totals.flatGeneration[effect.target] = (totals.flatGeneration[effect.target] || 0) + effect.value;
+                        break;
+                    case 'costMultiplier':
+                        totals.costMultiplier *= effect.value;
+                        break;
+                }
+            });
         });
-    });
+        return totals;
+    }, [activeGolems]);
 
     return (
         <div className="space-y-6">
@@ -45,7 +54,7 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                 <CardHeader>
                     <CardTitle>Golem Workshop</CardTitle>
                     <CardDescription>
-                        Use Essence Flux to activate powerful Golems. You can have up to {maxActiveGolems} Golems active at a time.
+                        Activate powerful Golems with unique effects and drawbacks. You can have up to {maxActiveGolems} active at a time.
                         Active Golems: {activeGolemIds.length} / {maxActiveGolems}
                     </CardDescription>
                 </CardHeader>
@@ -54,16 +63,32 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                         <div>
                             <h4 className="font-semibold mb-2 text-sm">Total Active Effects:</h4>
                             <ul className="list-disc list-inside space-y-1 text-sm">
-                                {Object.entries(totalEffects).map(([target, multiplier]) => {
-                                    if (!multiplier || multiplier === 1) return null;
-                                    const percentage = (multiplier - 1) * 100;
+                                {Object.entries(totalEffects.generationMultiplier).map(([target, value]) => {
+                                    if (value === 1) return null;
+                                    const percentage = (value - 1) * 100;
                                     const sign = percentage > 0 ? '+' : '';
+                                    const targetName = target.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                                     return (
-                                        <li key={target} className={percentage > 0 ? 'text-green-600' : 'text-red-600'}>
-                                            {formatTarget(target as GolemEffect['target'])}: {sign}{percentage.toFixed(0)}%
+                                        <li key={`gen-${target}`} className={percentage > 0 ? 'text-green-600' : 'text-red-600'}>
+                                            {targetName} Gen: {sign}{percentage.toFixed(0)}%
                                         </li>
                                     );
                                 })}
+                                {Object.entries(totalEffects.flatGeneration).map(([target, value]) => {
+                                    if (value === 0) return null;
+                                    const sign = value > 0 ? '+' : '';
+                                    const targetName = target.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                    return (
+                                        <li key={`flat-${target}`} className={value > 0 ? 'text-green-600' : 'text-red-600'}>
+                                            {targetName}: {sign}{formatNumber(value)}/s
+                                        </li>
+                                    );
+                                })}
+                                {totalEffects.costMultiplier !== 1 && (
+                                    <li className="text-red-600">
+                                        All Costs: +{((totalEffects.costMultiplier - 1) * 100).toFixed(0)}%
+                                    </li>
+                                )}
                             </ul>
                         </div>
                     ) : (
@@ -77,7 +102,7 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                     <GolemCard
                         key={golem.id}
                         golem={golem}
-                        onBuy={onBuyGolem}
+                        onToggle={onToggleGolem}
                         isActive={activeGolemIds.includes(golem.id)}
                         canAfford={currencies.essenceFlux >= golem.cost}
                         isLimitReached={activeGolemIds.length >= maxActiveGolems}

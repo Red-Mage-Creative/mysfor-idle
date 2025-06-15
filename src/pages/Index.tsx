@@ -62,10 +62,20 @@ const Index = () => {
     handleBuyResearch,
     handleBuyGolem,
     activeGolemIds,
+    setActiveGolemIds,
     allGolems,
-    golemMap,
     MAX_ACTIVE_GOLEMS,
   } = useGame();
+
+  const handleToggleGolem = (id: string) => {
+    if (activeGolemIds.includes(id)) {
+        // Deactivate: no cost refund, just remove from active list
+        setActiveGolemIds(prev => prev.filter(golemId => golemId !== id));
+    } else {
+        // Activate: use existing buy handler to check cost and limits
+        handleBuyGolem(id);
+    }
+  };
 
   const showPrestigeTab = prestigeVisibility === 'visible';
   const tabCount = 1 + (showUpgradesTab ? 1 : 0) + (showWorkshopTab ? 1 : 0) + (showPrestigeTab ? 1 : 0) + (showResearchTab ? 1 : 0) + (showEssenceTab ? 1 : 0);
@@ -182,7 +192,7 @@ const Index = () => {
                 <TabsContent value="essence">
                     <EssenceGolemsList
                         currencies={currencies}
-                        onBuyGolem={handleBuyGolem}
+                        onToggleGolem={handleToggleGolem}
                         activeGolemIds={activeGolemIds}
                         allGolems={allGolems}
                         maxActiveGolems={MAX_ACTIVE_GOLEMS}

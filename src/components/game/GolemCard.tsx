@@ -5,33 +5,41 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatNumber } from '@/lib/formatters';
-import { Gem } from 'lucide-react';
+import { Gem, ArrowUp, ArrowDown, ChevronsUp } from 'lucide-react';
 
 interface GolemCardProps {
     golem: Golem;
-    onBuy: (id: string) => void;
+    onToggle: (id: string) => void;
     isActive: boolean;
     canAfford: boolean;
     isLimitReached: boolean;
 }
 
-const formatMultiplier = (multiplier: number) => {
-    const percentage = (multiplier - 1) * 100;
-    const sign = percentage > 0 ? '+' : '';
-    return `${sign}${percentage.toFixed(0)}%`;
-};
+const formatEffect = (effect: GolemEffect) => {
+    switch (effect.type) {
+        case 'generationMultiplier':
+            const percentage = (effect.value - 1) * 100;
+            const sign = percentage > 0 ? '+' : '';
+            const targetName = effect.target.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            const color = percentage > 0 ? 'text-green-600' : 'text-red-600';
+            const Icon = percentage > 0 ? ArrowUp : ArrowDown;
+            return <span className={color}><Icon className="inline w-4 h-4 mr-1" />{sign}{percentage.toFixed(0)}% {targetName} Gen</span>;
+        
+        case 'flatGeneration':
+            const flatSign = effect.value > 0 ? '+' : '';
+            const flatTargetName = effect.target.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            const flatColor = effect.value > 0 ? 'text-green-600' : 'text-red-600';
+            const FlatIcon = effect.value > 0 ? ArrowUp : ArrowDown;
+            return <span className={flatColor}><FlatIcon className="inline w-4 h-4 mr-1" />{flatSign}{formatNumber(effect.value)} {flatTargetName}/s</span>;
 
-const formatTarget = (target: GolemEffect['target']) => {
-    switch (target) {
-        case 'mana': return 'Mana Gen';
-        case 'cogwheelGears': return 'Gear Gen';
-        case 'essenceFlux': return 'Essence Gen';
-        case 'researchPoints': return 'Research Gen';
-        default: return 'Unknown';
+        case 'costMultiplier':
+             const costPercentage = (effect.value - 1) * 100;
+             const costColor = costPercentage > 0 ? 'text-red-600' : 'text-green-600';
+             return <span className={costColor}><ChevronsUp className="inline w-4 h-4 mr-1" />+{costPercentage.toFixed(0)}% All Costs</span>;
     }
 };
 
-export const GolemCard: React.FC<GolemCardProps> = ({ golem, onBuy, isActive, canAfford, isLimitReached }) => {
+export const GolemCard: React.FC<GolemCardProps> = ({ golem, onToggle, isActive, canAfford, isLimitReached }) => {
     const Icon = golem.icon;
 
     return (
@@ -49,10 +57,10 @@ export const GolemCard: React.FC<GolemCardProps> = ({ golem, onBuy, isActive, ca
             <CardContent className="flex-grow">
                 <div className="space-y-2">
                     <p className="font-semibold">Effects:</p>
-                    <ul className="list-disc list-inside space-y-1">
+                    <ul className="space-y-1">
                         {golem.effects.map((effect, index) => (
-                            <li key={index} className={effect.multiplier > 1 ? 'text-green-600' : 'text-red-600'}>
-                                {formatTarget(effect.target)}: {formatMultiplier(effect.multiplier)}
+                            <li key={index}>
+                                {formatEffect(effect)}
                             </li>
                         ))}
                     </ul>
@@ -64,10 +72,11 @@ export const GolemCard: React.FC<GolemCardProps> = ({ golem, onBuy, isActive, ca
                     {formatNumber(golem.cost)} Essence
                 </div>
                 <Button
-                    onClick={() => onBuy(golem.id)}
-                    disabled={isActive || !canAfford || (!isActive && isLimitReached)}
+                    onClick={() => onToggle(golem.id)}
+                    disabled={!isActive && (!canAfford || isLimitReached)}
+                    variant={isActive ? 'destructive' : 'default'}
                 >
-                    {isActive ? 'Active' : (isLimitReached ? 'Limit Reached' : 'Activate')}
+                    {isActive ? 'Deactivate' : (isLimitReached ? 'Limit Reached' : 'Activate')}
                 </Button>
             </CardFooter>
         </Card>

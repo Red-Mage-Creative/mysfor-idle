@@ -106,10 +106,10 @@ export interface PrestigeUpgrade {
 
 export type GolemEffectTarget = Currency | 'itemCost' | 'upgradeCost' | 'workshopCost' | 'researchCost';
 
-export type GolemEffect = {
-    target: GolemEffectTarget;
-    multiplier: number; // e.g., 1.5 for +50%, 0.8 for -20%
-};
+export type GolemEffect =
+    | { type: 'generationMultiplier'; target: Currency; value: number }
+    | { type: 'flatGeneration'; target: Currency; value: number } // value can be negative for drain
+    | { type: 'costMultiplier'; target: 'all'; value: number };
 
 export interface Golem {
     id: string;
