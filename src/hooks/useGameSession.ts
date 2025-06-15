@@ -201,12 +201,13 @@ export const useGameSession = ({
     useEffect(() => {
         const loadGame = () => {
             try {
-                const savedGame = localStorage.getItem(C.SAVE_KEY);
                 const hasSeenIntro = localStorage.getItem(C.INTRO_SEEN_KEY);
 
-                if (!savedGame && !hasSeenIntro) {
+                if (!hasSeenIntro) {
                     if (setIsIntroModalOpen) setIsIntroModalOpen(true);
                 }
+
+                const savedGame = localStorage.getItem(C.SAVE_KEY);
 
                 if (!savedGame) {
                     setIsLoaded(true);
