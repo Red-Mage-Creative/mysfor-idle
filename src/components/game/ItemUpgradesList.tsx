@@ -13,19 +13,32 @@ interface ItemUpgradesListProps {
     onBuyItemUpgrade: (upgradeId: string) => void;
     availableItemUpgrades: ItemUpgrade[];
     prestigeMultipliers: ReturnType<typeof useGameCalculations>['prestigeMultipliers'];
+    onBuyAll: () => void;
 }
 
 const iconMap = new Map(initialItems.map(item => [item.id, item.icon]));
 
-const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades, prestigeMultipliers }: ItemUpgradesListProps) => {
+const ItemUpgradesList = ({ currencies, onBuyItemUpgrade, availableItemUpgrades, prestigeMultipliers, onBuyAll }: ItemUpgradesListProps) => {
+    const canAffordAny = availableItemUpgrades.some(upgrade => {
+        return Object.entries(upgrade.cost).every(([currency, cost]) => {
+            const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+            return currencies[currency as Currency] >= actualCost;
+        });
+    });
+
     return (
         <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-green-500/30 shadow-lg">
-            <CardHeader>
-                <CardTitle className="text-3xl">Item Upgrades</CardTitle>
-                {availableItemUpgrades.length === 0 && (
-                    <p className="text-sm text-muted-foreground italic pt-2">
-                        New upgrades will appear here as you level up your items.
-                    </p>
+            <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                    <CardTitle className="text-3xl">Item Upgrades</CardTitle>
+                    {availableItemUpgrades.length === 0 && (
+                        <p className="text-sm text-muted-foreground italic pt-2">
+                            New upgrades will appear here as you level up your items.
+                        </p>
+                    )}
+                </div>
+                {availableItemUpgrades.length > 0 && (
+                    <Button onClick={onBuyAll} disabled={!canAffordAny}>Buy All Affordable</Button>
                 )}
             </CardHeader>
             <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">

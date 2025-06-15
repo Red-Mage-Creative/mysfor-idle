@@ -259,11 +259,16 @@ export const useGameCalculations = ({
         // Apply new workshop multiplier for mana
         totalClick *= workshopUpgradeMultipliers.mana;
 
+        // Add scaling based on mana generation per second
+        const manaGeneration = generationPerSecond.mana || 0;
+        const scalingFactor = 0.01; // 1% of mana/sec is added to click power multiplier
+        totalClick *= (1 + (manaGeneration * scalingFactor));
+
         if (devMode) {
             totalClick *= C.DEV_MODE_MULTIPLIER;
         }
         return totalClick;
-    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode]);
+    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana]);
 
     const itemPurchaseDetails = useMemo(() => {
         const detailsMap = new Map<string, PurchaseDetails>();

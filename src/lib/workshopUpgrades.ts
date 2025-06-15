@@ -8,10 +8,10 @@ export const initialWorkshopUpgrades: Omit<WorkshopUpgrade, 'level' | 'cost'>[] 
     id: 'mana_amplifier',
     name: 'Mana Amplifier',
     description: 'Boosts all Mana generation and click power.',
-    baseCost: { cogwheelGears: 10 },
+    baseCost: { cogwheelGears: 100 },
     effect: {
       type: 'manaMultiplier',
-      value: 0.05, // +5% per level
+      value: 0.25, // +25% per level
     },
     icon: Wrench,
   },
@@ -19,10 +19,10 @@ export const initialWorkshopUpgrades: Omit<WorkshopUpgrade, 'level' | 'cost'>[] 
     id: 'essence_resonator',
     name: 'Essence Resonator',
     description: 'Boosts all Essence Flux generation.',
-    baseCost: { cogwheelGears: 500 },
+    baseCost: { cogwheelGears: 10000 },
     effect: {
       type: 'essenceFluxMultiplier',
-      value: 0.04, // +4% per level
+      value: 0.20, // +20% per level
     },
     icon: Gem,
   },
@@ -30,10 +30,10 @@ export const initialWorkshopUpgrades: Omit<WorkshopUpgrade, 'level' | 'cost'>[] 
     id: 'research_accelerator',
     name: 'Research Accelerator',
     description: 'Boosts all Research Point generation.',
-    baseCost: { cogwheelGears: 2500 },
+    baseCost: { cogwheelGears: 100000 },
     effect: {
       type: 'researchPointsMultiplier',
-      value: 0.03, // +3% per level
+      value: 0.15, // +15% per level
     },
     icon: Beaker,
   },

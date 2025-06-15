@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { useGameState } from './useGameState';
 import type { BuyQuantity } from './useGameState';
@@ -225,6 +224,98 @@ export const useGameActions = (props: UseGameActionsProps) => {
         debouncedSave();
     }, [overclockInfo.maxLevelUnlocked, setOverclockLevel, debouncedSave]);
 
+    const handleBuyAllItemUpgrades = useCallback(() => {
+        let purchasedCount = 0;
+        const tempCurrencies = { ...currencies };
+        let tempItemUpgrades = JSON.parse(JSON.stringify(itemUpgrades)); // Deep copy to modify purchased status in loop
+        
+        while (true) {
+            // Find the next cheapest, available, and affordable upgrade
+            const nextUpgradeToBuy = tempItemUpgrades
+                .filter((u: ItemUpgrade) => !u.purchased)
+                .filter((u: ItemUpgrade) => {
+                    const parentItem = items.find(i => i.id === u.parentItemId);
+                    return parentItem && parentItem.level >= u.unlocksAtLevel;
+                })
+                .filter((u: ItemUpgrade) => {
+                    return Object.entries(u.cost).every(([currency, cost]) => {
+                        const actualCost = Math.ceil((cost || 0) * prestigeMultipliers.costReduction);
+                        return tempCurrencies[currency as Currency] >= actualCost;
+                    });
+                })
+                .sort((a: ItemUpgrade, b: ItemUpgrade) => (a.cost.mana || 0) - (b.cost.mana || 0))
+                [0]; // Get the cheapest one
+
+            if (nextUpgradeToBuy) {
+                // "Buy" it
+                for (const currency in nextUpgradeToBuy.cost) {
+                    const actualCost = Math.ceil((nextUpgradeToBuy.cost[currency as Currency] || 0) * prestigeMultipliers.costReduction);
+                    tempCurrencies[currency as Currency] -= actualCost;
+                }
+                const upgradeInArray = tempItemUpgrades.find((u: ItemUpgrade) => u.id === nextUpgradeToBuy.id);
+                if(upgradeInArray) upgradeInArray.purchased = true;
+                purchasedCount++;
+            } else {
+                // No more affordable upgrades
+                break;
+            }
+        }
+
+        if (purchasedCount > 0) {
+            setCurrencies(tempCurrencies);
+            setItemUpgrades(tempItemUpgrades);
+            toast.success(`Purchased ${purchasedCount} item upgrade(s).`);
+            immediateSave('buy-all-item-upgrades');
+        } else {
+            toast.info("No affordable upgrades available.");
+        }
+    }, [items, itemUpgrades, currencies, prestigeMultipliers.costReduction, setCurrencies, setItemUpgrades, immediateSave]);
+
+    const handleBuyAllWorkshopUpgrades = useCallback(() => {
+        let purchasedCount = 0;
+        const tempCurrencies = { ...currencies };
+        let tempWorkshopUpgrades = JSON.parse(JSON.stringify(workshopUpgrades)); // deep copy
+
+        while (true) {
+            let somethingWasBought = false;
+            // sort by cheapest next level
+            const affordableUpgrades = tempWorkshopUpgrades.map((upgrade: WorkshopUpgrade) => {
+                const cost = Math.ceil(
+                    (upgrade.baseCost.cogwheelGears || 0) *
+                    Math.pow(WORKSHOP_UPGRADE_COST_GROWTH_RATE, upgrade.level)
+                );
+                return { upgrade, cost };
+            }).filter(({ cost }) => tempCurrencies.cogwheelGears >= cost)
+              .sort((a, b) => a.cost - b.cost);
+            
+            if (affordableUpgrades.length > 0) {
+                const { upgrade, cost } = affordableUpgrades[0];
+                tempCurrencies.cogwheelGears -= cost;
+                
+                const upgradeInArray = tempWorkshopUpgrades.find((u: WorkshopUpgrade) => u.id === upgrade.id);
+                if (upgradeInArray) {
+                    upgradeInArray.level++;
+                }
+                
+                purchasedCount++;
+                somethingWasBought = true;
+            }
+
+            if (!somethingWasBought) {
+                break;
+            }
+        }
+        
+        if (purchasedCount > 0) {
+            setCurrencies(tempCurrencies);
+            setWorkshopUpgrades(tempWorkshopUpgrades);
+            toast.success(`Purchased ${purchasedCount} workshop upgrade level(s).`);
+            immediateSave('buy-all-workshop-upgrades');
+        } else {
+            toast.info("No affordable workshop upgrades available.");
+        }
+    }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, immediateSave]);
+
     const toggleDevMode = useCallback(() => {
         setDevMode(prev => {
             const newState = !prev;
@@ -288,5 +379,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         toggleDevMode,
         devGrantResources,
         toggleAutoBuySetting,
+        handleBuyAllItemUpgrades,
+        handleBuyAllWorkshopUpgrades,
     };
 };

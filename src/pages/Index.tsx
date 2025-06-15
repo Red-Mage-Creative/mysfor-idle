@@ -52,6 +52,8 @@ const Index = () => {
     prestigeMultipliers,
     autoBuySettings,
     toggleAutoBuySetting,
+    handleBuyAllItemUpgrades,
+    handleBuyAllWorkshopUpgrades,
   } = useGame();
 
   const showPrestigeTab = prestigeVisibility === 'visible';
@@ -140,6 +142,7 @@ const Index = () => {
                     onBuyItemUpgrade={handleBuyItemUpgrade}
                     availableItemUpgrades={availableItemUpgrades}
                     prestigeMultipliers={prestigeMultipliers}
+                    onBuyAll={handleBuyAllItemUpgrades}
                   />
                 </TabsContent>
               )}
@@ -149,6 +152,7 @@ const Index = () => {
                     currencies={currencies}
                     onBuyWorkshopUpgrade={handleBuyWorkshopUpgrade}
                     workshopUpgrades={workshopUpgrades}
+                    onBuyAll={handleBuyAllWorkshopUpgrades}
                   />
                 </TabsContent>
               )}

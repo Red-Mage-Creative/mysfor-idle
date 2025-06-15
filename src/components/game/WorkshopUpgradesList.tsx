@@ -12,17 +12,29 @@ interface WorkshopUpgradesListProps {
     currencies: Currencies;
     onBuyWorkshopUpgrade: (upgradeId: string) => void;
     workshopUpgrades: WorkshopUpgrade[];
+    onBuyAll: () => void;
 }
 
-const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, workshopUpgrades }: WorkshopUpgradesListProps) => {
+const WorkshopUpgradesList = ({ currencies, onBuyWorkshopUpgrade, workshopUpgrades, onBuyAll }: WorkshopUpgradesListProps) => {
+    const canAffordAny = workshopUpgrades.some(upgrade => {
+        const costForNextLevel = Math.ceil(
+            (upgrade.baseCost.cogwheelGears || 0) * Math.pow(WORKSHOP_UPGRADE_COST_GROWTH_RATE, upgrade.level)
+        );
+        return currencies.cogwheelGears >= costForNextLevel;
+    });
     
     return (
         <Card className="w-full bg-card/80 backdrop-blur-sm border-2 border-yellow-400/20 shadow-lg">
-            <CardHeader>
-                <CardTitle className="text-3xl">Mechanical Workshop</CardTitle>
-                <CardDescription>
-                    Use Cogwheel Gears to build powerful, temporary upgrades. These upgrades are reset upon prestiging.
-                </CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between">
+                <div>
+                    <CardTitle className="text-3xl">Mechanical Workshop</CardTitle>
+                    <CardDescription>
+                        Use Cogwheel Gears to build powerful, temporary upgrades. These upgrades are reset upon prestiging.
+                    </CardDescription>
+                </div>
+                 {workshopUpgrades.length > 0 && (
+                    <Button onClick={onBuyAll} disabled={!canAffordAny}>Buy All Affordable</Button>
+                )}
             </CardHeader>
             <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
                 {workshopUpgrades.map(upgrade => {
