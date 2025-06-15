@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
 import { useGameSession } from './useGameSession';
@@ -9,14 +9,15 @@ import { Currency, Item } from '@/lib/gameTypes';
 import { allAchievements, achievementMap } from '@/lib/achievements';
 import { researchNodeMap } from '@/lib/researchTree';
 import { allGolems, golemMap, MAX_ACTIVE_GOLEMS } from '@/lib/golems';
+import { allSynergies } from '@/lib/golemSynergies';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
-    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame, achievements, setAchievements, lifetimeMana, hasEverPrestiged, prestigeCount, itemUpgrades, prestigeUpgradeLevels, unlockedResearchNodes, setUnlockedResearchNodes, setCurrencies } = gameState;
+    const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame, achievements, setAchievements, lifetimeMana, hasEverPrestiged, prestigeCount, itemUpgrades, prestigeUpgradeLevels, unlockedResearchNodes, setUnlockedResearchNodes, setCurrencies, activeGolemIds } = gameState;
     const repairAttempted = useRef(false);
 
     const calculations = useGameCalculations(gameState);
-    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, prestigeMultipliers } = calculations;
+    const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, prestigeMultipliers, activeGolems } = calculations;
     
     const { manualSave, debouncedSave, immediateSave, resetGame, exportSave, importSave } = useGameSession({
         ...gameState,
@@ -31,6 +32,14 @@ export const useGameLogic = () => {
     });
 
     const { handleBuyItem, handleBuyItemUpgrade, handleBuyWorkshopUpgrade, handleBuyGolem } = actions;
+
+    const activeSynergies = useMemo(() => {
+        if (!activeGolems || activeGolems.length < 2) return [];
+        const activeGolemIdsSet = new Set(activeGolems.map(g => g.id));
+        return allSynergies.filter(synergy =>
+            synergy.golemIds.every(id => activeGolemIdsSet.has(id))
+        );
+    }, [activeGolems]);
 
     const handleBuyResearch = useCallback((nodeId: string) => {
         const node = researchNodeMap.get(nodeId);
@@ -145,6 +154,13 @@ export const useGameLogic = () => {
         if (unlockedResearchNodes.has('trans_1_junction_3')) unlockAchievement('research_path_mystical');
         if (unlockedResearchNodes.has('trans_5_final')) unlockAchievement('research_complete_tree');
         
+        // Golem Achievements
+        if (activeGolemIds.length > 0) unlockAchievement('golem_first');
+        if (activeGolemIds.length >= 3) unlockAchievement('golem_3_active');
+        if (activeGolemIds.length >= 5) unlockAchievement('golem_5_active');
+        if (activeSynergies.length > 0) unlockAchievement('golem_first_synergy');
+        if (activeGolemIds.includes('chaos_golem')) unlockAchievement('golem_chaos');
+
         // Cosmic Resonator
         const cosmicResonator = items.find(item => item.id === 'cosmic_resonator');
         if (cosmicResonator && cosmicResonator.level > 0) {
@@ -154,7 +170,7 @@ export const useGameLogic = () => {
             if (cosmicResonator.level >= 1000) unlockAchievement('cosmic_resonator_1k');
         }
 
-    }, [isLoaded, items, itemUpgrades, hasEverPrestiged, prestigeUpgradeLevels, prestigeCount, lifetimeMana, currencies, unlockAchievement, unlockedResearchNodes]);
+    }, [isLoaded, items, itemUpgrades, hasEverPrestiged, prestigeUpgradeLevels, prestigeCount, lifetimeMana, currencies, unlockAchievement, unlockedResearchNodes, activeGolemIds, activeSynergies]);
 
     // Auto-buy logic
     useEffect(() => {

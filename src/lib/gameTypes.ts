@@ -134,7 +134,7 @@ export interface GolemSynergy {
     effect: GolemEffect;
 }
 
-export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development';
+export type AchievementCategory = 'First Steps' | 'Currency Milestones' | 'Prestige Master' | 'Cosmic Achievements' | 'Research & Development' | 'Golem Mastery';
 
 export interface Achievement {
   id: string;

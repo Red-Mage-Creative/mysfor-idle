@@ -1,3 +1,4 @@
+
 import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade, AchievementProgress, OfflineEarnings } from '@/lib/gameTypes';
 import { getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
@@ -6,6 +7,7 @@ import { toast } from "@/components/ui/sonner";
 import * as C from '@/constants/gameConstants';
 import { allAchievements } from '@/lib/achievements';
 import { researchNodeMap } from '@/lib/researchTree';
+import { allSynergies } from './golemSynergies';
 
 const compareVersions = (v1: string, v2: string): number => {
     const parts1 = (v1 || '0.0.0').split('.').map(Number);
@@ -37,7 +39,7 @@ const migrateSaveData = (data: any): GameSaveData => {
             migratedData.unlockedResearchNodeIds = migratedData.unlockedResearchNodeIds.filter((id: string) => validNodeIds.has(id));
         }
     }
-
+    // New fields are added here with default values if they don't exist.
     if (typeof migratedData.hasEverPrestiged === 'undefined') migratedData.hasEverPrestiged = false;
     if (typeof migratedData.prestigeCount === 'undefined') migratedData.prestigeCount = 0;
     if (typeof migratedData.achievements === 'undefined') migratedData.achievements = {};
@@ -81,6 +83,18 @@ const processAchievementsOnLoad = (saveData: GameSaveData): Record<string, Achie
     if (unlockedResearchNodes.has('mechanical_mastery')) unlock('research_path_mechanical');
     if (unlockedResearchNodes.has('trans_1_junction_3')) unlock('research_path_mystical');
     if (unlockedResearchNodes.has('trans_5_final')) unlock('research_complete_tree');
+
+    // Golem achievements
+    const activeGolemIds = new Set(saveData.activeGolemIds || []);
+    if (activeGolemIds.size > 0) unlock('golem_first');
+    if (activeGolemIds.size >= 3) unlock('golem_3_active');
+    if (activeGolemIds.size >= 5) unlock('golem_5_active');
+    if (activeGolemIds.has('chaos_golem')) unlock('golem_chaos');
+
+    const activeSynergies = allSynergies.filter(synergy =>
+        synergy.golemIds.every(id => activeGolemIds.has(id))
+    );
+    if (activeSynergies.length > 0) unlock('golem_first_synergy');
 
     return finalAchievements;
 }

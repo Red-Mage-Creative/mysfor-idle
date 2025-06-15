@@ -1,5 +1,5 @@
 
-import { Award, Star, Trophy, Medal, Gem, Zap, BrainCircuit, Sparkles, Network, FlaskConical, Atom } from 'lucide-react';
+import { Award, Star, Trophy, Medal, Gem, Zap, BrainCircuit, Sparkles, Network, FlaskConical, Atom, Bot, Group, Puzzle } from 'lucide-react';
 import { Achievement } from './gameTypes';
 
 export const allAchievements: Achievement[] = [
@@ -59,6 +59,13 @@ export const allAchievements: Achievement[] = [
   { id: 'cosmic_resonator_10', name: 'Dimension Walker', description: 'Own 10 Cosmic Resonators.', category: 'Cosmic Achievements', icon: Star },
   { id: 'cosmic_resonator_100', name: 'Universe Crafter', description: 'Own 100 Cosmic Resonators.', category: 'Cosmic Achievements', icon: Trophy },
   { id: 'cosmic_resonator_1k', name: 'Cosmic Emperor', description: 'Own 1,000 Cosmic Resonators.', category: 'Cosmic Achievements', icon: Medal, isSecret: true },
+
+  // Golem Mastery
+  { id: 'golem_first', name: 'Golemancer', description: 'Activate your first Golem.', category: 'Golem Mastery', icon: Bot },
+  { id: 'golem_3_active', name: 'Triumvirate', description: 'Have 3 Golems active at once.', category: 'Golem Mastery', icon: Group },
+  { id: 'golem_5_active', name: 'Quintessence', description: 'Have 5 Golems active at once.', category: 'Golem Mastery', icon: Group },
+  { id: 'golem_first_synergy', name: 'Synchronicity', description: 'Activate a Golem Synergy for the first time.', category: 'Golem Mastery', icon: Puzzle },
+  { id: 'golem_chaos', name: 'Agent of Chaos', description: 'Activate the Chaos Golem.', category: 'Golem Mastery', icon: Zap, isSecret: true },
 ];
 
 export const achievementMap = new Map(allAchievements.map(a => [a.id, a]));
