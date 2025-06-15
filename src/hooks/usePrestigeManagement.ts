@@ -21,7 +21,8 @@ export const usePrestigeManagement = ({
     const { prestigeMultipliers, golemEffects } = multipliers;
 
     const prestigeRequirement = useMemo(() => {
-        return 1e9 * Math.pow(10, prestigeCount);
+        // More aggressive scaling: 10x -> 15x per prestige
+        return 1e9 * Math.pow(15, prestigeCount);
     }, [prestigeCount]);
 
     const canPrestige = useMemo(() => lifetimeMana >= prestigeRequirement, [lifetimeMana, prestigeRequirement]);
@@ -41,10 +42,10 @@ export const usePrestigeManagement = ({
         if (lifetimeMana < prestigeRequirement) return 0;
         
         const manaRatio = lifetimeMana / prestigeRequirement;
-        const baseShards = Math.floor(Math.pow(manaRatio, 0.75) * 10 * (prestigeCount + 1));
-        const prestigeCountBonus = 1 + prestigeCount * 0.2;
+        // Rebalanced shard gain: lower base, adjusted linear prestige bonus
+        const baseShards = Math.floor(Math.pow(manaRatio, 0.75) * 5 * (1 + prestigeCount * 0.5));
         
-        return Math.floor(baseShards * prestigeCountBonus * prestigeMultipliers.shardGain * golemEffects.shardGainMultiplier);
+        return Math.floor(baseShards * prestigeMultipliers.shardGain * golemEffects.shardGainMultiplier);
     }, [lifetimeMana, prestigeRequirement, prestigeCount, prestigeMultipliers.shardGain, golemEffects]);
 
     const multiPrestigeDetails = useMemo(() => {
@@ -60,7 +61,8 @@ export const usePrestigeManagement = ({
         const loopCap = 1000; 
 
         while (prestigesToGain < loopCap) {
-            const requirement = 1e9 * Math.pow(10, currentPrestigeCheck);
+            // More aggressive scaling: 10x -> 15x per prestige
+            const requirement = 1e9 * Math.pow(15, currentPrestigeCheck);
             if (remainingMana < requirement) {
                 break;
             }
@@ -69,9 +71,9 @@ export const usePrestigeManagement = ({
             
             // Shard calculation now uses the diminishing remainingMana pool
             const manaRatio = remainingMana / requirement;
-            const baseShards = Math.floor(Math.pow(manaRatio, 0.75) * 10 * (currentPrestigeCheck + 1));
-            const prestigeCountBonus = 1 + currentPrestigeCheck * 0.2;
-            const shardsForThisLevel = Math.floor(baseShards * prestigeCountBonus * prestigeMultipliers.shardGain * golemEffects.shardGainMultiplier);
+            // Rebalanced shard gain: lower base, adjusted linear prestige bonus
+            const baseShards = Math.floor(Math.pow(manaRatio, 0.75) * 5 * (1 + currentPrestigeCheck * 0.5));
+            const shardsForThisLevel = Math.floor(baseShards * prestigeMultipliers.shardGain * golemEffects.shardGainMultiplier);
             
             totalShards += shardsForThisLevel;
 
