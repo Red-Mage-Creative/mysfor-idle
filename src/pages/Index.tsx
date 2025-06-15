@@ -170,19 +170,19 @@ const Index = () => {
           </div>
 
           <div className="lg:col-span-2 flex flex-col items-center justify-start">
-            <div className="w-full flex justify-end mb-2">
+            <div className="w-full flex justify-between items-center mb-4">
+              {overclockInfo.isUnlocked ? (
+                <OverclockControls 
+                  overclockInfo={overclockInfo} 
+                  onSetOverclockLevel={handleSetOverclockLevel} 
+                />
+              ) : <div />}
               <SaveStatusDisplay
                 status={saveStatus}
                 onSave={manualSave}
                 lastSaveTime={lastSaveTime}
               />
             </div>
-            {overclockInfo.isUnlocked && (
-              <OverclockControls 
-                overclockInfo={overclockInfo} 
-                onSetOverclockLevel={handleSetOverclockLevel} 
-              />
-            )}
             <Tabs defaultValue="items" className="w-full">
               {tabCount > 1 && (
                 <TabsList className={cn(

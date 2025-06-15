@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -28,7 +27,7 @@ export const OverclockControls = ({ overclockInfo, onSetOverclockLevel }: Overcl
 
     return (
         <TooltipProvider>
-            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 border-2 border-fuchsia-500/50 rounded-lg p-2 bg-background/50 mb-4">
+            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 border-2 border-fuchsia-500/50 rounded-lg p-2 bg-background/50">
                 <div className="flex items-center gap-2">
                      <Zap className={cn("w-6 h-6", currentLevel > 0 ? "text-yellow-400 animate-pulse" : "text-muted-foreground")} />
                      <div>
