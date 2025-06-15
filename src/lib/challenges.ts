@@ -1,4 +1,3 @@
-
 import { Challenge } from './gameTypes';
 import { Award, Star, Trophy } from 'lucide-react';
 
@@ -16,6 +15,7 @@ export const challenges: Challenge[] = [
         },
         unlocksAtPrestige: 2,
         icon: Award,
+        startingResources: { mana: 10 },
     },
     {
         id: 'basic_only',

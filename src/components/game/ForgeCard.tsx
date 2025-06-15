@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Zap, Settings, Gem, BrainCircuit } from 'lucide-react';
+import { Zap, Settings, Gem, BrainCircuit, Ban } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Currencies, Currency } from '@/lib/gameTypes';
@@ -16,6 +16,7 @@ interface ForgeCardProps {
         manaClick: number;
     };
     showTutorial?: boolean;
+    activeChallengeId?: string | null;
 }
 
 interface FloatingIcon {
@@ -27,14 +28,17 @@ interface FloatingIcon {
     color: string;
 }
 
-const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick, prestigeMultipliers, showTutorial = false }: ForgeCardProps) => {
+const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick, prestigeMultipliers, showTutorial = false, activeChallengeId = null }: ForgeCardProps) => {
     const [isClicking, setIsClicking] = useState(false);
     const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number, text: string }[]>([]);
     const [floatingZaps, setFloatingZaps] = useState<{ id: number; x: number; y: number; rotation: number }[]>([]);
     const [floatingCurrencies, setFloatingCurrencies] = useState<FloatingIcon[]>([]);
     const cardContentRef = useRef<HTMLDivElement>(null);
+    
+    const isClickingDisabled = activeChallengeId === 'no_clicks';
 
     const handleForgeClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        if (isClickingDisabled) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
@@ -66,7 +70,7 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
             setFloatingZaps(current => current.filter(z => z.id !== newZap.id));
         }, 500);
 
-    }, [manaPerClick, onForgeClick]);
+    }, [manaPerClick, onForgeClick, isClickingDisabled]);
 
     const otherCurrencies = [
         { key: 'cogwheelGears', name: 'Gears', Icon: Settings, color: 'text-yellow-400', colorLight: 'text-yellow-400/80' },
@@ -155,19 +159,35 @@ const ForgeCard = ({ currencies, generationPerSecond, manaPerClick, onForgeClick
                 )}
             </CardHeader>
             <CardContent ref={cardContentRef} className="relative">
-                <button 
-                    onClick={handleForgeClick}
-                    className={cn(
-                        "p-4 rounded-full transition-all duration-200 focus:outline-none group",
-                        isClicking ? 'animate-click-bounce' : ''
+                <div className="relative inline-block">
+                    <button 
+                        onClick={handleForgeClick}
+                        disabled={isClickingDisabled}
+                        className={cn(
+                            "p-4 rounded-full transition-all duration-200 focus:outline-none group",
+                            isClicking ? 'animate-click-bounce' : '',
+                            isClickingDisabled && 'cursor-not-allowed'
+                        )}
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                    >
+                        <Zap 
+                            className={cn(
+                                "relative w-40 h-40 sm:w-64 sm:h-64 text-primary transition-all duration-100",
+                                isClickingDisabled && 'opacity-30'
+                            )}
+                            strokeWidth={1.5}
+                        />
+                    </button>
+                    {isClickingDisabled && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="bg-background/80 text-foreground p-4 rounded-lg text-center border-2 border-destructive/50 shadow-lg">
+                                <Ban className="h-10 w-10 text-destructive mx-auto mb-2" />
+                                <p className="font-bold text-lg">Clicks Disabled</p>
+                                <p className="text-sm text-muted-foreground">"Hands Off" Challenge Active</p>
+                            </div>
+                        </div>
                     )}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                >
-                    <Zap 
-                        className="relative w-40 h-40 sm:w-64 sm:h-64 text-primary transition-all duration-100" 
-                        strokeWidth={1.5}
-                    />
-                </button>
+                </div>
                 {showTutorial && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-24 sm:mt-36 pointer-events-none">
                         <div className="flex flex-col items-center gap-1">

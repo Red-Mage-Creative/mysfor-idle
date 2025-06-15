@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -144,6 +145,7 @@ const Index = () => {
               onForgeClick={addMana}
               showTutorial={showTutorial}
               prestigeMultipliers={prestigeMultipliers}
+              activeChallengeId={activeChallengeId}
             />
             {prestigeCount > 0 && <PrestigeBonusesSummary
               prestigeCount={prestigeCount}

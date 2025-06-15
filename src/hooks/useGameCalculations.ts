@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { useGameState } from './useGameState';
 import { useGameMultipliers } from './useGameMultipliers';
@@ -27,6 +28,12 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         multipliers,
         currencies: props.currencies,
     });
+
+    // Override production values based on active challenges
+    let { manaPerClick } = production;
+    if (props.activeChallengeId === 'no_clicks') {
+        manaPerClick = 0;
+    }
 
     const prestige = usePrestigeManagement({
         lifetimeMana: props.lifetimeMana,
@@ -85,7 +92,7 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         // From production
         overclockInfo: production.overclockInfo,
         generationPerSecond: production.generationPerSecond,
-        manaPerClick: production.manaPerClick,
+        manaPerClick: manaPerClick,
 
         // From prestige
         ...prestige,

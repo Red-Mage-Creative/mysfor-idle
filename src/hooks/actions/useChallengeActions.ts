@@ -4,6 +4,7 @@ import { toast } from '@/components/ui/sonner';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { challengeMap } from '@/lib/challenges';
 import type { GameActionProps } from './types';
+import { CurrencyRecord } from '@/lib/gameTypes';
 
 export const useChallengeActions = (props: GameActionProps) => {
     const {
@@ -20,13 +21,13 @@ export const useChallengeActions = (props: GameActionProps) => {
         immediateSave,
     } = props;
     
-    const performChallengeReset = useCallback(() => {
+    const performChallengeReset = useCallback((startingResources: CurrencyRecord = {}) => {
         setCurrencies(prev => ({
             ...prev,
-            mana: 0,
-            cogwheelGears: 0,
-            essenceFlux: 0,
-            researchPoints: 0,
+            mana: startingResources.mana || 0,
+            cogwheelGears: startingResources.cogwheelGears || 0,
+            essenceFlux: startingResources.essenceFlux || 0,
+            researchPoints: startingResources.researchPoints || 0,
         }));
         setItems(getFreshInitialItems());
         setItemUpgrades(getFreshInitialItemUpgrades());
@@ -51,7 +52,7 @@ export const useChallengeActions = (props: GameActionProps) => {
         if (!challenge) return;
 
         if (window.confirm(`Are you sure you want to start the "${challenge.name}" challenge? This will reset your current run.`)) {
-            performChallengeReset();
+            performChallengeReset(challenge.startingResources);
             setActiveChallengeId(challengeId);
             toast.info(`Challenge Started: ${challenge.name}`, { description: challenge.description });
         }

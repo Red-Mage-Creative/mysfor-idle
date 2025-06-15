@@ -180,6 +180,7 @@ export interface Challenge {
   applyRestrictions: (multipliers: any) => any;
   unlocksAtPrestige: number;
   icon: LucideIcon;
+  startingResources?: CurrencyRecord;
 }
 
 export interface DimensionalUpgrade {
