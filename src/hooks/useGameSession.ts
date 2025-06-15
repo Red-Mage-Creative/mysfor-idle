@@ -1,3 +1,4 @@
+
 import { useEffect, useCallback, useRef } from 'react';
 import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { useGameState } from './useGameState';
@@ -13,8 +14,8 @@ type UseGameSessionProps = ReturnType<typeof useGameState> & {
     autoBuySettings: any;
     activeChallengeId: string | null;
     setActiveChallengeId: (id: string | null) => void;
-    completedChallenges: Record<string, boolean>;
-    setCompletedChallenges: (challenges: Record<string, boolean>) => void;
+    completedChallenges: Record<string, number>;
+    setCompletedChallenges: (challenges: Record<string, number>) => void;
     dimensionalUpgrades: Record<string, number>;
     setDimensionalUpgrades: (upgrades: Record<string, number>) => void;
 };

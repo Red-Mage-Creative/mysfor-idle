@@ -42,6 +42,7 @@ export const usePrestigeActions = (props: GameActionProps) => {
             essenceFlux: 0,
             researchPoints: 0,
             aetherShards: currencies.aetherShards + shardsGained,
+            challengeTokens: currencies.challengeTokens || 0,
         });
         
         setItems(getFreshInitialItems());
@@ -65,7 +66,7 @@ export const usePrestigeActions = (props: GameActionProps) => {
         });
         immediateSave();
     }, [
-        canPrestige, potentialShards, currencies.aetherShards, 
+        canPrestige, potentialShards, currencies, 
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, 
         setLifetimeMana, setNotifiedUpgrades, immediateSave, setHasEverPrestiged,
         setPrestigeCount, setOverclockLevel, unlockedResearchNodes, ancientKnowledgeNodes,

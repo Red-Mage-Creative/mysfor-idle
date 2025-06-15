@@ -35,13 +35,16 @@ export const useDevActions = (props: GameActionProps) => {
         const researchToGrant = Math.max(1e5, (gen.researchPoints || 0) * secondsOfProduction);
         
         const shardsToGrant = Math.max(1000, Math.floor((currencies.aetherShards || 0) * 0.2) + 500 * (prestigeCount + 1));
+        const tokensToGrant = 100;
 
         setCurrencies(prev => ({
+            ...prev,
             mana: prev.mana + manaToGrant,
             cogwheelGears: prev.cogwheelGears + gearsToGrant,
             essenceFlux: prev.essenceFlux + essenceToGrant,
             researchPoints: prev.researchPoints + researchToGrant,
             aetherShards: prev.aetherShards + shardsToGrant,
+            challengeTokens: (prev.challengeTokens || 0) + tokensToGrant,
         }));
         setLifetimeMana(prev => prev + manaToGrant);
         
