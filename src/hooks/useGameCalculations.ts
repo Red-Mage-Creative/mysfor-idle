@@ -625,11 +625,12 @@ export const useGameCalculations = ({
     
     const categoryUnlockStatus = useMemo(() => {
         const totalBasicLevels = itemCategories['Basic Magitech'].reduce((sum, u) => sum + u.level, 0);
+        const cosmicResonatorOwned = (items.find(i => i.id === 'cosmic_resonator')?.level || 0) > 0;
         return {
           'Basic Magitech': true,
           'Advanced Machinery': totalBasicLevels >= 5 || currencies.mana > 10000,
           'Mystical Artifacts': (items.find(u => u.id === 'clockwork_automaton')?.level || 0) > 0 || currencies.cogwheelGears > 500,
-          'Transcendent Artifacts': hasEverPrestiged,
+          'Transcendent Artifacts': hasEverPrestiged || cosmicResonatorOwned,
         }
     }, [itemCategories, currencies.mana, currencies.cogwheelGears, items, hasEverPrestiged]);
 
