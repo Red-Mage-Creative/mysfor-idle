@@ -1,4 +1,3 @@
-
 import { ResearchNode } from '@/lib/gameTypes';
 import {
   FlaskConical, Zap, Cog, Coins, Flame, Beaker, Droplet, Factory, Landmark, Sparkles, Wand2, Star, Award, Settings, Bot, ToyBrick, Diamond, BookOpen, Target, GitBranch, KeyRound, Clock, Atom, BrainCircuit, Microscope, Shield, GitPullRequest, Link
@@ -264,7 +263,7 @@ export const researchNodes: ResearchNode[] = [
     description: 'Increases Mana generation by 50% and Research Point generation by 25%.',
     cost: { researchPoints: 2500000 },
     position: { x: 22, y: 6 },
-    prerequisites: ['research_boost_3', 'mana_efficiency_3'],
+    prerequisites: ['research_boost_2', 'mana_efficiency_3'],
     icon: Wand2,
     category: 'magitech',
     effect: { type: 'multiEffect', effects: [
@@ -559,7 +558,7 @@ export const researchNodes: ResearchNode[] = [
     description: 'Increases the effectiveness of all Golem Synergies by 50%.',
     cost: { researchPoints: 5e10 },
     position: { x: 30, y: 10 },
-    prerequisites: ['synergy_mastery_1', 'synergy_mastery_2'],
+    prerequisites: ['synergy_mastery_2'],
     icon: Link,
     category: 'golemancy',
     effect: { type: 'synergyEffectMultiplier', value: 1.5 },

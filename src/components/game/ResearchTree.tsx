@@ -196,6 +196,20 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                 transition: isDragging ? 'none' : 'transform 0.1s ease-out',
             }}
           >
+            <div className="relative">
+                {researchNodes.map(node => (
+                    <ResearchNodeComponent
+                        key={node.id}
+                        node={node}
+                        isUnlocked={unlockedNodes.has(node.id)}
+                        canUnlock={isPrerequisiteMet(node.prerequisites) && !unlockedNodes.has(node.id)}
+                        onUnlock={onUnlockNode}
+                        currencies={currencies}
+                        nodeSpacing={NODE_SPACING_REM}
+                        unlockedNodes={unlockedNodes}
+                    />
+                ))}
+            </div>
             <svg className="absolute top-0 left-0 w-[300rem] h-[200rem]" style={{ pointerEvents: 'none' }}>
                 <defs>
                     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
@@ -217,22 +231,27 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                         const prereqsMetForDependent = isPrerequisiteMet(dependentNode.prerequisites);
                         const isAvailable = unlockedNodes.has(sourceNode.id) && prereqsMetForDependent;
 
-                        const offset = 32; // Half of the node size in pixels
+                        const offset = 32; // Half of node size in pixels (w-16 -> 4rem -> 64px, radius 32px)
                         
-                        const x1 = startPos.x * 16 + offset;
-                        const y1 = startPos.y * 16 + offset;
-                        let x2 = endPos.x * 16 + offset;
-                        let y2 = endPos.y * 16 + offset;
+                        const centerX1 = startPos.x * 16 + offset;
+                        const centerY1 = startPos.y * 16 + offset;
+                        const centerX2 = endPos.x * 16 + offset;
+                        const centerY2 = endPos.y * 16 + offset;
 
-                        const dx = x2 - x1;
-                        const dy = y2 - y1;
+                        const dx = centerX2 - centerX1;
+                        const dy = centerY2 - centerY1;
                         const distance = Math.sqrt(dx * dx + dy * dy);
+                        let x1 = centerX1, y1 = centerY1, x2 = centerX2, y2 = centerY2;
 
                         if (distance > 0) {
                             const nodeRadiusPixels = 32;
-                            const ratio = (distance - nodeRadiusPixels) / distance;
-                            x2 = x1 + dx * ratio;
-                            y2 = y1 + dy * ratio;
+                            const unitX = dx / distance;
+                            const unitY = dy / distance;
+                        
+                            x1 = centerX1 + unitX * nodeRadiusPixels;
+                            y1 = centerY1 + unitY * nodeRadiusPixels;
+                            x2 = centerX2 - unitX * nodeRadiusPixels;
+                            y2 = centerY2 - unitY * nodeRadiusPixels;
                         }
 
                         return (
@@ -250,20 +269,6 @@ const ResearchTree: React.FC<ResearchTreeProps> = ({ unlockedNodes, onUnlockNode
                     })
                 })}
             </svg>
-            <div className="relative">
-                {researchNodes.map(node => (
-                    <ResearchNodeComponent
-                        key={node.id}
-                        node={node}
-                        isUnlocked={unlockedNodes.has(node.id)}
-                        canUnlock={isPrerequisiteMet(node.prerequisites) && !unlockedNodes.has(node.id)}
-                        onUnlock={onUnlockNode}
-                        currencies={currencies}
-                        nodeSpacing={NODE_SPACING_REM}
-                        unlockedNodes={unlockedNodes}
-                    />
-                ))}
-            </div>
           </div>
         </div>
       </CardContent>
