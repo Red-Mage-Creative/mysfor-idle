@@ -1,62 +1,12 @@
+
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Layout from "./components/layout/Layout";
-import AboutPage from "./pages/About";
-import SettingsPage from "./pages/Settings";
-import { GameProvider, useGame } from "./context/GameContext";
-import { useEffect, useState } from "react";
-import { VictoryModal } from "./components/game/VictoryModal";
-import EndCreditsPage from "./pages/EndCredits";
-import { IntroModal } from "./components/game/IntroModal";
-import AchievementsPage from "./pages/AchievementsPage";
+import { BrowserRouter } from "react-router-dom";
+import { GameProvider } from "./context/GameContext";
+import { AppContent } from "./components/AppContent";
 
 const queryClient = new QueryClient();
-
-const AppContent = () => {
-  const game = useGame();
-  const [showVictoryModal, setShowVictoryModal] = useState(false);
-
-  useEffect(() => {
-    if (game?.hasBeatenGame && !game?.gameCompletionShown) {
-      setShowVictoryModal(true);
-    }
-  }, [game?.hasBeatenGame, game?.gameCompletionShown]);
-
-  const handleCloseVictoryModal = () => {
-    setShowVictoryModal(false);
-    game?.setGameCompletionShown?.(true);
-    game?.immediateSave?.();
-  };
-
-  const handleCloseIntroModal = (dontShowAgain: boolean) => {
-    game?.handleCloseIntroModal?.(dontShowAgain);
-  };
-
-  if (!game) {
-    return null; // Or a loading spinner
-  }
-
-  return (
-    <>
-      <IntroModal isOpen={game.isIntroModalOpen} onClose={handleCloseIntroModal} />
-      <VictoryModal isOpen={showVictoryModal} onClose={handleCloseVictoryModal} />
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Index />} />
-          <Route path="about" element={<AboutPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="achievements" element={<AchievementsPage />} />
-          <Route path="end-credits" element={<EndCreditsPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
-    </>
-  );
-};
 
 const App = () => (
   <BrowserRouter>
