@@ -15,7 +15,7 @@ const EndCreditsPage = () => {
                 <h2 className="text-2xl font-semibold text-center">Credits</h2>
                 <p><strong>Development & Design:</strong> @andersthemagi / @magickappa!</p>
                 <p><strong>Built using:</strong> Lovable and Gemini for the AI Showdown Event (14 - 15 Jun)</p>
-                <p><strong>Special Thanks:</strong> To all the mana crystals, cogwheel gears, and aether shards that made this journey possible.<br><br>And of course, you the player!</p>
+                <p><strong>Special Thanks:</strong> To all the mana crystals, cogwheel gears, and aether shards that made this journey possible.<br /><br />And of course, you the player!</p>
             </div>
             <PartyPopper className="mx-auto mt-8 h-16 w-16 text-primary animate-pulse" />
         </div>
