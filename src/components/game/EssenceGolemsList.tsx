@@ -32,25 +32,38 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
             disabledFeatures: new Set<'autoBuyItems' | 'autoBuyUpgrades'>(),
         };
 
+        const processEffect = (effect: GolemEffect) => {
+            switch (effect.type) {
+                case 'generationMultiplier':
+                    totals.generationMultiplier[effect.target] = (totals.generationMultiplier[effect.target] || 1) * effect.value;
+                    break;
+                case 'flatGeneration':
+                    totals.flatGeneration[effect.target] = (totals.flatGeneration[effect.target] || 0) + effect.value;
+                    break;
+                case 'costMultiplier':
+                    totals.costMultiplier *= effect.value;
+                    break;
+                case 'shardGainMultiplier':
+                    totals.shardGainMultiplier *= effect.value;
+                    break;
+                case 'disableFeature':
+                    totals.disabledFeatures.add(effect.feature);
+                    break;
+                case 'randomEffect': {
+                    // Cycle every 60 seconds. Must be consistent with useGameCalculations.
+                    const effectIndex = Math.floor((Date.now() / 1000) / 60) % effect.effects.length;
+                    const activeEffect = effect.effects[effectIndex];
+                    if (activeEffect) {
+                        processEffect(activeEffect);
+                    }
+                    break;
+                }
+            }
+        };
+
         activeGolems.forEach(golem => {
             golem.effects.forEach(effect => {
-                switch (effect.type) {
-                    case 'generationMultiplier':
-                        totals.generationMultiplier[effect.target] = (totals.generationMultiplier[effect.target] || 1) * effect.value;
-                        break;
-                    case 'flatGeneration':
-                        totals.flatGeneration[effect.target] = (totals.flatGeneration[effect.target] || 0) + effect.value;
-                        break;
-                    case 'costMultiplier':
-                        totals.costMultiplier *= effect.value;
-                        break;
-                    case 'shardGainMultiplier':
-                        totals.shardGainMultiplier *= effect.value;
-                        break;
-                    case 'disableFeature':
-                        totals.disabledFeatures.add(effect.feature);
-                        break;
-                }
+                processEffect(effect);
             });
         });
         return totals;

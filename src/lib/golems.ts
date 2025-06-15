@@ -1,5 +1,5 @@
 
-import { Bot, Cog, BrainCircuit, Droplet, Hammer, Scale, Sparkles } from 'lucide-react';
+import { Bot, Cog, BrainCircuit, Droplet, Hammer, Scale, Sparkles, Shuffle } from 'lucide-react';
 import { Golem } from './gameTypes';
 
 export const allGolems: Golem[] = [
@@ -83,6 +83,26 @@ export const allGolems: Golem[] = [
             { type: 'generationMultiplier', target: 'essenceFlux', value: 0.5 }, // -50% essence generation
         ],
         icon: Sparkles,
+    },
+    {
+        id: 'chaos_golem',
+        name: 'Chaos Golem',
+        description: 'An unstable entity whose influence shifts unpredictably over time. Its effect changes every 60 seconds.',
+        cost: 2000,
+        effects: [
+            {
+                type: 'randomEffect',
+                effects: [
+                    { type: 'generationMultiplier', target: 'mana', value: 1.75 },
+                    { type: 'generationMultiplier', target: 'cogwheelGears', value: 2.0 },
+                    { type: 'generationMultiplier', target: 'researchPoints', value: 2.0 },
+                    { type: 'costMultiplier', target: 'all', value: 1.5 },
+                    { type: 'generationMultiplier', target: 'mana', value: 0.5 },
+                    { type: 'costMultiplier', target: 'all', value: 0.75 },
+                ]
+            }
+        ],
+        icon: Shuffle,
     },
     {
         id: 'gremlin_golem',

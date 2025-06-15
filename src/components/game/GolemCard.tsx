@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatNumber } from '@/lib/formatters';
-import { Gem, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown } from 'lucide-react';
+import { Gem, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown, Repeat } from 'lucide-react';
 
 interface GolemCardProps {
     golem: Golem;
@@ -49,6 +49,21 @@ const formatEffect = (effect: GolemEffect) => {
         case 'disableFeature': {
             const featureName = effect.feature === 'autoBuyItems' ? 'Auto-buy Items' : 'Auto-buy Upgrades';
             return <span className="text-orange-500"><ArrowDown className="inline w-4 h-4 mr-1" />Disables {featureName}</span>;
+        }
+        case 'randomEffect': {
+            return (
+                <div>
+                    <span className="text-purple-500 flex items-center">
+                        <Repeat className="inline w-4 h-4 mr-1" />
+                        Randomly cycles effects:
+                    </span>
+                    <ul className="list-disc list-inside pl-4 text-xs space-y-1 mt-1">
+                        {effect.effects.map((subEffect, i) => (
+                           <li key={i}>{formatEffect(subEffect)}</li>
+                        ))}
+                    </ul>
+                </div>
+            );
         }
     }
 };

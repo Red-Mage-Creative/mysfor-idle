@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, PurchaseDetails, GolemEffectTarget } from '@/lib/gameTypes';
+import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, PurchaseDetails, GolemEffect, GolemEffectTarget } from '@/lib/gameTypes';
 import * as C from '@/constants/gameConstants';
 import { useGameState } from './useGameState';
 import { researchNodeMap } from '@/lib/researchTree';
@@ -159,27 +159,40 @@ export const useGameCalculations = ({
             disabledFeatures: new Set<'autoBuyItems' | 'autoBuyUpgrades'>(),
         };
 
+        const processEffect = (effect: GolemEffect) => {
+            switch (effect.type) {
+                case 'generationMultiplier':
+                    effects.generationMultiplier[effect.target] = (effects.generationMultiplier[effect.target] || 1) * effect.value;
+                    break;
+                case 'flatGeneration':
+                    effects.flatGeneration[effect.target] = (effects.flatGeneration[effect.target] || 0) + effect.value;
+                    break;
+                case 'costMultiplier':
+                    effects.costMultiplier *= effect.value;
+                    break;
+                case 'shardGainMultiplier':
+                    effects.shardGainMultiplier *= effect.value;
+                    break;
+                case 'disableFeature':
+                    effects.disabledFeatures.add(effect.feature);
+                    break;
+                case 'randomEffect': {
+                    // Cycle every 60 seconds
+                    const effectIndex = Math.floor((Date.now() / 1000) / 60) % effect.effects.length;
+                    const activeEffect = effect.effects[effectIndex];
+                    if (activeEffect) {
+                        processEffect(activeEffect);
+                    }
+                    break;
+                }
+            }
+        };
+
         activeGolemIds.forEach(golemId => {
             const golem = golemMap.get(golemId);
             if (golem) {
                 golem.effects.forEach(effect => {
-                    switch (effect.type) {
-                        case 'generationMultiplier':
-                            effects.generationMultiplier[effect.target] = (effects.generationMultiplier[effect.target] || 1) * effect.value;
-                            break;
-                        case 'flatGeneration':
-                            effects.flatGeneration[effect.target] = (effects.flatGeneration[effect.target] || 0) + effect.value;
-                            break;
-                        case 'costMultiplier':
-                            effects.costMultiplier *= effect.value;
-                            break;
-                        case 'shardGainMultiplier':
-                            effects.shardGainMultiplier *= effect.value;
-                            break;
-                        case 'disableFeature':
-                            effects.disabledFeatures.add(effect.feature);
-                            break;
-                    }
+                    processEffect(effect);
                 });
             }
         });
