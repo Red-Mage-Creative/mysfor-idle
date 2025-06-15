@@ -16,6 +16,7 @@ export const useGameLogic = () => {
     const { isLoaded, items, notifiedUpgrades, setNotifiedUpgrades, workshopUpgrades, currencies, overclockLevel, autoBuySettings, hasBeatenGame, setHasBeatenGame, achievements, setAchievements, lifetimeMana, hasEverPrestiged, prestigeCount, itemUpgrades, prestigeUpgradeLevels, unlockedResearchNodes, setUnlockedResearchNodes, setCurrencies, activeGolemIds } = gameState;
     const [lastAutoBuy, setLastAutoBuy] = React.useState<{ item: string | null; upgrade: string | null }>({ item: null, upgrade: null });
     const repairAttempted = useRef(false);
+    const lastDownshiftTimeRef = useRef(0);
 
     const calculations = useGameCalculations(gameState);
     const { availableItemUpgrades, generationPerSecond, itemPurchaseDetails, prestigeMultipliers, activeGolems, activeSynergies, golemEffects } = calculations;
@@ -266,15 +267,33 @@ export const useGameLogic = () => {
     // Auto-downshift for overclock
     useEffect(() => {
         const gearGeneration = generationPerSecond.cogwheelGears || 0;
+        const hasGearProducers = items.some(item => item.id === 'workshop_gears' && item.level > 0);
+
         if (
             overclockLevel > 0 &&
             currencies.cogwheelGears <= 0 &&
-            gearGeneration < 0
+            gearGeneration < 0 &&
+            hasGearProducers // Only trigger if we *should* be making gears
         ) {
-            actions.handleSetOverclockLevel(overclockLevel - 1);
-            toast.warning("Emergency Downshift!", { description: "Overclock level reduced to prevent gear depletion." });
+            const now = Date.now();
+            const DOWNSHIFT_COOLDOWN = 2000; // 2 seconds
+
+            if (now - lastDownshiftTimeRef.current > DOWNSHIFT_COOLDOWN) {
+                actions.handleSetOverclockLevel(overclockLevel - 1);
+                toast.warning("Emergency Downshift!", {
+                    id: 'emergency-downshift-toast', // Use ID to prevent spamming toasts
+                    description: "Overclock level reduced to prevent gear depletion."
+                });
+                lastDownshiftTimeRef.current = now;
+            }
         }
-    }, [currencies.cogwheelGears, overclockLevel, generationPerSecond.cogwheelGears, actions.handleSetOverclockLevel]);
+    }, [
+        currencies.cogwheelGears,
+        overclockLevel,
+        generationPerSecond.cogwheelGears,
+        actions.handleSetOverclockLevel,
+        items
+    ]);
 
     useEffect(() => {
         const newlyAvailable = availableItemUpgrades.filter(upgrade => !notifiedUpgrades.has(upgrade.id));
