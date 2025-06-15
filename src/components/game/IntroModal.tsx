@@ -67,7 +67,7 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
              <div>
                 <h3 className="font-semibold">Who Made This?</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                    This game was created with Lovable, an AI-powered tool that helps you build, edit, and ship web applications by chatting with an AI.
+                    This game was created with Lovable with the help of Google Gemini as a part of the AI Showdown from June 14th 2025 at 8AM CET to June 15th 2025 at 11:59PM CET.
                 </p>
              </div>
           </div>
@@ -77,7 +77,7 @@ export const IntroModal = ({ isOpen, onClose }: IntroModalProps) => {
              <div>
                 <h3 className="font-semibold">Star us on GitHub!</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                    This project is open-source. If you enjoy it, please consider giving us a star on GitHub to show your support for AI-powered development!
+                    This project is open-source. If you enjoy it, please consider giving us a star on GitHub to show your support!
                 </p>
                 <Button asChild variant="outline" size="sm" className="mt-2">
                     <a href="https://github.com/lovable-dev/mystic-forge-gemini" target="_blank" rel="noopener noreferrer" className="flex items-center">
