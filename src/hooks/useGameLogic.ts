@@ -12,6 +12,8 @@ import { useAutoBuy } from './effects/useAutoBuy';
 import { useOverclockManager } from './effects/useOverclockManager';
 import { useUpgradeNotifier } from './effects/useUpgradeNotifier';
 import { useGameCompletion } from './effects/useGameCompletion';
+import { challengeMap } from '@/lib/challenges';
+import { toast } from '@/components/ui/sonner';
 
 export const useGameLogic = () => {
     const gameState = useGameState();
@@ -44,6 +46,35 @@ export const useGameLogic = () => {
     useOverclockManager({ ...gameState, ...calculations, handleSetOverclockLevel: actions.handleSetOverclockLevel });
     useUpgradeNotifier({ ...gameState, ...calculations });
     useGameCompletion({ ...gameState, immediateSave });
+
+    // Challenge Completion and Failure Logic
+    React.useEffect(() => {
+        if (!gameState.activeChallengeId) return;
+
+        const challenge = challengeMap.get(gameState.activeChallengeId);
+        if (!challenge) return;
+
+        // Check for completion
+        if (challenge.isGoalReached(gameState)) {
+            actions.handleCompleteChallenge(gameState.activeChallengeId);
+            // Don't check for failure on the same tick as completion
+            return;
+        }
+
+        // Check for failure
+        const failConditions = challenge.applyRestrictions({ challengeFailConditions: [] }).challengeFailConditions || [];
+        for (const condition of failConditions) {
+            if (condition(gameState)) {
+                toast.error(`Challenge Failed: ${challenge.name}`, {
+                    description: "The conditions for the challenge were not met. Your run has been reset.",
+                    duration: 8000,
+                });
+                actions.abandonChallenge();
+                break; // Exit after first failure
+            }
+        }
+
+    }, [gameState, actions]);
 
     const showEssenceTab = gameState.hasEverPrestiged;
 

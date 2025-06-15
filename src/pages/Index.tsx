@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -18,6 +17,10 @@ import ResearchTree from '@/components/game/ResearchTree';
 import EssenceGolemsList from '@/components/game/EssenceGolemsList';
 import { AutoBuyStatusIndicator, AutoBuyStatus } from '@/components/game/AutoBuyStatusIndicator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { challenges, challengeMap } from '@/lib/challenges';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, Lock, XCircle } from 'lucide-react';
 
 const Index = () => {
   const {
@@ -76,6 +79,9 @@ const Index = () => {
     ancientKnowledgeBonus,
     synergyBonus,
     activeChallengeId,
+    startChallenge,
+    abandonChallenge,
+    completedChallenges,
   } = useGame();
 
   const handleToggleGolem = (id: string) => {
@@ -249,12 +255,52 @@ const Index = () => {
                   <Card>
                       <CardHeader>
                           <CardTitle>Dimensional Challenges</CardTitle>
+                          <p className="text-sm text-muted-foreground pt-1">
+                              Test your skills in unique runs to earn Challenge Tokens for powerful permanent upgrades.
+                              Starting a challenge will reset your run.
+                          </p>
                       </CardHeader>
-                      <CardContent>
-                          <p>A new dimension of gameplay is forming... come back later to test your skills.</p>
-                          <div className='mt-4'>
-                            <p><b>Challenge Tokens:</b> {currencies.challengeTokens || 0}</p>
-                            <p><b>Active Challenge:</b> {activeChallengeId || 'None'}</p>
+                      <CardContent className="space-y-4">
+                          <div className="border rounded-lg p-4 flex justify-between items-center">
+                              <div>
+                                <p className="font-bold">Challenge Tokens: {currencies.challengeTokens || 0}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Active Challenge: {activeChallengeId ? challengeMap.get(activeChallengeId)?.name : 'None'}
+                                </p>
+                              </div>
+                              {activeChallengeId && (
+                                <Button variant="destructive" onClick={() => abandonChallenge()}>Abandon Challenge</Button>
+                              )}
+                          </div>
+                          <div className="space-y-3">
+                              {challenges.map(challenge => {
+                                  const isUnlocked = prestigeCount >= challenge.unlocksAtPrestige;
+                                  const completions = completedChallenges[challenge.id] || 0;
+                                  const isCompleted = completions > 0;
+
+                                  return (
+                                      <div key={challenge.id} className={cn("border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4", !isUnlocked && "bg-muted/50 text-muted-foreground")}>
+                                          <div className="flex-1">
+                                              <div className="flex items-center gap-3">
+                                                  <challenge.icon className={cn("h-6 w-6", isUnlocked ? "text-primary" : "")} />
+                                                  <h3 className="text-lg font-semibold">{challenge.name}</h3>
+                                                  {!isUnlocked && <Badge variant="secondary"><Lock className="h-3 w-3 mr-1" /> Requires {challenge.unlocksAtPrestige} Prestiges</Badge>}
+                                                  {isCompleted && <Badge variant="success"><CheckCircle2 className="h-3 w-3 mr-1" /> {completions} Completion{completions > 1 ? 's' : ''}</Badge>}
+                                              </div>
+                                              <p className="text-sm text-muted-foreground mt-1">{challenge.description}</p>
+                                              <p className="text-sm mt-1"><b>Goal:</b> {challenge.goalDescription}</p>
+                                              <p className="text-sm mt-1"><b>Reward:</b> {challenge.reward} Challenge Tokens</p>
+                                          </div>
+                                          <div className="flex-shrink-0">
+                                            {isUnlocked && (
+                                              <Button disabled={!!activeChallengeId} onClick={() => startChallenge(challenge.id)}>
+                                                  Start Challenge
+                                              </Button>
+                                            )}
+                                          </div>
+                                      </div>
+                                  )
+                              })}
                           </div>
                       </CardContent>
                   </Card>

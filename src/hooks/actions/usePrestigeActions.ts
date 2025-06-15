@@ -22,10 +22,16 @@ export const usePrestigeActions = (props: GameActionProps) => {
         setOverclockLevel,
         unlockedResearchNodes, setUnlockedResearchNodes,
         ancientKnowledgeNodes, setAncientKnowledgeNodes,
+        activeChallengeId, setActiveChallengeId,
     } = props;
     
     const handlePrestige = useCallback(() => {
         if (!canPrestige) return;
+
+        if (activeChallengeId) {
+            setActiveChallengeId(null);
+            toast.info("Challenge Abandoned", { description: "You have prestiged, ending your active challenge." });
+        }
 
         const shardsGained = potentialShards;
         const newlyGainedKnowledge = Array.from(unlockedResearchNodes).filter(nodeId => !ancientKnowledgeNodes.has(nodeId)).length;
@@ -71,6 +77,7 @@ export const usePrestigeActions = (props: GameActionProps) => {
         setLifetimeMana, setNotifiedUpgrades, immediateSave, setHasEverPrestiged,
         setPrestigeCount, setOverclockLevel, unlockedResearchNodes, ancientKnowledgeNodes,
         setUnlockedResearchNodes, setAncientKnowledgeNodes,
+        activeChallengeId, setActiveChallengeId,
     ]);
 
     const handleBuyPrestigeUpgrade = useCallback((upgradeId: string) => {

@@ -7,6 +7,7 @@ import { useGolemActions } from './actions/useGolemActions';
 import { useResearchActions } from './actions/useResearchActions';
 import { useCoreGameActions } from './actions/useCoreGameActions';
 import { useDevActions } from './actions/useDevActions';
+import { useChallengeActions } from './actions/useChallengeActions';
 
 export const useGameActions = (props: GameActionProps) => {
     const purchaseActions = usePurchaseActions(props);
@@ -16,6 +17,7 @@ export const useGameActions = (props: GameActionProps) => {
     const researchActions = useResearchActions(props);
     const coreActions = useCoreGameActions(props);
     const devActions = useDevActions(props);
+    const challengeActions = useChallengeActions(props);
 
     return {
         ...purchaseActions,
@@ -25,5 +27,6 @@ export const useGameActions = (props: GameActionProps) => {
         ...researchActions,
         ...coreActions,
         ...devActions,
+        ...challengeActions,
     };
 };
