@@ -136,7 +136,7 @@ const ItemsList = ({ currencies, onBuyItem, itemCategories, categoryUnlockStatus
                                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
                                             <Lock className="w-8 h-8" />
                                             <p className="font-bold text-lg">Category Locked</p>
-                                            <p className="text-sm">This category unlocks after you Prestige for the first time.</p>
+                                            <p className="text-sm">This category unlocks after you Prestige or discover a specific artifact.</p>
                                         </div>
                                     </Card>
                                 </div>

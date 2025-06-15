@@ -18,6 +18,15 @@ export const useItemVisibility = ({ items, unlockedCurrencies, lifetimeMana }: U
                 visibleIds.add(item.id);
                 continue;
             }
+
+            // New explicit rule for Anti-Matter Mana visibility.
+            if (item.id === 'antimatter_mana') {
+                if (cosmicResonatorOwned) {
+                    visibleIds.add(item.id);
+                }
+                // Skip all other checks for this item.
+                continue;
+            }
             
             // Rule 1: Must have unlocked required currencies
             const requiredCurrencies = Object.keys(item.baseCost) as Currency[];
@@ -26,15 +35,12 @@ export const useItemVisibility = ({ items, unlockedCurrencies, lifetimeMana }: U
                 continue;
             }
 
-            // Rule 2: Special case for Anti-Matter Mana - must own cosmic resonator
-            if (item.id === 'antimatter_mana' && !cosmicResonatorOwned) {
-                continue;
-            }
+            // Rule 2 for Anti-Matter Mana is now handled above.
 
             // Rule 3: Lifetime mana requirement to prevent cluttering the UI early on
             const initialCostSum = Object.values(item.baseCost).reduce((a, b) => a + (b || 0), 0);
             const manaRequirement = initialCostSum * 0.8;
-            if (item.id !== 'antimatter_mana' && lifetimeMana < manaRequirement) {
+            if (lifetimeMana < manaRequirement) {
                 // Exception for first items
                 if (item.id !== 'apprentice_wand' && item.id !== 'clicking_gloves') {
                     continue;
