@@ -1,100 +1,103 @@
+
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades, useGameState } from './useGameState';
-import { GameSaveData, Currencies, Currency, CurrencyRecord, WorkshopUpgrade, AchievementProgress } from '@/lib/gameTypes';
-import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
-import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
+import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
+import { useGameState } from './useGameState';
+import { GameSaveData, Currencies, AchievementProgress } from '@/lib/gameTypes';
 import { toast } from "@/components/ui/sonner";
 import * as C from '@/constants/gameConstants';
-import { allAchievements } from '@/lib/achievements';
+import { loadDataFromStorage } from '@/lib/saveManager';
+import { useGameLoop } from './useGameLoop';
+import { useAutoSave } from './useAutoSave';
 
 type UseGameSessionProps = ReturnType<typeof useGameState> & {
     generationPerSecond: Partial<Currencies>;
 };
 
-// Returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2
-const compareVersions = (v1: string, v2: string): number => {
-    const parts1 = (v1 || '0.0.0').split('.').map(Number);
-    const parts2 = (v2 || '0.0.0').split('.').map(Number);
-    const len = Math.max(parts1.length, parts2.length);
-
-    for (let i = 0; i < len; i++) {
-        const p1 = parts1[i] || 0;
-        const p2 = parts2[i] || 0;
-        if (p1 < p2) return -1;
-        if (p1 > p2) return 1;
-    }
-    return 0;
-};
-
-const migrateSaveData = (data: any): GameSaveData => {
-    let migratedData = { ...data };
-    const initialVersion = migratedData.version || '0.0.0';
-
-    if (compareVersions(initialVersion, '1.1.0') < 0) {
-        if (typeof migratedData.overclockLevel === 'undefined') {
-            migratedData.overclockLevel = 0;
-            console.log("Migrated save: Added 'overclockLevel: 0' field.");
-        }
-    }
-
-    if (typeof migratedData.hasEverPrestiged === 'undefined') {
-        migratedData.hasEverPrestiged = false;
-        console.log("Migrated save: Added 'hasEverPrestiged: false' field.");
-    }
-    
-    if (typeof migratedData.prestigeCount === 'undefined') {
-        migratedData.prestigeCount = 0;
-        console.log("Migrated save: Added 'prestigeCount: 0' field.");
-    }
-    
-    if (typeof migratedData.achievements === 'undefined') {
-        migratedData.achievements = {};
-        console.log("Migrated save: Added 'achievements: {}' field.");
-    }
-    
-    if (typeof migratedData.hasBeatenGame === 'undefined') {
-        migratedData.hasBeatenGame = false;
-        console.log("Migrated save: Added 'hasBeatenGame: false' field.");
-    }
-    
-    if (typeof migratedData.gameCompletionShown === 'undefined') {
-        migratedData.gameCompletionShown = false;
-        console.log("Migrated save: Added 'gameCompletionShown: false' field.");
-    }
-
-    // Future migrations go here, e.g.:
-    // if (compareVersions(initialVersion, '1.2.0') < 0) { ... }
-
-    migratedData.version = C.CURRENT_SAVE_VERSION;
-    return migratedData as GameSaveData;
-};
-
-export const useGameSession = ({
-    isLoaded, setIsLoaded,
-    currencies, setCurrencies,
-    items, setItems,
-    itemUpgrades, setItemUpgrades,
-    workshopUpgrades, setWorkshopUpgrades,
-    lifetimeMana, setLifetimeMana,
-    prestigeUpgradeLevels, setPrestigeUpgradeLevels,
-    notifiedUpgrades, setNotifiedUpgrades,
-    hasEverClicked, setHasEverClicked,
-    hasEverPrestiged, setHasEverPrestiged,
-    prestigeCount, setPrestigeCount,
-    setOfflineEarnings,
-    setLastSaveTime,
-    saveStatus, setSaveStatus,
-    setBuyQuantity,
-    overclockLevel, setOverclockLevel,
-    generationPerSecond,
-    achievements, setAchievements,
-    hasBeatenGame, setHasBeatenGame,
-    gameCompletionShown, setGameCompletionShown,
-    setIsIntroModalOpen,
-}: UseGameSessionProps) => {
+export const useGameSession = (props: UseGameSessionProps) => {
+    const {
+        isLoaded, setIsLoaded, currencies, setCurrencies, items, setItems, itemUpgrades,
+        setItemUpgrades, workshopUpgrades, setWorkshopUpgrades, lifetimeMana, setLifetimeMana,
+        prestigeUpgradeLevels, setPrestigeUpgradeLevels, notifiedUpgrades, setNotifiedUpgrades,
+        hasEverClicked, setHasEverClicked, hasEverPrestiged, setHasEverPrestiged, prestigeCount,
+        setPrestigeCount, setOfflineEarnings, setLastSaveTime, saveStatus, setSaveStatus,
+        setBuyQuantity, overclockLevel, setOverclockLevel, generationPerSecond, achievements,
+        setAchievements, hasBeatenGame, setHasBeatenGame, gameCompletionShown, setGameCompletionShown,
+        setIsIntroModalOpen,
+    } = props;
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
-    const [saveRequest, setSaveRequest] = useState<string | null>(null);
+
+    const saveGame = useCallback((isAutoSave = false) => {
+        if (!isLoaded) return;
+        try {
+            if (!isAutoSave) setSaveStatus('saving');
+            const saveData: GameSaveData = {
+                version: C.CURRENT_SAVE_VERSION, lastSaveTimestamp: Date.now(), currencies,
+                items, itemUpgrades, workshopUpgrades: workshopUpgrades.map(({ id, level }) => ({ id, level })),
+                lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades: Array.from(notifiedUpgrades),
+                hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, achievements,
+                hasBeatenGame, gameCompletionShown,
+            };
+            localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
+            setLastSaveTime(new Date(saveData.lastSaveTimestamp));
+            if (!isAutoSave) {
+                setSaveStatus('complete');
+                setTimeout(() => setSaveStatus('idle'), 1500);
+            }
+        } catch (error) {
+            console.error("Failed to save game:", error);
+            setSaveStatus('error');
+            toast.error("Could not save game progress.");
+        }
+    }, [
+        isLoaded, currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels,
+        notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, achievements,
+        hasBeatenGame, gameCompletionShown, setLastSaveTime, setSaveStatus
+    ]);
+    
+    useGameLoop({ isLoaded, generationPerSecond, setCurrencies, setLifetimeMana });
+    useAutoSave({ isLoaded, saveGame: () => saveGame(true) });
+
+    const debouncedSave = useCallback(() => {
+        if (debounceSaveTimeout.current) clearTimeout(debounceSaveTimeout.current);
+        debounceSaveTimeout.current = setTimeout(() => saveGame(true), C.DEBOUNCE_SAVE_DELAY);
+    }, [saveGame]);
+    
+    useEffect(() => {
+        const hasSeenIntro = localStorage.getItem(C.INTRO_SEEN_KEY);
+        if (!hasSeenIntro) {
+            setIsIntroModalOpen(true);
+        }
+
+        try {
+            const loadedData = loadDataFromStorage();
+            if (loadedData) {
+                const { loadedState, offlineEarnings, workshopUpgrades: restoredWorkshopUpgrades } = loadedData;
+                setCurrencies(loadedState.currencies);
+                setItems(loadedState.items);
+                setItemUpgrades(loadedState.itemUpgrades);
+                setWorkshopUpgrades(restoredWorkshopUpgrades);
+                setLifetimeMana(loadedState.lifetimeMana);
+                setPrestigeUpgradeLevels(loadedState.prestigeUpgradeLevels);
+                setAchievements(loadedState.achievements || {});
+                setNotifiedUpgrades(new Set(loadedState.notifiedUpgrades));
+                setHasEverClicked(loadedState.hasEverClicked);
+                setHasEverPrestiged(loadedState.hasEverPrestiged);
+                setPrestigeCount(loadedState.prestigeCount || 0);
+                setOverclockLevel(loadedState.overclockLevel || 0);
+                setHasBeatenGame(loadedState.hasBeatenGame || false);
+                setGameCompletionShown(loadedState.gameCompletionShown || false);
+                setLastSaveTime(new Date(loadedState.lastSaveTimestamp));
+                if (offlineEarnings) setOfflineEarnings(offlineEarnings);
+            }
+        } catch (error) {
+            console.error("Failed to load save data. Starting fresh.", error);
+            resetGame();
+            toast.error("Save data corrupted", { description: "Your save file could not be read and has been reset." });
+        } finally {
+            setIsLoaded(true);
+        }
+    }, []); // This empty dependency array is crucial for running only once.
 
     const resetState = useCallback(() => {
         setCurrencies({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0 });
@@ -118,368 +121,27 @@ export const useGameSession = ({
         localStorage.removeItem(C.SAVE_KEY);
         localStorage.removeItem(C.BUY_QUANTITY_KEY);
     }, [
-        setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
-        setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
-        setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setSaveStatus, setBuyQuantity,
-        setOverclockLevel, setAchievements, setHasBeatenGame, setGameCompletionShown
+        setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels,
+        setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings,
+        setLastSaveTime, setSaveStatus, setBuyQuantity, setOverclockLevel, setAchievements, setHasBeatenGame, setGameCompletionShown
     ]);
 
-    const saveGame = useCallback((isAutoSave = false) => {
-        try {
-            const saveData: GameSaveData = {
-                version: C.CURRENT_SAVE_VERSION,
-                lastSaveTimestamp: Date.now(),
-                currencies,
-                items,
-                itemUpgrades,
-                workshopUpgrades: workshopUpgrades.map(({ id, level }) => ({ id, level })),
-                lifetimeMana,
-                prestigeUpgradeLevels,
-                notifiedUpgrades: Array.from(notifiedUpgrades),
-                hasEverClicked,
-                hasEverPrestiged,
-                prestigeCount,
-                overclockLevel,
-                achievements,
-                hasBeatenGame,
-                gameCompletionShown,
-            };
-            localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
-            setLastSaveTime(new Date(saveData.lastSaveTimestamp));
-        } catch (error) {
-            console.error("Failed to save game:", error);
-            setSaveStatus('error');
-            toast.error("Could not save game progress.");
-            throw error;
-        }
-    }, [currencies, items, itemUpgrades, workshopUpgrades, lifetimeMana, prestigeUpgradeLevels, notifiedUpgrades, hasEverClicked, hasEverPrestiged, prestigeCount, overclockLevel, achievements, hasBeatenGame, gameCompletionShown, setLastSaveTime, setSaveStatus]);
-
-    useEffect(() => {
-        if (saveRequest) {
-            if (saveStatus !== 'saving') setSaveStatus('saving');
-            try {
-                saveGame();
-                setSaveStatus('complete');
-                setTimeout(() => setSaveStatus('idle'), 1500);
-            } catch (error) {
-                console.error(`Save request failed for reason: ${saveRequest}.`, error);
-                setSaveStatus('error');
-                setTimeout(() => setSaveStatus('idle'), 1500);
-            } finally {
-                setSaveRequest(null);
-            }
-        }
-    }, [saveRequest, saveGame, saveStatus, setSaveStatus]);
-
-    const immediateSave = useCallback((reason: string = 'immediate') => {
-        setSaveRequest(reason);
-    }, []);
-
-    const manualSave = useCallback(() => {
-        if (saveStatus === 'saving') return;
-        setSaveRequest('manual-save');
-    }, [saveStatus]);
-    
-    const debouncedSave = useCallback(() => {
-        if (debounceSaveTimeout.current) {
-            clearTimeout(debounceSaveTimeout.current);
-        }
-        debounceSaveTimeout.current = setTimeout(() => {
-            setSaveRequest('debounced-save');
-        }, C.DEBOUNCE_SAVE_DELAY);
-    }, []);
-
-    useEffect(() => {
-        const handleBeforeUnload = () => {
-            if (debounceSaveTimeout.current) {
-                clearTimeout(debounceSaveTimeout.current);
-            }
-            console.log("Saving progress on page unload...");
-            saveGame();
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
-    }, [saveGame]);
-
-    useEffect(() => {
-        const loadGame = () => {
-            try {
-                const hasSeenIntro = localStorage.getItem(C.INTRO_SEEN_KEY);
-
-                if (!hasSeenIntro) {
-                    if (setIsIntroModalOpen) setIsIntroModalOpen(true);
-                }
-
-                const savedGame = localStorage.getItem(C.SAVE_KEY);
-
-                if (!savedGame) {
-                    setIsLoaded(true);
-                    return; // No save data, start fresh
-                }
-                
-                const saveDataAsAny = JSON.parse(savedGame) as any;
-                
-                if (compareVersions(saveDataAsAny.version, C.CURRENT_SAVE_VERSION) > 0) {
-                    console.error(`Save file is from a newer version of the game. Expected <= ${C.CURRENT_SAVE_VERSION}, got ${saveDataAsAny.version}. Starting fresh.`);
-                    resetState();
-                    toast.error("Newer save data found", { description: "Your save file is from a future version and cannot be loaded. The game has been reset." });
-                    return;
-                }
-                
-                const saveData = migrateSaveData(saveDataAsAny) as GameSaveData;
-                if(saveData.version !== saveDataAsAny.version) {
-                    toast.info("Game Save Updated", { description: `Your save data has been migrated to v${saveData.version}.`});
-                }
-                
-                let restoredWorkshopUpgrades = getFreshInitialWorkshopUpgrades();
-                if (saveData.workshopUpgrades && saveData.workshopUpgrades.length > 0) {
-                     const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.level]));
-                     restoredWorkshopUpgrades = restoredWorkshopUpgrades.map(upgrade => {
-                        const level = savedUpgradesMap.get(upgrade.id) || 0;
-                        const cost = { cogwheelGears: Math.ceil((upgrade.baseCost.cogwheelGears || 0) * Math.pow(1.25, level)) };
-                        return { ...upgrade, level, cost };
-                    });
-                }
-                
-                if (saveData.lastSaveTimestamp) {
-                    setLastSaveTime(new Date(saveData.lastSaveTimestamp));
-                }
-
-                const timeAway = (Date.now() - saveData.lastSaveTimestamp) / 1000; // seconds
-
-                if (timeAway > 60) { // Only calculate for >1 min away
-                    // --- Re-calculate multipliers and generation based on SAVED data ---
-                    
-                    const prestigeMultipliers = { allProduction: 1, offlineProduction: 1 };
-                    for (const upgrade of prestigeUpgrades) {
-                        const level = saveData.prestigeUpgradeLevels[upgrade.id] || 0;
-                        if (level > 0) {
-                            switch (upgrade.effect.type) {
-                                case 'allProductionMultiplier': prestigeMultipliers.allProduction *= upgrade.effect.value(level); break;
-                                case 'offlineProductionMultiplier': prestigeMultipliers.offlineProduction *= upgrade.effect.value(level); break;
-                            }
-                        }
-                    }
-
-                    const itemUpgradeMultipliers: Record<string, { generation: number; click: number }> = {};
-                    for (const item of saveData.items) {
-                        itemUpgradeMultipliers[item.id] = { generation: 1, click: 1 };
-                    }
-                    for (const upgrade of saveData.itemUpgrades) {
-                        if (upgrade.purchased) {
-                            if (upgrade.effect.type === 'generationMultiplier') {
-                                itemUpgradeMultipliers[upgrade.parentItemId].generation *= upgrade.effect.value;
-                            }
-                        }
-                    }
-
-                    const workshopUpgradeMultipliers = { mana: 1, essenceFlux: 1, researchPoints: 1 };
-                    for (const upgrade of restoredWorkshopUpgrades) {
-                        if (upgrade.level > 0) {
-                            const bonus = upgrade.effect.value * upgrade.level;
-                            switch (upgrade.effect.type) {
-                                case 'manaMultiplier': workshopUpgradeMultipliers.mana += bonus; break;
-                                case 'essenceFluxMultiplier': workshopUpgradeMultipliers.essenceFlux += bonus; break;
-                                case 'researchPointsMultiplier': workshopUpgradeMultipliers.researchPoints += bonus; break;
-                            }
-                        }
-                    }
-
-                    const offlineGps = saveData.items.reduce((acc, item) => {
-                        if (item.level > 0) {
-                            for (const currency in item.generation) {
-                                const key = currency as Currency;
-                                const itemMultiplier = itemUpgradeMultipliers[item.id]?.generation || 1;
-                                let value = (item.generation[key] || 0) * item.level * itemMultiplier;
-                                acc[key] = (acc[key] || 0) + value;
-                            }
-                        }
-                        return acc;
-                    }, {} as Partial<Currencies>);
-
-                    for (const key in offlineGps) {
-                        const currency = key as Currency;
-                        offlineGps[currency] = (offlineGps[currency] || 0) * prestigeMultipliers.allProduction;
-                    }
-
-                    if (offlineGps.mana) offlineGps.mana *= workshopUpgradeMultipliers.mana;
-                    if (offlineGps.essenceFlux) offlineGps.essenceFlux *= workshopUpgradeMultipliers.essenceFlux;
-                    if (offlineGps.researchPoints) offlineGps.researchPoints *= workshopUpgradeMultipliers.researchPoints;
-
-
-                    // --- Calculate and apply earnings ---
-                    const earnings: CurrencyRecord = {};
-                    Object.entries(offlineGps).forEach(([currency, rate]) => {
-                        earnings[currency as Currency] = rate * timeAway * C.OFFLINE_EARNING_RATE * prestigeMultipliers.offlineProduction;
-                    });
-                    
-                    let manaEarned = 0;
-                    Object.entries(earnings).forEach(([currency, amount]) => {
-                        const key = currency as Currency;
-                        saveData.currencies[key] = (saveData.currencies[key] || 0) + amount;
-                        if(key === 'mana') manaEarned = amount;
-                    });
-
-                    saveData.lifetimeMana += manaEarned;
-                    
-                    if (Object.values(earnings).some(v => v > 0)) {
-                        setOfflineEarnings({ timeAway, earnings });
-                        // --- Immediately save the updated progress to prevent gaming the system ---
-                        try {
-                            saveData.lastSaveTimestamp = Date.now(); // Update timestamp to now to prevent exploit
-                            localStorage.setItem(C.SAVE_KEY, JSON.stringify(saveData));
-                        } catch (error) {
-                            console.error("Failed to immediately save offline progress:", error);
-                            toast.error("Could not save offline progress. Please save manually.");
-                        }
-                    }
-                }
-                
-                // Retroactive Achievement Unlocking & Initialization
-                const finalAchievements: Record<string, AchievementProgress> = {};
-                const now = Date.now();
-
-                const unlock = (id: string, existingProgress: Record<string, AchievementProgress>) => {
-                    if (!existingProgress[id]?.unlocked) {
-                        existingProgress[id] = { unlocked: true, unlockedAt: now };
-                    }
-                };
-                
-                const savedAchievements = saveData.achievements || {};
-
-                // Initialize all achievements from the master list
-                allAchievements.forEach(ach => {
-                    finalAchievements[ach.id] = savedAchievements[ach.id] || { unlocked: false };
-                });
-
-                // Check for retroactive unlocks
-                if (saveData.items.some(i => i.level > 0)) unlock('first_item', finalAchievements);
-                if (saveData.itemUpgrades.some(u => u.purchased)) unlock('first_upgrade', finalAchievements);
-                if (saveData.hasEverPrestiged) unlock('first_prestige', finalAchievements);
-                if (Object.keys(saveData.prestigeUpgradeLevels).length > 0) unlock('first_prestige_upgrade', finalAchievements);
-                if (saveData.prestigeCount >= 1) unlock('prestige_1', finalAchievements);
-                if (saveData.prestigeCount >= 2) unlock('prestige_2', finalAchievements);
-                if (saveData.prestigeCount >= 3) unlock('prestige_3', finalAchievements);
-                if (saveData.prestigeCount >= 4) unlock('prestige_4', finalAchievements);
-                if (saveData.prestigeCount >= 5) unlock('prestige_5', finalAchievements);
-                if (saveData.lifetimeMana >= 1e3) unlock('mana_1k', finalAchievements);
-                if (saveData.lifetimeMana >= 1e6) unlock('mana_1m', finalAchievements);
-                if (saveData.lifetimeMana >= 1e9) unlock('mana_1b', finalAchievements);
-                if (saveData.lifetimeMana >= 1e12) unlock('mana_1t', finalAchievements);
-                if (saveData.lifetimeMana >= 1e15) unlock('mana_1qa', finalAchievements);
-                if (saveData.currencies.cogwheelGears >= 100) unlock('gears_100', finalAchievements);
-                if (saveData.currencies.cogwheelGears >= 10_000) unlock('gears_10k', finalAchievements);
-                if (saveData.currencies.cogwheelGears >= 1_000_000) unlock('gears_1m', finalAchievements);
-                if (saveData.currencies.aetherShards >= 10) unlock('shards_10', finalAchievements);
-                if (saveData.currencies.aetherShards >= 100) unlock('shards_100', finalAchievements);
-                if (saveData.currencies.aetherShards >= 1_000) unlock('shards_1k', finalAchievements);
-                if (saveData.currencies.aetherShards >= 10_000) unlock('shards_10k', finalAchievements);
-                if (saveData.currencies.essenceFlux >= 1) unlock('essence_1', finalAchievements);
-                if (saveData.currencies.essenceFlux >= 100) unlock('essence_100', finalAchievements);
-                if (saveData.currencies.essenceFlux >= 10_000) unlock('essence_10k', finalAchievements);
-                if (saveData.currencies.researchPoints >= 10) unlock('research_10', finalAchievements);
-                if (saveData.currencies.researchPoints >= 1_000) unlock('research_1k', finalAchievements);
-                if (saveData.currencies.researchPoints >= 100_000) unlock('research_100k', finalAchievements);
-
-                const cosmicResonator = saveData.items.find(item => item.id === 'cosmic_resonator');
-                if (cosmicResonator && cosmicResonator.level > 0) {
-                    unlock('cosmic_resonator_1', finalAchievements);
-                    if (cosmicResonator.level >= 10) unlock('cosmic_resonator_10', finalAchievements);
-                    if (cosmicResonator.level >= 100) unlock('cosmic_resonator_100', finalAchievements);
-                    if (cosmicResonator.level >= 1000) unlock('cosmic_resonator_1k', finalAchievements);
-                }
-                
-                saveData.achievements = finalAchievements;
-                
-                // --- Set all state from save data, including calculated offline earnings and achievements ---
-                setCurrencies(saveData.currencies);
-                setItems(saveData.items);
-                setItemUpgrades(saveData.itemUpgrades);
-                setWorkshopUpgrades(restoredWorkshopUpgrades);
-                setLifetimeMana(saveData.lifetimeMana);
-                setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
-                setAchievements(finalAchievements);
-                setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
-                setHasEverClicked(saveData.hasEverClicked);
-                setHasEverPrestiged(saveData.hasEverPrestiged);
-                setPrestigeCount(saveData.prestigeCount || 0);
-                setOverclockLevel(saveData.overclockLevel || 0);
-                setHasBeatenGame(saveData.hasBeatenGame || false);
-                setGameCompletionShown(saveData.gameCompletionShown || false);
-
-            } catch (error) {
-                console.error("Failed to load save data. Starting fresh.", error);
-                resetState();
-                toast.error("Save data corrupted", { description: "Your save file could not be read and has been reset." });
-            } finally {
-                setIsLoaded(true);
-            }
-        };
-
-        loadGame();
-    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setAchievements, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setOverclockLevel, setHasBeatenGame, setGameCompletionShown, setIsIntroModalOpen]); // Dependencies are now just setters
-
-    useEffect(() => {
-        const gameLoop = setInterval(() => {
-            let manaGeneratedThisTick = 0;
-            setCurrencies(prev => {
-                const newCurrencies = { ...prev };
-                for (const key in generationPerSecond) {
-                    const currency = key as Currency;
-                    const amountGenerated = (generationPerSecond[currency] || 0) / (1000 / C.GAME_TICK_MS);
-                    newCurrencies[currency] += amountGenerated;
-                    if (currency === 'mana') {
-                        manaGeneratedThisTick = amountGenerated;
-                    }
-                }
-                return newCurrencies;
-            });
-            setLifetimeMana(prev => prev + manaGeneratedThisTick);
-        }, C.GAME_TICK_MS);
-        return () => clearInterval(gameLoop);
-    }, [generationPerSecond, isLoaded, setCurrencies, setLifetimeMana]);
-    
-    // Periodic Autosave
-    useEffect(() => {
-        if (!isLoaded) return;
-
-        const autoSaveInterval = setInterval(() => {
-            setSaveRequest('auto-save');
-        }, C.AUTOSAVE_INTERVAL);
-
-        return () => clearInterval(autoSaveInterval);
-    }, [isLoaded]);
-
     const resetGame = useCallback(() => {
-        if(window.confirm("Are you sure you want to reset all progress? This cannot be undone.")){
+        if (window.confirm("Are you sure you want to reset all progress? This cannot be undone.")) {
             resetState();
             toast.success("Game progress has been reset.");
         }
     }, [resetState]);
 
     const exportSave = useCallback(() => {
-        try {
-            const dataStr = localStorage.getItem(C.SAVE_KEY);
-            if (!dataStr) {
-                toast.error("No save data to export.");
-                return;
-            }
-            const data = new Blob([dataStr], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(data);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `magitech-idle-save-${Date.now()}.txt`;
-            link.click();
-            window.URL.revokeObjectURL(url);
-            toast.success("Save data exported!");
-        } catch (error) {
-            console.error("Export failed", error);
-            toast.error("Failed to export save data.");
-        }
+        const dataStr = localStorage.getItem(C.SAVE_KEY);
+        if (!dataStr) return toast.error("No save data to export.");
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([dataStr], { type: 'text/plain' }));
+        link.download = `magitech-idle-save-${Date.now()}.txt`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        toast.success("Save data exported!");
     }, []);
 
     const importSave = useCallback((file: File) => {
@@ -487,71 +149,18 @@ export const useGameSession = ({
         reader.onload = (event) => {
             try {
                 const importedString = event.target?.result as string;
-                const rawData = JSON.parse(importedString) as any;
-
-                if (!rawData.version || !rawData.currencies) {
-                     throw new Error("Invalid or outdated save file format.");
-                }
-                
-                if (compareVersions(rawData.version, C.CURRENT_SAVE_VERSION) > 0) {
-                    throw new Error("This save file is from a newer version of the game.");
-                }
-
-                const saveData = migrateSaveData(rawData) as GameSaveData;
-
-                // Restore state
-                setCurrencies(saveData.currencies);
-                setItems(saveData.items);
-                setItemUpgrades(saveData.itemUpgrades);
-                
-                let restoredWorkshopUpgrades = getFreshInitialWorkshopUpgrades();
-                if (saveData.workshopUpgrades && saveData.workshopUpgrades.length > 0) {
-                     const savedUpgradesMap = new Map(saveData.workshopUpgrades.map(u => [u.id, u.level]));
-                     restoredWorkshopUpgrades = restoredWorkshopUpgrades.map(upgrade => {
-                        const level = savedUpgradesMap.get(upgrade.id) || 0;
-                        const cost = { cogwheelGears: Math.ceil((upgrade.baseCost.cogwheelGears || 0) * Math.pow(1.25, level)) };
-                        return { ...upgrade, level, cost };
-                    });
-                }
-                setWorkshopUpgrades(restoredWorkshopUpgrades);
-
-                setLifetimeMana(saveData.lifetimeMana);
-                setPrestigeUpgradeLevels(saveData.prestigeUpgradeLevels);
-                setAchievements(saveData.achievements || {});
-                setNotifiedUpgrades(new Set(saveData.notifiedUpgrades));
-                setHasEverClicked(saveData.hasEverClicked);
-                setHasEverPrestiged(saveData.hasEverPrestiged);
-                setPrestigeCount(saveData.prestigeCount || 0);
-                setOfflineEarnings(null);
-                
-                toast.success("Save data imported successfully!");
-                if(saveData.version !== rawData.version) {
-                    toast.info("Save Migrated", { description: `Your imported save has been updated to v${saveData.version}.`});
-                }
-                manualSave(); // Immediately save the new state.
-            
+                localStorage.setItem(C.SAVE_KEY, importedString); // Temporarily save to re-use loading logic
+                window.location.reload(); // Easiest way to re-init full state
             } catch (error) {
-                console.error("Import failed", error);
-                toast.error(`Failed to import save data. ${error instanceof Error ? error.message : "File may be corrupt or invalid."}`);
+                toast.error("Failed to import save data.");
             }
         };
         reader.readAsText(file);
-    }, [
-        manualSave,
-        setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
-        setLifetimeMana, setPrestigeUpgradeLevels, setAchievements, setNotifiedUpgrades,
-        setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings,
-        setHasBeatenGame, setGameCompletionShown
-    ]);
-    
-    return {
-        manualSave,
-        debouncedSave,
-        immediateSave,
-        resetGame,
-        exportSave,
-        importSave,
-    };
-};
+    }, []);
 
-// Note: This file is getting very long and complex. You might consider asking me to refactor `useGameSession.ts` into smaller, more focused hooks in the future to improve maintainability.
+    const manualSave = useCallback(() => {
+        if (saveStatus !== 'saving') saveGame(false);
+    }, [saveGame, saveStatus]);
+
+    return { manualSave, debouncedSave, resetGame, exportSave, importSave, immediateSave: saveGame };
+};

@@ -1,21 +1,11 @@
 import { useState, useCallback } from 'react';
-import { initialItems } from '@/lib/initialItems';
-import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { initialWorkshopUpgrades } from '@/lib/workshopUpgrades';
+import { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades } from '@/lib/initialState';
 import { Currencies, Item, ItemUpgrade, WorkshopUpgrade, OfflineEarnings, AchievementProgress } from '@/lib/gameTypes';
 import { DEV_MODE_KEY } from '@/constants/gameConstants';
 
 export type BuyQuantity = 1 | 5 | 10 | 'next' | 'max';
 
-export const getFreshInitialItems = (): Item[] => initialItems.map(item => ({...item, cost: { ...item.cost }, baseCost: { ...item.baseCost }, generation: { ...item.generation }}));
-export const getFreshInitialItemUpgrades = (): ItemUpgrade[] => allItemUpgrades.map(upgrade => ({ ...upgrade }));
-export const getFreshInitialWorkshopUpgrades = (): WorkshopUpgrade[] => {
-    return initialWorkshopUpgrades.map(upgrade => ({
-        ...upgrade,
-        level: 0,
-        cost: { ...upgrade.baseCost },
-    }));
-};
+export { getFreshInitialItems, getFreshInitialItemUpgrades, getFreshInitialWorkshopUpgrades };
 
 export const useGameState = () => {
     const [isLoaded, setIsLoaded] = useState(false);
