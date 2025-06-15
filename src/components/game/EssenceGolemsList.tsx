@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Golem, Currencies } from '@/lib/gameTypes';
+import { Golem, Currencies, GolemEffect } from '@/lib/gameTypes';
 import { GolemCard } from './GolemCard';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { golemMap } from '@/lib/golems';
@@ -22,6 +22,23 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
 }) => {
     const activeGolems = activeGolemIds.map(id => golemMap.get(id)).filter(Boolean) as Golem[];
 
+    const formatTarget = (target: GolemEffect['target']) => {
+        switch (target) {
+            case 'mana': return 'Mana Gen';
+            case 'cogwheelGears': return 'Gear Gen';
+            case 'essenceFlux': return 'Essence Gen';
+            case 'researchPoints': return 'Research Gen';
+            default: return 'Unknown';
+        }
+    };
+
+    const totalEffects: Partial<Record<GolemEffect['target'], number>> = {};
+    activeGolems.forEach(golem => {
+        golem.effects.forEach(effect => {
+            totalEffects[effect.target] = (totalEffects[effect.target] || 1) * effect.multiplier;
+        });
+    });
+
     return (
         <div className="space-y-6">
             <Card>
@@ -33,7 +50,25 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {/* Placeholder for effects summary */}
+                    {activeGolems.length > 0 ? (
+                        <div>
+                            <h4 className="font-semibold mb-2 text-sm">Total Active Effects:</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm">
+                                {Object.entries(totalEffects).map(([target, multiplier]) => {
+                                    if (!multiplier || multiplier === 1) return null;
+                                    const percentage = (multiplier - 1) * 100;
+                                    const sign = percentage > 0 ? '+' : '';
+                                    return (
+                                        <li key={target} className={percentage > 0 ? 'text-green-600' : 'text-red-600'}>
+                                            {formatTarget(target as GolemEffect['target'])}: {sign}{percentage.toFixed(0)}%
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No active Golems. Activate one below to see its effects.</p>
+                    )}
                 </CardContent>
             </Card>
 

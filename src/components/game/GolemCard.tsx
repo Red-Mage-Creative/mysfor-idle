@@ -16,9 +16,9 @@ interface GolemCardProps {
 }
 
 const formatMultiplier = (multiplier: number) => {
-    const sign = multiplier > 1 ? '+' : '';
-    const value = Math.abs(multiplier - 1) * 100;
-    return `${sign}${value.toFixed(0)}%`;
+    const percentage = (multiplier - 1) * 100;
+    const sign = percentage > 0 ? '+' : '';
+    return `${sign}${percentage.toFixed(0)}%`;
 };
 
 const formatTarget = (target: GolemEffect['target']) => {

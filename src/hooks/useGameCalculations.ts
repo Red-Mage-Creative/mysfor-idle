@@ -1,10 +1,12 @@
+
 import { useMemo } from 'react';
 import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
-import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, PurchaseDetails } from '@/lib/gameTypes';
+import { Item, ItemUpgrade, Currencies, Currency, CurrencyRecord, ItemWithStats, PurchaseDetails, GolemEffectTarget } from '@/lib/gameTypes';
 import * as C from '@/constants/gameConstants';
 import { useGameState } from './useGameState';
 import { researchNodeMap } from '@/lib/researchTree';
+import { golemMap } from '@/lib/golems';
 
 type UseGameCalculationsProps = Pick<ReturnType<typeof useGameState>,
     'currencies' |
@@ -20,7 +22,8 @@ type UseGameCalculationsProps = Pick<ReturnType<typeof useGameState>,
     'overclockLevel' |
     'devMode' |
     'achievements' |
-    'unlockedResearchNodes'
+    'unlockedResearchNodes' |
+    'activeGolemIds'
 >;
 
 const UPGRADE_THRESHOLDS = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
@@ -94,6 +97,7 @@ export const useGameCalculations = ({
     devMode,
     achievements,
     unlockedResearchNodes,
+    activeGolemIds,
 }: UseGameCalculationsProps) => {
 
     const achievementBonus = useMemo(() => {
@@ -253,6 +257,21 @@ export const useGameCalculations = ({
         };
     }, [itemUpgrades, overclockLevel]);
 
+    const golemMultipliers = useMemo(() => {
+        const multipliers: Partial<Record<GolemEffectTarget, number>> = {};
+
+        activeGolemIds.forEach(golemId => {
+            const golem = golemMap.get(golemId);
+            if (golem) {
+                golem.effects.forEach(effect => {
+                    multipliers[effect.target] = (multipliers[effect.target] || 1) * effect.multiplier;
+                });
+            }
+        });
+
+        return multipliers;
+    }, [activeGolemIds]);
+
     const generationPerSecond = useMemo(() => {
         const baseGeneration = items.reduce((acc, item) => {
             if (item.level > 0) {
@@ -305,8 +324,17 @@ export const useGameCalculations = ({
             baseGeneration.mana = (baseGeneration.mana || 0) * C.DEV_MODE_MULTIPLIER;
         }
 
+        // Apply golem multipliers LAST
+        for (const key in baseGeneration) {
+            const currency = key as Currency;
+            const golemMultiplier = golemMultipliers[currency];
+            if (golemMultiplier) {
+                baseGeneration[currency] = (baseGeneration[currency] || 0) * golemMultiplier;
+            }
+        }
+
         return baseGeneration;
-    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus, researchBonuses]);
+    }, [items, prestigeMultipliers.allProduction, itemUpgradeMultipliers, workshopUpgradeMultipliers, overclockInfo, devMode, achievementBonus, researchBonuses, golemMultipliers]);
 
     const manaPerClick = useMemo(() => {
         const baseClick = 1;
@@ -333,8 +361,14 @@ export const useGameCalculations = ({
         if (devMode) {
             totalClick *= C.DEV_MODE_MULTIPLIER;
         }
+
+        // Apply golem multipliers LAST
+        if (golemMultipliers.mana) {
+            totalClick *= golemMultipliers.mana;
+        }
+
         return totalClick;
-    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana, achievementBonus, researchBonuses.manaPerClick]);
+    }, [items, prestigeMultipliers.manaClick, itemUpgradeMultipliers, workshopUpgradeMultipliers, devMode, generationPerSecond.mana, achievementBonus, researchBonuses.manaPerClick, golemMultipliers]);
 
     const itemPurchaseDetails = useMemo(() => {
         const detailsMap = new Map<string, PurchaseDetails>();
