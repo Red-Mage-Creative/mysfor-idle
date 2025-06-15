@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { useGameState } from './useGameState';
 import type { BuyQuantity } from './useGameState';
@@ -11,14 +12,9 @@ import { prestigeUpgrades } from '@/lib/prestigeUpgrades';
 const BUY_QUANTITY_KEY = 'magitech_idle_buy_quantity_v2';
 const WORKSHOP_UPGRADE_COST_GROWTH_RATE = 1.25;
 
-type UseGameActionsProps = ReturnType<typeof useGameState> & {
-    itemPurchaseDetails: Map<string, PurchaseDetails>;
-    potentialShards: number;
-    canPrestige: boolean;
+type UseGameActionsProps = ReturnType<typeof useGameState> & ReturnType<typeof useGameCalculations> & {
     debouncedSave: () => void;
     immediateSave: (reason?: string) => void;
-    overclockInfo: ReturnType<typeof useGameCalculations>['overclockInfo'];
-    prestigeMultipliers: ReturnType<typeof useGameCalculations>['prestigeMultipliers'];
 };
 
 export const useGameActions = (props: UseGameActionsProps) => {
@@ -45,6 +41,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         prestigeCount, setPrestigeCount,
         prestigeMultipliers,
         setAutoBuySettings,
+        generationPerSecond,
     } = props;
 
     const updateBuyQuantity = useCallback((q: BuyQuantity) => {
@@ -241,17 +238,32 @@ export const useGameActions = (props: UseGameActionsProps) => {
     }, [setDevMode]);
 
     const devGrantResources = useCallback(() => {
-        const manaToGrant = 1e9;
+        // Grant ~1 hour of current production levels
+        const secondsOfProduction = 3600;
+        const gen = generationPerSecond || {};
+
+        // Use current generation per second, with a fallback minimum if generation is low/zero
+        const manaToGrant = Math.max(1e8, (gen.mana || 0) * secondsOfProduction);
+        const gearsToGrant = Math.max(1e5, (gen.cogwheelGears || 0) * secondsOfProduction);
+        const essenceToGrant = Math.max(1e5, (gen.essenceFlux || 0) * secondsOfProduction);
+        const researchToGrant = Math.max(1e5, (gen.researchPoints || 0) * secondsOfProduction);
+        
+        // Grant shards based on prestige count and current balance to help test prestige upgrades
+        const shardsToGrant = Math.max(1000, Math.floor((currencies.aetherShards || 0) * 0.2) + 500 * (prestigeCount + 1));
+
         setCurrencies(prev => ({
             mana: prev.mana + manaToGrant,
-            cogwheelGears: prev.cogwheelGears + 1e6,
-            essenceFlux: prev.essenceFlux + 1e6,
-            researchPoints: prev.researchPoints + 1e6,
-            aetherShards: prev.aetherShards + 1e3,
+            cogwheelGears: prev.cogwheelGears + gearsToGrant,
+            essenceFlux: prev.essenceFlux + essenceToGrant,
+            researchPoints: prev.researchPoints + researchToGrant,
+            aetherShards: prev.aetherShards + shardsToGrant,
         }));
         setLifetimeMana(prev => prev + manaToGrant);
-        toast.success("Granted Dev Resources!");
-    }, [setCurrencies, setLifetimeMana]);
+        
+        toast.success("Granted Dev Resources!", {
+            description: `+${manaToGrant.toLocaleString('en-US', { notation: 'compact' })} Mana, +${shardsToGrant.toLocaleString('en-US', { notation: 'compact' })} Shards, etc.`
+        });
+    }, [generationPerSecond, currencies.aetherShards, prestigeCount, setCurrencies, setLifetimeMana]);
 
     const clearOfflineEarnings = useCallback(() => setOfflineEarnings(null), [setOfflineEarnings]);
 
