@@ -285,7 +285,7 @@ const Index = () => {
                                                   <challenge.icon className={cn("h-6 w-6", isUnlocked ? "text-primary" : "")} />
                                                   <h3 className="text-lg font-semibold">{challenge.name}</h3>
                                                   {!isUnlocked && <Badge variant="secondary"><Lock className="h-3 w-3 mr-1" /> Requires {challenge.unlocksAtPrestige} Prestiges</Badge>}
-                                                  {isCompleted && <Badge variant="success"><CheckCircle2 className="h-3 w-3 mr-1" /> {completions} Completion{completions > 1 ? 's' : ''}</Badge>}
+                                                  {isCompleted && <Badge variant="outline" className="border-emerald-600 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-500 dark:bg-emerald-950 dark:text-emerald-400 dark:hover:bg-emerald-900"><CheckCircle2 className="h-3 w-3 mr-1" /> {completions} Completion{completions > 1 ? 's' : ''}</Badge>}
                                               </div>
                                               <p className="text-sm text-muted-foreground mt-1">{challenge.description}</p>
                                               <p className="text-sm mt-1"><b>Goal:</b> {challenge.goalDescription}</p>
