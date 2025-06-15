@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGame } from '@/context/GameContext';
 import ForgeCard from '@/components/game/ForgeCard';
@@ -19,6 +20,7 @@ import type { AutoBuyStatus } from '@/components/game/AutoBuyStatusIndicator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { challenges, challengeMap } from '@/lib/challenges';
+import { formatNumber } from '@/lib/formatters';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Lock, XCircle } from 'lucide-react';
 import { OverclockControls } from '@/components/game/OverclockControls';
