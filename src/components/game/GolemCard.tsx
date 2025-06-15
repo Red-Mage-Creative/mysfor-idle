@@ -17,27 +17,28 @@ interface GolemCardProps {
 
 const formatEffect = (effect: GolemEffect) => {
     switch (effect.type) {
-        case 'generationMultiplier':
+        case 'generationMultiplier': {
             const percentage = (effect.value - 1) * 100;
             const sign = percentage > 0 ? '+' : '';
             const targetName = effect.target.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
             const color = percentage > 0 ? 'text-green-600' : 'text-red-600';
             const Icon = percentage > 0 ? ArrowUp : ArrowDown;
             return <span className={color}><Icon className="inline w-4 h-4 mr-1" />{sign}{percentage.toFixed(0)}% {targetName} Gen</span>;
-        
-        case 'flatGeneration':
+        }
+        case 'flatGeneration': {
             const flatSign = effect.value > 0 ? '+' : '';
             const flatTargetName = effect.target.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
             const flatColor = effect.value > 0 ? 'text-green-600' : 'text-red-600';
             const FlatIcon = effect.value > 0 ? ArrowUp : ArrowDown;
             return <span className={flatColor}><FlatIcon className="inline w-4 h-4 mr-1" />{flatSign}{formatNumber(effect.value)} {flatTargetName}/s</span>;
-
-        case 'costMultiplier':
+        }
+        case 'costMultiplier': {
              const costPercentage = (effect.value - 1) * 100;
              const costColor = costPercentage > 0 ? 'text-red-600' : 'text-green-600';
              const CostIcon = costPercentage > 0 ? ChevronsUp : ChevronsDown;
              const sign = costPercentage > 0 ? '+' : '';
              return <span className={costColor}><CostIcon className="inline w-4 h-4 mr-1" />{sign}{costPercentage.toFixed(0)}% All Costs</span>;
+        }
     }
 };
 
