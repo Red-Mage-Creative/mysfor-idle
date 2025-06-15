@@ -116,7 +116,7 @@ export const useGameSession = ({
         setHasBeatenGame(false);
         setGameCompletionShown(false);
         localStorage.removeItem(C.SAVE_KEY);
-        localStorage.removeItem(BUY_QUANTITY_KEY);
+        localStorage.removeItem(C.BUY_QUANTITY_KEY);
     }, [
         setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades,
         setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades,
