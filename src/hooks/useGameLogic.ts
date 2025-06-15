@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useGameState } from './useGameState';
 import { useGameCalculations } from './useGameCalculations';
 import { useGameSession } from './useGameSession';
@@ -46,7 +46,7 @@ export const useGameLogic = () => {
 
         toast.success("Achievement Unlocked!", {
             description: achievement.name,
-            icon: <achievement.icon className="w-5 h-5" />,
+            icon: React.createElement(achievement.icon, { className: "w-5 h-5" }),
         });
         debouncedSave();
     }, [achievements, setAchievements, debouncedSave]);
