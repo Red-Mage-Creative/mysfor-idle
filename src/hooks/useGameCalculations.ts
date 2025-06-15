@@ -18,6 +18,7 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         prestigeCount: props.prestigeCount,
         ancientKnowledgeNodes: props.ancientKnowledgeNodes,
         activeChallengeId: props.activeChallengeId,
+        dimensionalUpgrades: props.dimensionalUpgrades,
     });
 
     const production = useProduction({
@@ -97,6 +98,7 @@ export const useGameCalculations = (props: ReturnType<typeof useGameState>) => {
         ancientKnowledgeBonus: multipliers.ancientKnowledgeBonus,
         synergyBonus: multipliers.synergyBonus,
         challengeEffects: multipliers.challengeEffects,
+        multiPrestigeBonus: multipliers.multiPrestigeBonus,
 
         // From production
         overclockInfo: production.overclockInfo,
