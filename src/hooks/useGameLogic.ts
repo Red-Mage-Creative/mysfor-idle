@@ -139,8 +139,10 @@ export const useGameLogic = () => {
         if (unlockedResearchNodes.size >= 10) unlockAchievement('research_10_nodes');
         if (unlockedResearchNodes.size >= 25) unlockAchievement('research_25_nodes');
         if (unlockedResearchNodes.size >= 50) unlockAchievement('research_50_nodes');
-        if (unlockedResearchNodes.has('mana_mastery')) unlockAchievement('research_path_magitech');
-        if (unlockedResearchNodes.has('machine_mastery')) unlockAchievement('research_path_mechanical');
+        if (unlockedResearchNodes.has('magitech_mastery')) unlockAchievement('research_path_magitech');
+        if (unlockedResearchNodes.has('mechanical_mastery')) unlockAchievement('research_path_mechanical');
+        if (unlockedResearchNodes.has('trans_1_junction_3')) unlockAchievement('research_path_mystical');
+        if (unlockedResearchNodes.has('trans_5_final')) unlockAchievement('research_complete_tree');
         
         // Cosmic Resonator
         const cosmicResonator = items.find(item => item.id === 'cosmic_resonator');

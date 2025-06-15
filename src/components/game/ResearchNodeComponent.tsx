@@ -12,9 +12,10 @@ interface ResearchNodeProps {
   canUnlock: boolean;
   onUnlock: (nodeId: string) => void;
   researchPoints: number;
+  nodeSpacing: number;
 }
 
-const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, canUnlock, onUnlock, researchPoints }) => {
+const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, canUnlock, onUnlock, researchPoints, nodeSpacing }) => {
   const Icon = node.icon;
   const status = isUnlocked ? 'unlocked' : canUnlock ? 'available' : 'locked';
   const canAfford = researchPoints >= node.cost;
@@ -34,12 +35,15 @@ const ResearchNodeComponent: React.FC<ResearchNodeProps> = ({ node, isUnlocked, 
               'absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300 transform-gpu',
               {
                 'bg-slate-700 border-slate-500 text-slate-400': status === 'locked',
-                'bg-green-900 border-green-500 text-white shadow-lg shadow-green-500/50 cursor-pointer hover:scale-110': status === 'unlocked',
+                'bg-green-900 border-green-500 text-white shadow-lg shadow-green-500/50': status === 'unlocked',
                 'bg-slate-800 border-yellow-500 text-yellow-300 cursor-pointer hover:scale-110 shadow-lg shadow-yellow-500/20': status === 'available' && canAfford,
                 'bg-slate-800 border-red-500 text-red-400 cursor-not-allowed': status === 'available' && !canAfford,
               }
             )}
-            style={{ left: `${node.position.x * 7}rem`, top: `${node.position.y * 7}rem`, transform: 'translate(-50%, -50%)' }}
+            style={{ 
+              left: `${node.position.x * nodeSpacing}rem`, 
+              top: `${node.position.y * nodeSpacing}rem`,
+            }}
             onClick={handleClick}
           >
             {status === 'locked' && <Lock className="w-6 h-6" />}
