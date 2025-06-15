@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { initialItems } from '@/lib/initialItems';
 import { allItemUpgrades } from '@/lib/itemUpgrades';
@@ -20,6 +21,7 @@ export const getFreshInitialWorkshopUpgrades = (): WorkshopUpgrade[] => {
 export const useGameState = () => {
     const [isLoaded, setIsLoaded] = useState(false);
     const [offlineEarnings, setOfflineEarnings] = useState<OfflineEarnings | null>(null);
+    const [isIntroModalOpen, setIsIntroModalOpen] = useState(false);
 
     const [currencies, setCurrencies] = useState<Currencies>({ mana: 0, cogwheelGears: 0, essenceFlux: 0, researchPoints: 0, aetherShards: 0 });
     const [items, setItems] = useState<Item[]>(getFreshInitialItems);
@@ -66,6 +68,7 @@ export const useGameState = () => {
     return {
         isLoaded, setIsLoaded,
         offlineEarnings, setOfflineEarnings,
+        isIntroModalOpen, setIsIntroModalOpen,
         currencies, setCurrencies,
         items, setItems,
         itemUpgrades, setItemUpgrades,

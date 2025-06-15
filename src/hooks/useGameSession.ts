@@ -85,6 +85,7 @@ export const useGameSession = ({
     generationPerSecond,
     hasBeatenGame, setHasBeatenGame,
     gameCompletionShown, setGameCompletionShown,
+    setIsIntroModalOpen,
 }: UseGameSessionProps) => {
 
     const debounceSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -198,23 +199,14 @@ export const useGameSession = ({
     }, [saveGame]);
 
     useEffect(() => {
-        try {
-            const saved = localStorage.getItem(BUY_QUANTITY_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (['1', '5', '10', 'next', 'max'].includes(String(parsed))) {
-                    setBuyQuantity(parsed);
-                }
-            }
-        } catch (e) {
-            console.error("Could not load buy quantity", e)
-        }
-    }, [setBuyQuantity]);
-
-    useEffect(() => {
         const loadGame = () => {
             try {
                 const savedGame = localStorage.getItem(C.SAVE_KEY);
+                const hasSeenIntro = localStorage.getItem(C.INTRO_SEEN_KEY);
+
+                if (!savedGame && !hasSeenIntro) {
+                    if (setIsIntroModalOpen) setIsIntroModalOpen(true);
+                }
 
                 if (!savedGame) {
                     setIsLoaded(true);
@@ -364,7 +356,7 @@ export const useGameSession = ({
         };
 
         loadGame();
-    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setOverclockLevel, setHasBeatenGame, setGameCompletionShown]); // Dependencies are now just setters
+    }, [resetState, setIsLoaded, setCurrencies, setItems, setItemUpgrades, setWorkshopUpgrades, setLifetimeMana, setPrestigeUpgradeLevels, setNotifiedUpgrades, setHasEverClicked, setHasEverPrestiged, setPrestigeCount, setOfflineEarnings, setLastSaveTime, setOverclockLevel, setHasBeatenGame, setGameCompletionShown, setIsIntroModalOpen]); // Dependencies are now just setters
 
     useEffect(() => {
         const gameLoop = setInterval(() => {

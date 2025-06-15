@@ -41,6 +41,7 @@ export const useGameActions = (props: UseGameActionsProps) => {
         prestigeMultipliers,
         setAutoBuySettings,
         generationPerSecond,
+        setIsIntroModalOpen,
     } = props;
 
     const updateBuyQuantity = useCallback((q: BuyQuantity) => {
@@ -308,6 +309,20 @@ export const useGameActions = (props: UseGameActionsProps) => {
         }
     }, [currencies, workshopUpgrades, setCurrencies, setWorkshopUpgrades, immediateSave]);
 
+    const handleCloseIntroModal = useCallback((dontShowAgain: boolean) => {
+        if (setIsIntroModalOpen) {
+            setIsIntroModalOpen(false);
+            if (dontShowAgain) {
+                try {
+                    localStorage.setItem(C.INTRO_SEEN_KEY, 'true');
+                } catch (e) {
+                    console.error("Could not save 'intro seen' preference", e);
+                    toast.error("Could not save preference.");
+                }
+            }
+        }
+    }, [setIsIntroModalOpen]);
+
     const toggleDevMode = useCallback(() => {
         setDevMode(prev => {
             const newState = !prev;
@@ -373,5 +388,6 @@ export const useGameActions = (props: UseGameActionsProps) => {
         toggleAutoBuySetting,
         handleBuyAllItemUpgrades,
         handleBuyAllWorkshopUpgrades,
+        handleCloseIntroModal,
     };
 };

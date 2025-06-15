@@ -12,6 +12,7 @@ import { GameProvider, useGame } from "./context/GameContext";
 import { useEffect, useState } from "react";
 import { VictoryModal } from "./components/game/VictoryModal";
 import EndCreditsPage from "./pages/EndCredits";
+import { IntroModal } from "./components/game/IntroModal";
 
 const queryClient = new QueryClient();
 
@@ -31,9 +32,18 @@ const AppContent = () => {
     game?.immediateSave?.('victory-modal-closed');
   };
 
+  const handleCloseIntroModal = (dontShowAgain: boolean) => {
+    game?.handleCloseIntroModal?.(dontShowAgain);
+  };
+
+  if (!game) {
+    return null; // Or a loading spinner
+  }
+
   return (
     <>
-      {game && <VictoryModal isOpen={showVictoryModal} onClose={handleCloseVictoryModal} />}
+      <IntroModal isOpen={game.isIntroModalOpen} onClose={handleCloseIntroModal} />
+      <VictoryModal isOpen={showVictoryModal} onClose={handleCloseVictoryModal} />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Index />} />
