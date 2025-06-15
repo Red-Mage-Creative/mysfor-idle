@@ -1,5 +1,5 @@
 
-import { Bot, Cog, BrainCircuit } from 'lucide-react';
+import { Bot, Cog, BrainCircuit, Droplet, Hammer } from 'lucide-react';
 import { Golem } from './gameTypes';
 
 export const allGolems: Golem[] = [
@@ -35,6 +35,30 @@ export const allGolems: Golem[] = [
             { type: 'costMultiplier', target: 'all', value: 1.15 }, // +15% to all costs
         ],
         icon: BrainCircuit,
+    },
+    {
+        id: 'vampire_golem',
+        name: 'Vampire Golem',
+        description: 'Feasts on your lesser resources to supercharge your mana production.',
+        cost: 500,
+        effects: [
+            { type: 'generationMultiplier', target: 'mana', value: 3 }, // +200% mana
+            { type: 'generationMultiplier', target: 'cogwheelGears', value: 0.1 }, // -90% gears
+            { type: 'generationMultiplier', target: 'researchPoints', value: 0.1 }, // -90% research
+        ],
+        icon: Droplet,
+    },
+    {
+        id: 'forge_golem',
+        name: 'Forge Golem',
+        description: 'A master artisan. It makes everything cheaper, but its meticulous work slows down production.',
+        cost: 750,
+        effects: [
+            { type: 'costMultiplier', target: 'all', value: 0.8 }, // -20% all costs
+            { type: 'generationMultiplier', target: 'mana', value: 0.75 }, // -25% mana gen
+            { type: 'generationMultiplier', target: 'cogwheelGears', value: 0.75 }, // -25% gear gen
+        ],
+        icon: Hammer,
     },
 ];
 

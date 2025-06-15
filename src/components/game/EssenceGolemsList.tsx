@@ -85,8 +85,8 @@ const EssenceGolemsList: React.FC<EssenceGolemsListProps> = ({
                                     );
                                 })}
                                 {totalEffects.costMultiplier !== 1 && (
-                                    <li className="text-red-600">
-                                        All Costs: +{((totalEffects.costMultiplier - 1) * 100).toFixed(0)}%
+                                    <li className={(totalEffects.costMultiplier - 1) > 0 ? 'text-red-600' : 'text-green-600'}>
+                                        All Costs: {(totalEffects.costMultiplier - 1) > 0 ? '+' : ''}{((totalEffects.costMultiplier - 1) * 100).toFixed(0)}%
                                     </li>
                                 )}
                             </ul>

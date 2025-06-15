@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatNumber } from '@/lib/formatters';
-import { Gem, ArrowUp, ArrowDown, ChevronsUp } from 'lucide-react';
+import { Gem, ArrowUp, ArrowDown, ChevronsUp, ChevronsDown } from 'lucide-react';
 
 interface GolemCardProps {
     golem: Golem;
@@ -35,7 +35,9 @@ const formatEffect = (effect: GolemEffect) => {
         case 'costMultiplier':
              const costPercentage = (effect.value - 1) * 100;
              const costColor = costPercentage > 0 ? 'text-red-600' : 'text-green-600';
-             return <span className={costColor}><ChevronsUp className="inline w-4 h-4 mr-1" />+{costPercentage.toFixed(0)}% All Costs</span>;
+             const CostIcon = costPercentage > 0 ? ChevronsUp : ChevronsDown;
+             const sign = costPercentage > 0 ? '+' : '';
+             return <span className={costColor}><CostIcon className="inline w-4 h-4 mr-1" />{sign}{costPercentage.toFixed(0)}% All Costs</span>;
     }
 };
 
